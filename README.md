@@ -1,3 +1,3 @@
-# # ddd
+# # 学习笔记
 
-> An awesome project.
+> java、Linux、部署、前端等知识的学习以及开发过程中遇到的问题汇总
