@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="eca71186-267f-4d3e-80e4-759dce0e502e" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeInsightWorkspaceSettings">
+    <option name="optimizeImportsOnTheFly" value="true" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="localRepository" value="D:\apache-maven-3.6.1\repository-nexus" />
+        <option name="mavenHome" value="$PROJECT_DIR$/../../apache-maven-3.6.1" />
+        <option name="userSettingsFile" value="D:\apache-maven-3.6.1\conf\settings-nexus.xml" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectId" id="1xRLeFSSxMaSGXUGZ1eKCxvgnmq" />
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="flattenModules" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showVisibilityIcons" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/插件/IDEA" />
+    <property name="settings.editor.selected.configurable" value="project.scopes" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Code\docs\插件\IDEA" />
+      <recent name="D:\Code\docs\插件" />
+      <recent name="D:\Code\docs\images" />
+      <recent name="D:\Code\docs\images\Java_other" />
+      <recent name="D:\Code\docs\images\SpringCloud" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Code\docs\插件\开源三方API" />
+      <recent name="D:\Code\docs\前端\基础" />
+      <recent name="D:\Code\docs" />
+    </key>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="eca71186-267f-4d3e-80e4-759dce0e502e" name="Default Changelist" comment="" />
+      <created>1630313047218</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1630313047218</updated>
+      <workItem from="1630313048829" duration="419000" />
+      <workItem from="1630313499743" duration="10298000" />
+      <workItem from="1630371058591" duration="7355000" />
+    </task>
+    <task id="LOCAL-00001" summary="&quot;开发&quot;">
+      <created>1630377681592</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1630377681592</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="&quot;开发&quot;" />
+    <option name="LAST_COMMIT_MESSAGE" value="&quot;开发&quot;" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="1510" y="-1118" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1630322768251">
+      <screen x="786" y="-1440" width="1986" height="1152" />
+    </state>
+    <state x="1510" y="-1118" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1536.824/786.-1440.1986.1152@786.-1440.1986.1152" timestamp="1630322768251" />
+    <state x="1594" y="-1163" key="RollbackChangesDialog" timestamp="1630378211645">
+      <screen x="786" y="-1440" width="1986" height="1152" />
+    </state>
+    <state x="1594" y="-1163" key="RollbackChangesDialog/0.0.1536.824/786.-1440.1986.1152@786.-1440.1986.1152" timestamp="1630378211645" />
+    <state x="1372" y="-1132" key="Vcs.Push.Dialog.v2" timestamp="1630378334763">
+      <screen x="786" y="-1440" width="1986" height="1152" />
+    </state>
+    <state x="1372" y="-1132" key="Vcs.Push.Dialog.v2/0.0.1536.824/786.-1440.1986.1152@786.-1440.1986.1152" timestamp="1630378334763" />
+    <state x="1479" y="-1132" width="600" height="594" key="find.popup" timestamp="1630375387846">
+      <screen x="786" y="-1440" width="1986" height="1152" />
+    </state>
+    <state x="1479" y="-1132" width="600" height="594" key="find.popup/0.0.1536.824/786.-1440.1986.1152@786.-1440.1986.1152" timestamp="1630375387846" />
+    <state x="1557" y="-965" key="git4idea.remote.GitConfigureRemotesDialog" timestamp="1630378305618">
+      <screen x="786" y="-1440" width="1986" height="1152" />
+    </state>
+    <state x="1557" y="-965" key="git4idea.remote.GitConfigureRemotesDialog/0.0.1536.824/786.-1440.1986.1152@786.-1440.1986.1152" timestamp="1630378305618" />
+    <state x="1442" y="-1187" width="672" height="678" key="search.everywhere.popup" timestamp="1630314076574">
+      <screen x="786" y="-1440" width="1986" height="1152" />
+    </state>
+    <state x="1442" y="-1187" width="672" height="678" key="search.everywhere.popup/0.0.1536.824/786.-1440.1986.1152@786.-1440.1986.1152" timestamp="1630314076574" />
+    <state x="1502" y="-953" key="vcs.readOnlyHandler.ReadOnlyStatusDialog" timestamp="1630373419174">
+      <screen x="786" y="-1440" width="1986" height="1152" />
+    </state>
+    <state x="1502" y="-953" key="vcs.readOnlyHandler.ReadOnlyStatusDialog/0.0.1536.824/786.-1440.1986.1152@786.-1440.1986.1152" timestamp="1630373419174" />
+  </component>
+</project>
