@@ -1,6 +1,6 @@
 # 学习笔记
 
-## 1. Linux
+## 1. Linuxaaddada
 
 ### 1.1 linux命令
 
