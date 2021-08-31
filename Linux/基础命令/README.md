@@ -1,4 +1,4 @@
-#  Linux(CentOS)
+# Linux(CentOS)
 
 ## 1. 内置命令和外置命令区别
 

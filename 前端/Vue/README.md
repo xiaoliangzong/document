@@ -194,11 +194,7 @@ props: {
 
 @keyup.enter.native=""
 
-## 11.
-
-## 12.
-
-## 13.Vue3 Composition API
+## 11.Vue3 Composition API
 
 ```yml
 Composition API 的入口在 setup() 函数中，beforeCreate之前进行触发, 需要 return
@@ -316,3 +312,14 @@ NProgress.configure({ showSpinner: false }) // 进度环隐藏显示
 #nprogress .bar {
 background: red !important; //自定义颜色
 }
+
+## 前后端分离项目无法获取到 session 中的值（验证码）
+
+跨域情况下，默认不允许传送 cookie。因此，需要对前后端进行设置
+
+需要在前端代码每次发送请求时添加 axios.defaults.withCredentials = true，此时在后台两次请求获取的 sessionId 完全相同，也就是同一个 session
+
+## 前端常用加密算法
+
+1. RSA: JSEncrypt，密钥对生成 http://web.chacuo.net/netrsakeypair
+2. AES/DES 加密解密：crypto-js.js

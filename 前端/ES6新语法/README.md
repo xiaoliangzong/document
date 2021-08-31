@@ -1,6 +1,4 @@
-# es6 学习整理
-
-## 二、es6 语法
+## es6
 
 ```js
 function (config) {
@@ -31,7 +29,7 @@ window.URL.createObjectURL() 可以用于在浏览器上预览本地图片或者
 
 @click.native.prevent
 
-#### new Promise():
+## new Promise():
 
 1.  Promise 是一个构造函数，自己身上有 all、reject、resolve 这几个眼熟的方法，原型上有 then、catch 等同样很眼熟的方法
 2.  Promise，简单说就是一个容器，里面保存着某个未来才会结束的事件（通常是一个异步操作）的结果。从语法上说，Promise 是一个对象，从它可以获取异步操作的消息。

@@ -1,5 +1,3 @@
-# maven
-
 ## maven 打包配置文件
 
 ```xml

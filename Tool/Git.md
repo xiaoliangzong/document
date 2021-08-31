@@ -1,11 +1,3 @@
-# Git
-
-## 概念
-
-1. 库：文件目录，是需要进行版本控制的
-2. 分支：修改记录的整体流程分叉
-3. tag：标签，是 git 的一种标记，指向某一次提交，用于版本发布的管理
-
 ## 初始配置
 
 ```bash
@@ -28,7 +20,7 @@ git config -l
 # 1. 默认分支(master)克隆
 git clone <remote_url>
 # 2. 指定分支克隆
-git clone -b 远端分支名称 远端地址
+git clone -b 远端分支名称 <remote_url>
 # 3. idea 工具(http 协议)克隆
 点击 VCS -> 选择 Get from version control
 ```
@@ -56,7 +48,6 @@ git checkout -t origin/dev
 # 8. 远端新建（已有）分支，本地创建不同名的分支开发
 git checkout -b 本地分支 远端分支
 
-dddd
 # 9. 删除远端分支
 git push origin --delete 分支名
 # 10. 删除分支
@@ -130,11 +121,11 @@ git commit -m "提交"
 git push 推送到远程
 ```
 
-### tag 标签
+### tag
 
-> tag 是 git 版本库的一个标记，只想某个 commit 的指针
-
-> tag 主要用于发布版本的管理，一个版本发布之后，我们可以为 git 打上 v.1.0.1 v.1.0.2 ...这样的标签。
+> tag 是 git 版本库的一个标记，指向某个 commit 的指针
+>
+> tag 主要用于发布版本的管理，一个版本发布之后，我们可以为 git 打上 v.1.0.1...这样的标签。
 
 tag 和 branch 区别
 
@@ -153,10 +144,8 @@ git push origin <origin>
 
 # 3. 查看标签
 git show <tagName>      # 查看本地某个tag的详细信息
-
 git tag
 git tag -l              # 查看本地所有tag
-
 git ls-remote --tags origin   # 查看远程所有的tag
 
 # 4. 删除标签
@@ -170,7 +159,7 @@ git checkout <tagName>
 git branch --contains tags/<tag>
 ```
 
-### 合并分支代码
+### 合并分支
 
 ```bash
 # 将开发分支代码合并到master

@@ -232,3 +232,28 @@ public class RestTemplateConfig {
 }
 
 ```
+
+3. Random、ThreadLocalRandom、SecureRandom
+
+1. Random：伪随机数，通过种子生成随机数，种子默认使用系统时间，可预测，安全性不高，线程安全；
+1. ThreadLocalRandom：jdk7 才出现的，多线程中使用，虽然 Random 线程安全，但是由于 CAS 乐观锁消耗性能，所以多线性推荐使用
+1. SecureRandom：可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom。
+
+相同点：种子相同，在相同条件，运行相同次数产生的随机数相同；
+
+## 4. restful 与 rpc
+
+1. RPC： Remote Procedure Call、远程过程调用，是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。
+2. Restful：是一种软件架构风格，设计风格，而不是标准，只是提供了一组设计原则和约束条件，主要用于客户端和服务器交互类的软件。通过 http 协议中的 post、get、put、delete 等方法和一个可读性强的 url 提供一个 http 请求。
+
+   - 面向资源。通过 url 将资源暴露出来；与资源的操作无关，操作通过该 http 动词来体现。比如 get /rest/api/getDogs => get /rest/api/dogs
+   - rest 利用 http 本身的就有的一些特性。比如 http 状态码，http 报头
+     200 OK
+     400 Bad Request 客服端错误，前端调用的问题
+     500 Internal Server Error 服务器错误，后端代码问题
+
+3. 区别：
+   - restful 是基于 http。而 rpc 则不一定通过 http，更常用的是使用 TCP 来实现。RPC 可以获得更好的性能（省去了 HTTP 报头等一系列东西）,TCP 更加高效，而 HTTP 在实际应用中更加的灵活。
+   - restfull 和 rpc 都是 client/server 模式的，都是在 Server 端 把一个个函数封装成接口暴露出去
+   - 从使用上来说：Http 接口只关注服务提供方（服务端），对于客户端怎么调用，调用方式怎样并不关心；而 RPC 服务则需要客户端接口与服务端保持一致，服务端提供一个方法，客户端通过接口直接发起调用。
+   - restful 采用标准的数据格式，异构的客户端与服务器通信方便；RPC 整个请求的方法对客户端不可见，异构的客户端与服务器通信比较难；
