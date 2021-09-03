@@ -24,6 +24,7 @@ Spring 的 AOP：
 ## 2. 深拷贝和浅拷贝
 
 > 区别：最根本的区别在于是否真正获取一个对象的复制实体，而不是引用。
+> java 的赋值都是传值的，对于基础类型来说，会拷贝具体的内容，但是对于引用对象来说，存储的这个值只是指向实际对象的地址，拷贝也只会拷贝引用地址。
 
 1. 浅拷贝：官方的定义为对基本数据类型进行值传递，对引用数据类型进行引用传递般的拷贝。
 2. 深拷贝：官方的定义为对基本数据类型进行值传递，对引用数据类型，创建一个新的对象，并复制其内容。
@@ -284,18 +285,19 @@ public static void main(String[] args) {
 
 2.  蛇形命名法（snake case）
     - 下划线将单词链接：file_name
-    
-    
+
 # 自定义异常
 
 ## 1.说明：
-在后台编写业务逻辑时，可能会遇到异常捕获并抛出处理的情况，基本上来说只需要使用try-catch来判断即可，遇到一些比较复杂的逻辑，try-catch还是很有必要的，但是如果只是简单的异常要阻断当前流程并返回相应的信息，业务比较多的系统的话，自定义一个抛出异常工具类可以减少相应代码量，方便后期维护完善。
 
-后端通常会通过throw出一个异常对象，前端再将接收到的异常对象code和message进行二次判断
+在后台编写业务逻辑时，可能会遇到异常捕获并抛出处理的情况，基本上来说只需要使用 try-catch 来判断即可，遇到一些比较复杂的逻辑，try-catch 还是很有必要的，但是如果只是简单的异常要阻断当前流程并返回相应的信息，业务比较多的系统的话，自定义一个抛出异常工具类可以减少相应代码量，方便后期维护完善。
+
+后端通常会通过 throw 出一个异常对象，前端再将接收到的异常对象 code 和 message 进行二次判断
 
 ## 2.使用步骤
 
-### 2.1 自定义异常继承RunTimeException
+### 2.1 自定义异常继承 RunTimeException
+
 ```java
 @Data
 public class BaseException extends RuntimeException
@@ -366,15 +368,17 @@ public String getMessage()
 }
 }
 ```
+
 ### 2.2 自定义异常处理类，方便对各种类型的异常进行封装对象，并返回
-@RestControllerAdvice和@ControllerAdvice
-@RestControllerAdvice注解包含了@ControllerAdvice注解和@ResponseBody注解
-当自定义类加注解@RestControllerAdvice或ControllerAdvice和RequestBody时，方法返回json数据。
+
+@RestControllerAdvice 和@ControllerAdvice
+@RestControllerAdvice 注解包含了@ControllerAdvice 注解和@ResponseBody 注解
+当自定义类加注解@RestControllerAdvice 或 ControllerAdvice 和 RequestBody 时，方法返回 json 数据。
 
 ```java
 /**
 * 全局异常处理器
-* 
+*
 * @author ruoyi
 */
 @RestControllerAdvice
@@ -462,10 +466,10 @@ public Object validExceptionHandler(MethodArgumentNotValidException e)
 }
 }
 ```
-    
+
 # 读取文件的几种方式
 
-## InputStream读取二进制文件，包括图片、文件、声音、影像等
+## InputStream 读取二进制文件，包括图片、文件、声音、影像等
 
 ```java
 public static void readFileByBytes(String fileName) {
@@ -518,7 +522,7 @@ private static void showAvailableBytes(InputStream in) {
 }
 ```
 
-## Reader读取文件
+## Reader 读取文件
 
 ```java
 public static void readFileByChars(String fileName) {
@@ -642,7 +646,8 @@ public static void readFileByRandomAccess(String fileName) {
     }
 }
 ```
-# 网络URL获取文件、图片
+
+# 网络 URL 获取文件、图片
 
 ```java
 URL url = new URL(path);
@@ -683,4 +688,3 @@ bis.close();
 out.close();
 System.out.println("文件下载成功！");
 ```
-

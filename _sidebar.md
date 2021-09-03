@@ -5,7 +5,6 @@
   - [Java8 新特性](Java/Java8新特性/)
   - [Mybatis](Java/Mybatis/)
   - [Quartz](Java/Quartz/)
-  - [Swagger](Java/Swagger/)
   - [权限认证](Java/Security.md)
   - [消息队列](Java/RabbitMQ.md)
   - [Spring](Java/Spring/)
@@ -20,6 +19,8 @@
 - [**Maven**](Tool/Maven.md)
 
 - [**Nginx**](Tool/Nginx.md)
+
+- [**Swagger**](Tool/Swagger.md)
 
 - [**PhotoShop**](PhotoShop/)
 

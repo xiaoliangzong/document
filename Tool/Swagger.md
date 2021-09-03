@@ -330,3 +330,54 @@ binary 任意十进制的数据序列
 [yaml 生成 java 代码](https://blog.csdn.net/yzy199391/article/details/84023982)
 
 > Maven generate-sources 根据 pom 配置去生成源代码格式的包
+
+1. SwaggerCodeGen 代码生成工具
+
+swagger- codegen-cli 脚手架工具或者访问 github 地址：https://github.com/swagger-api/swagger- codegen 根据提示操作，里面也有示例
+
+利用 Swagger Codegen 根据服务生成客户端代码
+java -jar swagger-codegen-cli-2.2.1.jar generate -i http://petstore.swagger.io/v2/swagger.json -l java -o samples/client/pestore/java
+在上面这段代码里，使用了三个参数，分别是-i 和-l 和-o。
+
+-i 指定 swagger 描述文件的路径,url 地址或路径文件;该参数为必须(http://petstore.swagger.io/v2/swagger.json是官方的一个例子，我们可以改成自己的服务)
+
+-l 指定生成客户端代码的语言,该参数为必须
+
+-o 指定生成文件的位置(默认当前目录)
+除了可以指定上面三个参数，还有一些常用的：
+
+-c json 格式的配置文件的路径;文件为 json 格式,支持的配置项因语言的不同而不同
+
+-a 当获取远程 swagger 定义时,添加授权头信息;URL-encoded 格式化的 name,逗号隔开的多个值
+
+--api-package 指定生成的 api 类的包名
+
+--invoker-package
+
+--artifact-id 指定 pom.xml 的 artifactId 的值
+
+--artifact-version 指定 pom.xml 的 artifact 的版本
+
+--group-id 指定 pom.xml 的 groupId 的值
+
+--model-package 指定生成的 model 类的包名
+
+-s 指定该参数表示不覆盖已经存在的文件
+
+-t 指定模版文件所在目录
+
+json 配置文件，可以没有，如果没有的话，上边的这些参数就需要在命令行指定
+
+```json
+{
+    "groupId" : "cn.fzk",　　　　　　　　　　　　　　# 这三个就是 maven下载jar包需要的三个参数
+    "artifactId" : "spring-cloud-client",
+    "artifactVersion" : "1.0.0",
+
+    "interfaceOnly" : "true",
+    "library" : "feign",　　　　　　　　　　　　　　  # library template to use (官网说的还没太懂，和http请求有关，用了这个就需要在项目配置相关jar包,指定了实际的实现框架)
+    "invokerPackage" : "cn.com.client",　　　　　　# 相当于源文件的真正代码的位置
+    "modelPackage" : "cn.com.client.model",　　　　# model存放的位置definitions下定义的东西
+    "apiPackage" : "cn.com.client.api"　　　　　　 # API最终在DefaultApi中，这个文件的位置
+}
+```

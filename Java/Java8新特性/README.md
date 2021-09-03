@@ -1,4 +1,4 @@
-# java8 新特性
+## Lambda 表达式
 
 ## stream 流
 
@@ -34,3 +34,9 @@ userList.stream().collect(Collectors.toMap(User::getId, User::getName, (n1, n2) 
    - 求和： Map<String, Integer> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.summingInt(Product::getNum)));
    - 转换类型： Map<String, Product> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparingInt(Product::getNum)), Optional::get)));
    - 联合其他收集器： Map<String, Set<String>> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.mapping(Product::getName, Collectors.toSet())));
+
+## 日期
+
+## 方法引用
+
+## 函数式接口

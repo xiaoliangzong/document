@@ -74,76 +74,180 @@ GenericJacksonRedisSerializer 和 Jackson2JsonRedisSerializer 都是以 JSON 格
 
 ## 5.valid、validated
 
-> @Valid 是 javax.validation.Valid 包下的。@Validated 是 javax.validation 里的。是@Valid 的一次封装。是 Spring 提供的校验机制使用。
+> 区别只要体现在分组，注解标注位置，嵌套验证等功能上
 
-1.  区别只要体现在分组，注解地方，嵌套验证等功能上
+**区别**
 
-    - 分组：@Validated 提供了分组功能，在入参验证时，根据不同的分组采用不同的验证机制。@valid 没有
+1.  @Valid 是 javax.validation.Valid 包下的；@Validated 是 javax.validation 包下的，是@Valid 的一次封装，是 Spring 提供的校验机制使用。
 
-      - 定义一个分组类（或接口）
-      - 在校验注解上添加 groups 属性指定分组
-      - Controller 方法的@Validated 注解添加分组类
+2.  分组：@Validated 提供了分组功能，在入参验证时，根据不同的分组采用不同的验证机制。@valid 没有
 
-    - 注解使用地方：
-      - @validated 可以用在类型、方法和方法参数上。但是不能用在成员属性字段上
-      - @valid 可以用在方法、构造函数、方法参数和成员属性（字段）上；两者是否能用于成员属性（字段）上直接影响能否提供嵌套验证的功能
-    - 嵌套验证 - @Validated：用在方法入参上无法单独提供嵌套验证功能。不能用在成员属性（字段）上，也无法提示框架进行嵌套验证。能配合嵌套验证注解@Valid 进行嵌套验证。 - @Valid：用在方法入参上无法单独提供嵌套验证功能。能够用在成员属性（字段）上，提示验证框架进行嵌套验证。能配合嵌套验证注解@Valid 进行嵌套验证。
+    - 定义一个分组类（或接口）
+    - 在校验注解上添加 groups 属性指定分组
+    - Controller 方法的@Validated 注解添加分组类
 
-空检查
+3.  使用位置:
 
-@NotEmpty：用在集合类上面；不能为 null，而且长度必须大于 0
-@NotBlank： 用在 String 上面；只能作用在 String 上，不能为 null，而且调用 trim()后，长度必须大于 0
-@NotNull：用在基本类型上；不能为 null，但可以为 empty。
+    - @validated 可以用在类型、方法和方法参数上。但是不能用在成员属性字段上
+    - @valid 可以用在方法、构造函数、方法参数和成员属性（字段）上；`两者是否能用于成员属性（字段）上直接影响能否提供嵌套验证的功能`
 
-长度检查
-@Size(min=,max=)：验证对象（Array,Collection,Map,String）长度是否在给定的范围之内
-不要错用了异常类型，比如在 int 上不可用@size
-@Length(min=, max=) ： 只适用于 String 类型
+4.  嵌套验证:
 
-Booelan 检查
-@AssertTrue： 验证 Boolean 对象是否为 true
-@AssertFalse： 验证 Boolean 对象是否为 false
+    - @Validated：用在方法入参上无法单独提供嵌套验证功能。不能用在成员属性（字段）上，也无法提示框架进行嵌套验证。能配合嵌套验证注解@Valid 进行嵌套验证。
+    - @Valid：用在方法入参上无法单独提供嵌套验证功能。能够用在成员属性（字段）上，提示验证框架进行嵌套验证。能配合嵌套验证注解@Validation 进行嵌套验证。
 
-日期检查
-@Past： 验证 Date 和 Calendar 对象是否在当前时间之前
-@Future： 验证 Date 和 Calendar 对象是否在当前时间之后
-@Pattern： 验证 String 对象是否符合正则表达式的规则
+5.  Service 层校验：需要两个注解一起使用，@Validation 标注在方法上，@Valid 标注在参数上；
 
-其他验证：
-@Vaild 递归验证，用于对象、数组和集合，会对对象的元素、数组的元素进行一一校验
-@Email 用于验证一个字符串是否是一个合法的右键地址，空字符串或 null 算验证通过
-@URL(protocol=,host=,port=,regexp=,flags=) 用于校验一个字符串是否是合法 URL
+**使用问题汇总**
 
-数值检查
-建议使用在 Stirng,Integer 类型，不建议使用在 int 类型上，因为表单值为"" 时无法转换为 int，但可以转换为 Stirng 为"",Integer 为 null
-@Min: 验证 Number 和 String 对象是否大等于指定的值
-@Max: 验证 Number 和 String 对象是否小等于指定的值
-@DecimalMax: 被标注的值必须不大于约束中指定的最大值. 这个约束的参数是一个通过 BigDecimal 定义的最大值的字符串表示.小数存在精度
-@DecimalMin: 被标注的值必须不小于约束中指定的最小值. 这个约束的参数是一个通过 BigDecimal 定义的最小值的字符串表示.小数存在精度
-@Digits: 验证 Number 和 String 的构成是否合法
-@Digits(integer=,fraction=): 验证字符串是否是符合指定格式的数字，interger 指定整数精度，fraction 指定小数精度。
+1. 如果参数比较少，没有封装对象，用单个参数接受参数时，需要在 Controller 上增加@Validaiton。否则不生效！
 
-注解 校验功能
-@AssertFalse 必须是 false
-@AssertTrue 必须是 true
-@DecimalMax 小于等于给定的值
-@DecimalMin 大于等于给定的值
-@Digits 可设定最大整数位数和最大小数位数
-@Email 校验是否符合 Email 格式
-@Future 必须是将来的时间
-@FutureOrPresent 当前或将来时间
-@Max 最大值
-@Min 最小值
-@Negative 负数（不包括 0）
-@NegativeOrZero 负数或 0
-@NotBlank 不为 null 并且包含至少一个非空白字符
-@NotEmpty 不为 null 并且不为空
-@NotNull 不为 null
-@Null 为 null
-@Past 必须是过去的时间
-@PastOrPresent 必须是过去的时间，包含现在
-@PositiveOrZero 正数或 0
-@Size 校验容器的元素个数
+   - `在类级别上标注@Validated注解告诉Spring需要校验方法参数上的约束。`
+
+2. 如果只在一个字段上指定了自定义的 Group，并且在验证参数的时候，那除了 自定义的 Group 标注的字段，其它的都不会被验证。
+
+   - `使用 Validation 验证时如果 Group 不写，默认为 Default.class（接口），如果其他字段想使用默认的验证，则需要自定义的Group继承Default接口，或者每个都写清楚`
+
+![validation](../../images/java_other/springboot-validation.png)
+
+**快速失败 Fail Fast 模式配置**
+
+```java
+import org.hibernate.validator.HibernateValidator;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
+
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+
+/**
+ * validate参数校验默认的是一个参数校验失败后，还会继续校验后面的参数
+ * 增加了这个配置类后，校验参数时只要出现校验失败的情况，就立即抛出对应的异常，结束校验，不再进行后续的校验；也可以在全局异常处理时，获取第一个message即可
+ */
+@Configuration
+public class ValidationConfig {
+    @Bean
+    public Validator validator() {
+        ValidatorFactory validatorFactory = Validation.byProvider(HibernateValidator.class)
+                .configure()
+                //failFast的意思只要出现校验失败的情况，就立即结束校验，不再进行后续的校验。
+                .failFast(true)
+                .buildValidatorFactory();
+        return validatorFactory.getValidator();
+    }
+
+    @Bean
+    public MethodValidationPostProcessor methodValidationPostProcessor() {
+        MethodValidationPostProcessor methodValidationPostProcessor = new MethodValidationPostProcessor();
+        methodValidationPostProcessor.setValidator(validator());
+        return methodValidationPostProcessor;
+    }
+}
+```
+
+**自定义验证**
+
+1. 自定义注解
+
+```java
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * IpAddress
+ *
+ * @Author dangbo
+ * @Date 2021/9/3 17:16
+ **/
+@Target(value = ElementType.FIELD)
+@Retention(value = RetentionPolicy.RUNTIME)
+@Documented
+@Constraint(validatedBy = IpaddressValidator.class)
+public @interface IpAddress {
+    String message() default "";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
+}
+```
+
+2. 实现 ConstraintValidator<>接口
+
+```java
+import com.fp.checking.annotation.IpAddress;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * IpaddressValidator
+ *
+ * @Author dangbo
+ * @Date 2021/9/3 17:19
+ **/
+public class IpaddressValidator implements ConstraintValidator<IpAddress, String> {
+
+    private static final Pattern PATTREN = Pattern.compile("^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})$");
+
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        Matcher matcher = PATTREN.matcher(value);
+        return matcher.matches();
+    }
+}
+```
+
+**校验注解说明**
+
+1.  空检查
+
+    - @NotEmpty：用在集合类上面；不能为 null，而且长度必须大于 0
+    - @NotBlank： 用在 String 上面；只能作用在 String 上，不能为 null，而且调用 trim()后，长度必须大于 0
+    - @NotNull：用在基本类型上；不能为 null，但可以为 empty。
+
+2.  长度检查
+
+    - @Size(min=,max=)：验证对象（Array,Collection,Map,String）长度是否在给定的范围之内，不能错用异常类型，比如在 int 上不可用@size
+    - @Length(min=, max=) ： 只适用于 String 类型
+    - @PositiveOrZero 正数或 0
+
+3.  Booelan 检查
+
+    - @AssertTrue： 验证 Boolean 对象是否为 true
+    - @AssertFalse： 验证 Boolean 对象是否为 false
+
+4.  日期检查
+
+    - @Past： 验证 Date 和 Calendar 对象是否在当前时间之前
+    - @Future： 验证 Date 和 Calendar 对象是否在当前时间之后
+    - @Pattern： 验证 String 对象是否符合正则表达式的规则
+    - @Past 必须是过去的时间
+    - @PastOrPresent 必须是过去的时间，包含现在
+
+5.  其他验证：
+
+    - @Vaild 递归验证，用于对象、数组和集合，会对对象的元素、数组的元素进行一一校验
+    - @Email 用于验证一个字符串是否是一个合法的右键地址，空字符串或 null 算验证通过
+    - @URL(protocol=,host=,port=,regexp=,flags=) 用于校验一个字符串是否是合法 URL
+
+6.  数值检查
+
+    - @Min: 验证 Number 和 String 对象是否大等于指定的值
+    - @Max: 验证 Number 和 String 对象是否小等于指定的值
+    - @DecimalMax: 被标注的值必须不大于约束中指定的最大值. 这个约束的参数是一个通过 BigDecimal 定义的最大值的字符串表示.小数存在精度
+    - @DecimalMin: 被标注的值必须不小于约束中指定的最小值. 这个约束的参数是一个通过 BigDecimal 定义的最小值的字符串表示.小数存在精度
+    - @Digits: 验证 Number 和 String 的构成是否合法
+    - @Digits(integer=,fraction=): 验证字符串是否是符合指定格式的数字，interger 指定整数精度，fraction 指定小数精度。
 
 ## 6. @Mapper 和@MapperScan
 
