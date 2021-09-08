@@ -1,4 +1,4 @@
-## Spring 特点及作用
+## Spring 概述
 
 > Spring 是一个轻量级的、非入侵式的 Java 开源框架，为了解决企业级应用开发的复杂性而创建的。
 
@@ -22,7 +22,9 @@
 
 ## Spring 核心模块
 
-<img src="../../images/Spring/spring框架模块分类.png" style="zoom:30%" />
+<p align=center>
+    <img src="../../images/Spring/spring框架模块分类.png" width="500" />
+</p>
 
 **Core Container**
 
@@ -58,6 +60,10 @@
 **Test**
 
 > Test 模块支持使用 JUnit 和 TestNG 对 Spring 组件进行测试
+
+## Spring IOC
+
+## Spring AOP
 
 ## Spring 注解
 
@@ -164,17 +170,13 @@ property 属性文件(连接数据库):
 5. 异常通知 (@AfterThrowing) 方法出现异常之后执行
 
 before：前置通知，在一个方法执行前被调用。
-
-
+
 after: 在方法执行之后调用的通知，无论方法执行是否成功。
-
-
+
 after-returning: 仅当方法成功完成后执行的通知。
-
-
+
 after-throwing: 在方法抛出异常退出时执行的通知。
-
-
+
 around: 在方法执行之前和之后调用的通知。
 
 AOP 面向切面编程
