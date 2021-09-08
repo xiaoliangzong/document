@@ -23,7 +23,7 @@
 ## Spring 核心模块
 
 <p align=center>
-    <img src="../../images/Spring/spring框架模块分类.png" width="500" />
+    <img src="../../images/Spring/spring-module.png" width="500" />
 </p>
 
 **Core Container**
