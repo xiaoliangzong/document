@@ -366,6 +366,8 @@ java -jar swagger-codegen-cli-2.2.1.jar generate -i http://petstore.swagger.io/v
 
 -t 指定模版文件所在目录
 
+--library 指定实际的实现框架
+
 json 配置文件，可以没有，如果没有的话，上边的这些参数就需要在命令行指定
 
 ```json

@@ -1,34 +1,54 @@
-- **Java**
-  - [javaSE](Java/javaSE/)
+- [**Java 基础**](README.md)
+
+- **Java 高级**
+
   - [JVM](Java/JVM/README.md)
   - [JUC](Java/JUC/)
-  - [Java8 新特性](Java/Java8新特性/)
-  - [Mybatis](Java/Mybatis/)
-  - [Quartz](Java/Quartz/)
-  - [权限认证](Java/Security.md)
-  - [消息队列](Java/RabbitMQ.md)
+
   - [Spring](Java/Spring/)
   - [SpringBoot](Java/SpringBoot/)
   - [SpringCloud](Java/SpringCloud/)
+  - [Java8 新特性](Java/Java8新特性/)
+
 - **Linux**
+
   - [基础命令](Linux/基础命令/)
   - [shell](Linux/shell/)
   - [docker](Linux/docker/)
-- [**Git**](Tool/Git.md)
 
-- [**Maven**](Tool/Maven.md)
+- **系统**
 
-- [**Nginx**](Tool/Nginx.md)
+  - [网络编程](网络/网络编程.md)
 
-- [**Swagger**](Tool/Swagger.md)
+- **组件**
 
-- [**PhotoShop**](PhotoShop/)
+  - **构建工具**
+    - [Maven](组件/Maven.md)
+  - **版本控制**
+    - [Git](组件/Git.md)
+  - **接口文档**
+    - [Swagger](组件/接口文档/swagger.md)
+    - [Knife4j](组件/接口文档/knife4j.md)
+  - **持久层框架**
+    - [Mybatis](Java/Mybatis.md)
+    - [MybatisPlus](Java/MybatisPlus.md)
+  - **定时器**
+    - [Quartz](Java/Quartz.md)
+  - **登录认证、权限控制**
+    - [概念](组件/登录认证及权限控制/)
+    - [Security](组件/登录认证及权限控制/Security.md)
+    - [Shrio](组件/登录认证及权限控制/Shrio.md)
+  - **消息队列**
+    - [rabbit](组件/消息队列/rabbitMQ.md)
+    - [kafka](组件/消息队列/kafka.md)
+  - **Nginx**
+    - [**Nginx**](组件/Nginx.md)
 
-- 插件
+- **插件**
   - [IDEA 插件](插件/IDEA插件/)
   - [软件](插件/软件/)
   - [开源三方 API](插件/开源三方API/)
-- 前端
+- **前端**
   - [基础](前端/基础/)
   - [VUE](前端/Vue/)
     - [前言](前端/Vue/1-前言.md)
@@ -38,7 +58,11 @@
     - [axios](前端/Vue/5-axios.md)
     - [vuex](前端/Vue/6-vuex.md)
   - [ES6 语法](前端/ES6新语法/)
-- 数据库
+- **数据库**
+
   - [mysql](数据库/mysql/)
   - [oracle](数据库/oracle/)
   - [Redis](数据库/Redis/)
+
+- **美图**
+  - [PhotoShop](PhotoShop/)

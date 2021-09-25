@@ -1,4 +1,29 @@
+新特性包含：
+
+a.随着大数据的兴起，函数式编程在处理大数据上的优势开始体现，引入了 Lambada 函数式编程
+
+b.使用 Stream 彻底改变了集合使用方式：只关注结果，不关心过程
+
+c.新的客户端图形化工具界面库：JavaFX
+
+d.良好设计的日期/时间 API
+
+e.增强的并发/并行 API
+
+f.Java 与 JS 交互引擎 -nashorn
+
+g.其他特性
+
 ## Lambda 表达式
+
+**概念**
+
+1. Lambda 是带有参数变量的表达式，允许将一段代码当成参数传递给某个方法；
+   其实就是把匿名内部类中一定要做的工作省略掉，然后由 JVM 通过推导把简化的表达式还原;
+   这样可以写出更简洁、更灵活的代码
+
+**格式**
+(parameters 参数) -> expression 表达式或方法体
 
 ## stream 流
 
@@ -18,7 +43,7 @@ toMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends 
 // keyMapper：Key 的映射函数
 // valueMapper：Value 的映射函数
 // mergeFunction：当 Key 冲突时，调用的合并方法
-// mapSupplier：Map 构造器，在需要返回特定的 Map 时使用
+// mapSupplier：Map 构造器，在需要返回特定的 Map 时使用，比如希望返回的 Map 是根据 Key 排序的
 userList.stream().collect(Collectors.toMap(User::getId, User::getName, (n1, n2) -> n1 + n2));
 ```
 
@@ -40,3 +65,5 @@ userList.stream().collect(Collectors.toMap(User::getId, User::getName, (n1, n2) 
 ## 方法引用
 
 ## 函数式接口
+
+接口中只有一个抽象方法的接口，使用注解 @FunctionalInterface 修饰的，称为函数式接口

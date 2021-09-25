@@ -259,3 +259,10 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
 2.
 
 ![security原理流程图](../../images/Java_other/security.png)
+
+退出原理:Spring Security 的退出请求（默认为/logout）由 LogoutFilter 过滤器拦截处理。
+清除 Cookie
+清除当前用户的 remember-me 记录
+使当前 session 失效
+清空当前的 SecurityContext
+重定向到登录界面
