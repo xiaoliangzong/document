@@ -569,3 +569,13 @@ bis.close();
 out.close();
 System.out.println("文件下载成功！");
 ```
+
+## 13. CollectionUtils 工具类
+
+> `取交集intersection、并集union、差集subtract、补集disjunction、`
+
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-collections4</artifactId>
+    <version>4.3</version>
+</dependency>

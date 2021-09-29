@@ -63,79 +63,8 @@
 
 ## Spring IOC
 
-## Spring AOP
+> BeanFactory: IOC 容器的基本实现
 
-## Spring 注解
-
-### @Configuration
-
-用来标记类可以当做一个 bean 的定义，被 Spring IOC 容器使用
-
-### @Bean
-
-表示此方法将要返回一个对象，作为一个 bean 注册进 Spring 应用上下文
-
-### @Autowired
-
-提供了更细粒度的控制，包括在何处以及如何完成自动装配。它的用法和@Required 一样，修饰 setter 方法、构造器、属性或者具有任意名称和/或多个参数的 PN 方法。
-
-### Qualifier
-
-当有多个相同类型的 bean 却只有一个需要自动装配时，将@Qualifier 注解和@Autowire 注解结合使用以消除这种混淆，指定需要装配的确切的 bean。
-
-### Lazy
-
-### Required
-
-表明 bean 的属性必须在配置的时候设置，通过一个 bean 定义的显式的属性值或通过自动装配，若@Required 注解的 bean 属性未被设置，容器将抛出 BeanInitializationException
-
-### @AspectJ
-
-57. 什么是引入?
-    引入允许我们在已存在的类中增加新的方法和属性。
-58. 什么是目标对象?
-    被一个或者多个切面所通知的对象。它通常是一个代理对象。也指被通知（advised）对象。
-59. 什么是代理?
-    代理是通知目标对象后创建的对象。从客户端的角度看，代理对象和目标对象是一样的。
-60. 有几种不同类型的自动代理？
-    BeanNameAutoProxyCreator
-    DefaultAdvisorAutoProxyCreator
-    Metadata autoproxying
-61. 什么是织入。什么是织入应用的不同点？
-    织入是将切面和到其他应用类型或对象连接或创建一个被通知对象的过程。
-    织入可以在编译时，加载时，或运行时完成。
-
-## Spring 事务
-
-编程式事务管理：这意味你通过编程的方式管理事务，给你带来极大的灵活性，但是难维护。
-
-声明式事务管理：这意味着你可以将业务代码和事务管理分离，你只需用注解和 XML 配置来管理事务。
-
-Spring 事务管理:
-声明式事务管理: 将事务代码从业务方法中分离出来,以声明的方式来实现事务管理.
-1>xml  
- 1.声明事务管理器
-<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourcetransactionManager">
-<property name="dataSource" ref="dataSource"></property>
-</bean> 2.配置事务增强(通知)属性,transaction-manager 属性是指定这个事务是使用哪一个事务管理器
-<tx:advice><tx:attributes><!--配置支持的方法名称--><tx:method name=""></tx:attributes></tx:advice> 3.配置事务切入点表达式,使事务属性与事务关联
-<aop:config>
-
-<!-- 事务切入点 -->
-
-<aop:pointcut expression="execution(_ com.hxzy.spring.service.._.\*(..))" id="pointCut"/>
-<aop:advisor advice-ref="txAdvice" pointcut-ref="pointCut"/>
-</aop:config>
-2>注解  
- 1.声明事务管理器
-class="DataSourceTransactionManager" 2.使用注解方式配置 spring 声明事务
-<tx:annotation-driven transaction-manager="">
-3.@Transactional
-spring 中的事务管理器的不同实现:
-
-## Spring IOC
-
-    >BeanFactory: IOC 容器的基本实现
     2>ApplicationContext: 提供了更多的高级特性.是BeanFactory的子接口.
     3>BeanFactory是Spring框架的基础设施,面向Spring本身;ApplicationContext面向使用Spring框架的开发者，几乎所有的应用场合都直接
     使用 ApplicationContext 而非底层的 BeanFactory
@@ -159,7 +88,19 @@ property 属性文件(连接数据库):
 　　　　-@Service：标识服务层(业务层)组件
 　　　　-@Controller：标识表现层组件
 
-## 1.Spring AOP
+1. 通过@CompentScan +@Controller @Service @Respository @compent ，springboot 默认扫描，无需@ComponentScan，
+
+**适合场景**：自己写的组件可以通过这种方式来进行加载到容器中。
+
+2. 通过@Bean 的方式来导入组件
+
+**适合场景**: 适用于导入第三方组件的类
+
+3. 通过@Import 来导入组件
+
+**适合场景**：导入组件的 id 为全路径，用处最多的是其他框架整合 Spring 时，使用@Import 注解导入整合类。
+
+## Spring AOP
 
 > 执行顺序：around before、before、目标方法、around after、after、returning
 
@@ -201,7 +142,156 @@ JoinPoint-->程序执行的某个位置,就是连接点对象,可以使用该对
 
 环绕增强:
 
-## 2.Spring 序列化
+## Spring 注解
+
+**@Configuration**
+
+用来标记类可以当做一个 bean 的定义，被 Spring IOC 容器使用
+
+**@Bean**
+
+表示此方法将要返回一个对象，作为一个 bean 注册进 Spring 应用上下文
+
+**@Import**
+
+`作用在类上，通过快速导入的方式将实例加入到springIOC容器中`
+
+1. 直接导入 class 数组
+2. 实现 ImportSelector 接口的实现类
+
+> 是 spring 导入外部配置的核心接口，在 springboot 的自动化配置和@Enablexxx（功能性注解）中起到了决定性的作用。
+> ImportSelector 接口中，selectImports()方法作用是：选择并返回需要导入的类的名称；返回一个字符串数组，当在@Configuration 标注的 Class 上使用@Import 引入了一个 ImportSelector 实现类后，会把实现类中返回的 Class 名称都定义为
+> DeferredImportSelector 接口集成 ImportSelector，延迟选择性导入，在装载 bean 时，需要等所有的@Configuration 都执行完毕后才会进行装载。
+
+3. 实现 ImportBeanSelector 接口
+
+```java
+// 方式1
+@Import({**.class,***.class})  // 导入的bean的全限定名
+public class Test{}
+
+// 方式2
+// spring 底层使用较多，像Enablexxx等都是通过这种方式实现的。
+public class ImportSee implements ImportSelector {
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        return new String[]{"com.company.module.类名"};
+    }
+}
+
+// 方式3
+// mybatis中的@MapperScan注解，就是基于这种方式实现注入Spring IOC容器的。
+```
+
+**@Autowired**
+
+提供了更细粒度的控制，包括在何处以及如何完成自动装配。它的用法和@Required 一样，修饰 setter 方法、构造器、属性或者具有任意名称和/或多个参数的 PN 方法。
+
+**Qualifier**
+
+当有多个相同类型的 bean 却只有一个需要自动装配时，将@Qualifier 注解和@Autowire 注解结合使用以消除这种混淆，指定需要装配的确切的 bean。
+
+**Lazy**
+
+**Required**
+
+表明 bean 的属性必须在配置的时候设置，通过一个 bean 定义的显式的属性值或通过自动装配，若@Required 注解的 bean 属性未被设置，容器将抛出 BeanInitializationException
+
+**Resource 和 Autowire**
+
+![区别](../../images/Spring/ResourceAutowird.png)
+
+**@AliasFor**
+
+@AliasFor 表示别名，它可以注解到自定义注解的两个属性上，表示这两个互为别名，也就是说这两个属性其实同一个含义。
+
+- 用到注解 属性上，表示两个属性互相为别名，互相为别名的属性值必须相同，若设置成不同，则会报错
+- 若自定义注解有一个属性，且该属性命名上为了体现其含义，所以有些复杂，这样调用方必须每次使用自定义注解的时候，都必须写明 属性 ，然后设置，这样会比较负责；
+- 同时若自定义注解继承了另一个注解，要想让调用方能够设置继承过来的属性值，就必须在自定义注解中重新定义一个属性，同时声明该属性是父注解某个属性的别名。注解是可以继承的，但是注解是不能继承父注解的属性的,也就是说,我在类扫描的时候,拿到的注解的属性值,依然是父注解的属性值,而不是你定义的注解的属性值，所以此时可以在子注解对应的属性上加上@AliasFor
+
+**@AspectJ**
+
+57. 什么是引入?
+    引入允许我们在已存在的类中增加新的方法和属性。
+58. 什么是目标对象?
+    被一个或者多个切面所通知的对象。它通常是一个代理对象。也指被通知（advised）对象。
+59. 什么是代理?
+    代理是通知目标对象后创建的对象。从客户端的角度看，代理对象和目标对象是一样的。
+60. 有几种不同类型的自动代理？
+    BeanNameAutoProxyCreator
+    DefaultAdvisorAutoProxyCreator
+    Metadata autoproxying
+61. 什么是织入。什么是织入应用的不同点？
+    织入是将切面和到其他应用类型或对象连接或创建一个被通知对象的过程。
+    织入可以在编译时，加载时，或运行时完成。
+
+**@SuppressWarnings**
+
+> java.lang.SuppressWarnings 是 J2SE5.0 中标准的 Annotation 之一。可以标注在类、字段、方法、参数、构造方法，以及局部变量上
+
+1. `作用`:告诉编译器忽略指定的警告，不用在编译完成后出现警告信息。
+2. `使用`
+
+```java
+@SuppressWarnings(“”)
+@SuppressWarnings({})
+@SuppressWarnings(value={})
+
+@SuppressWarnings(value={"unchecked", "rawtypes"})      // 抑制多类型的警告
+@SuppressWarnings("unchecked")                          // 抑制单类型的警告
+@SuppressWarnings("all")                                // 抑制所有类型的警告
+```
+
+**@PostConstruct 和@PreDestroy**
+
+1. @PostConstruct：修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被@PostConstruct 修饰的方法会在构造函数之后，init()方法之前运行。
+2. @PreDestroy：修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被@PreDestroy 修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
+
+## Spring 事务
+
+> 事务管理是应用系统开发中必不可少的一部分，Spring 为事务管理提供了丰富的功能支持。Spring 事务管理分为编程式和声明式两种方式。在实际使用中常用声明式事务
+
+**编程式事务管理**
+
+通过编程的方式管理事务，可以带来极大的灵活性，但是难维护。
+
+**声明式事务管理**
+
+使用注解@Transactional 或 配置文件（XML） 配置来管理事务，将事务管理代码从业务方法中分离出来。
+
+1. 配置文件（XML）
+
+```xml
+<!-- 扫描组件 -->
+<context:component-scan base-package="com.transaction"></context:component-scan>
+
+<!-- 配置事务管理器 -->
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourcetransactionManager">
+    <property name="dataSource" ref="dataSource"></property> <!-- ref引入数据库配置 -->
+</bean>
+
+<!-- 配置事务增强(通知)属性，transaction-manager 属性是指定这个事务是使用哪一个事务管理器 -->
+<tx:advice id="" transaction-manager="transactionManager">
+    <tx:attributes>
+        <!--配置支持的方法名称、propagation（传播级别）、isolation（隔离级别）、timeout、read-only、rollback-for 等属性 -->
+        <tx:method name="">
+    </tx:attributes>
+</tx:advice>
+
+<!-- 配置事务切入点表达式,使事务属性与事务关联 -->
+<aop:config>
+    <!-- 事务切入点 -->
+    <aop:pointcut expression="execution(_ com.hxzy.spring.service.._.\*(..))" id="pointCut"/>
+    <aop:advisor advice-ref="txAdvice" pointcut-ref="pointCut"/>
+</aop:config>
+
+<!-- 使用注解方式配置 spring 声明事务（开启事务注解扫描） -->
+<tx:annotation-driven transaction-manager="">
+```
+
+2. @Transactional 注解
+
+## Spring 序列化
 
 > 在 java 中，一切皆对象，所有对象的状态信息转为存储或传输的形式，都需要序列化，通常建议：程序创建的每个 JavaBean 类都实现 Serializeable 接口。
 
@@ -210,7 +300,7 @@ JoinPoint-->程序执行的某个位置,就是连接点对象,可以使用该对
 3. 意义：序列化机制允许将实现序列化的 Java 对象转换位字节序列，这些字节序列可以保存在磁盘上，或通过网络传输，以达到以后恢复成原来的对象。序列化机制使得对象可以脱离程序的运行而独立存在。
 4. 使用场景：所有可在网络上传输的对象都必须是可序列化的，比如 RMI（remote method invoke,即远程方法调用），传入的参数或返回的对象都是可序列化的，否则会出错；所有需要保存到磁盘的 java 对象都必须是可序列化的。
 
-### 2.1 实体序列化：实现 Serializable 接口
+### 实体序列化：实现 Serializable 接口
 
 - Serializable 接口是一个标记接口，不用实现任何方法。一旦实现了此接口，该类的对象就是可序列化的
 - 序列化版本号 serialVersionUID，private static final long serialVersionUID 的序列化版本号，只有版本号相同，即使更改了序列化属性，对象也可以正确被反序列化回来。
@@ -220,7 +310,7 @@ JoinPoint-->程序执行的某个位置,就是连接点对象,可以使用该对
 - 所有保存到磁盘的对象都有一个序列化编码号，当程序试图序列化一个对象时，会先检查此对象是否已经序列化过，只有此对象从未（在此虚拟机）被序列化过，才会将此对象序列化为字节序列输出。如果此对象已经序列化过，则直接输出编号即可。而不会将同一对象序列化多次
 - 使用 transient 关键字选择不需要序列化的字段。
 
-### 2.2 序列化
+### 序列化
 
 1. 序列化：将对象保存到磁盘中，或允许在网络中直接传输对象，对象序列化机制允许把内存中的 java 对象抓换成平台无关的二进制，从而可以持久的保存在磁盘，或者在网络中传输
 2. 反序列化：程序一旦获取序列化的对象，则二进制流都可以恢复成原来的。
@@ -240,30 +330,7 @@ GenericJacksonRedisSerializer 和 Jackson2JsonRedisSerializer 都是以 JSON 格
 
 ``
 
-## 3.注解@SuppressWarnings
-
-> java.lang.SuppressWarnings 是 J2SE5.0 中标准的 Annotation 之一。可以标注在类、字段、方法、参数、构造方法，以及局部变量上
-
-1. `作用`:告诉编译器忽略指定的警告，不用在编译完成后出现警告信息。
-2. `使用`
-
-```java
-@SuppressWarnings(“”)
-@SuppressWarnings({})
-@SuppressWarnings(value={})
-
-@SuppressWarnings(value={"unchecked", "rawtypes"})      // 抑制多类型的警告
-@SuppressWarnings("unchecked")                          // 抑制单类型的警告
-@SuppressWarnings("all")                                // 抑制所有类型的警告
-```
-
-## 4.注解@PostConstruct 和@PreDestroy
-
-1. @PostConstruct：修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被@PostConstruct 修饰的方法会在构造函数之后，init()方法之前运行。
-
-2. @PreDestroy：修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被@PreDestroy 修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
-
-## 5.valid、validated
+## valid、validated
 
 > 区别只要体现在分组，注解标注位置，嵌套验证等功能上
 
@@ -450,51 +517,6 @@ public class IpaddressValidator implements ConstraintValidator<IpAddress, String
 
 > 使用@MapperScan 可以指定要扫描的 Mapper 类的包的路径
 
-## 7. import 注解
-
-`作用在类上，通过快速导入的方式将实例加入到springIOC容器中`
-
-1. 直接导入 class 数组
-2. 实现 ImportSelector 接口的实现类
-
-> 是 spring 导入外部配置的核心接口，在 springboot 的自动化配置和@Enablexxx（功能性注解）中起到了决定性的作用。
-> ImportSelector 接口中，selectImports()方法作用是：选择并返回需要导入的类的名称；返回一个字符串数组，当在@Configuration 标注的 Class 上使用@Import 引入了一个 ImportSelector 实现类后，会把实现类中返回的 Class 名称都定义为
-> DeferredImportSelector 接口集成 ImportSelector，延迟选择性导入，在装载 bean 时，需要等所有的@Configuration 都执行完毕后才会进行装载。
-
-3. 实现 ImportBeanSelector 接口
-
-```java
-// 方式1
-@Import({**.class,***.class})  // 导入的bean的全限定名
-public class Test{}
-
-// 方式2
-// spring 底层使用较多，像Enablexxx等都是通过这种方式实现的。
-public class ImportSee implements ImportSelector {
-    @Override
-    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-        return new String[]{"com.company.module.类名"};
-    }
-}
-
-// 方式3
-// mybatis中的@MapperScan注解，就是基于这种方式实现注入Spring IOC容器的。
-```
-
-## 8. IOC 注入方式
-
-1. 通过@CompentScan +@Controller @Service @Respository @compent ，springboot 默认扫描，无需@ComponentScan，
-
-**适合场景**：自己写的组件可以通过这种方式来进行加载到容器中。
-
-2. 通过@Bean 的方式来导入组件
-
-**适合场景**: 适用于导入第三方组件的类
-
-3. 通过@Import 来导入组件
-
-**适合场景**：导入组件的 id 为全路径，用处最多的是其他框架整合 Spring 时，使用@Import 注解导入整合类。
-
 ## 9. 事件监听- 观察者设计模式
 
 `为了系统业务逻辑之间的解耦，提高可扩展性以及可维护性。`
@@ -645,39 +667,9 @@ public static void main(String[] args) throws java.lang.Exception {
 }
 ```
 
-## 12. pom 中 scpoe 标签
-
-1. 默认值为 complie，compile 表示被依赖项目需要参与当前项目的编译，springboot 多模块相互依赖中有用到
-2. test，表示依赖项目仅仅参与测试相关的工作，包括测试代码的编译，执行。
-3. runtime，表示被依赖项目无需参与项目的编译，不过后期的测试和运行周期需要其参与，与 compile 相比，跳过了编译而已。例如 JDBC 驱动，适用运行和测试阶段
-4. provided，打包的时候可以不用包进去，别的设施会提供
-5. system，从参与度来说，和 provided 相同，不过被依赖项不会从 maven 仓库下载，而是从本地文件系统拿。需要添加 systemPath 的属性来定义路径
-
-## 13. CollectionUtils 工具类
-
-> `取交集intersection、并集union、差集subtract、补集disjunction、`
-
-<dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-collections4</artifactId>
-    <version>4.3</version>
-</dependency>
-
 ## 14. idea 同时启动多个相同项目
 
 原理：启动 jar 时，增加配置参数（端口）
 jar -jar xxx.jar --server.port=8080
 
 ![ieda配置多个启动](../../images/Spring/idea.png)
-
-## 15. Resource 和 Autowire
-
-![区别](../../images/Spring/ResourceAutowird.png)
-
-## 16. @AliasFor 使用规则
-
-@AliasFor 表示别名，它可以注解到自定义注解的两个属性上，表示这两个互为别名，也就是说这两个属性其实同一个含义。
-
-- 用到注解 属性上，表示两个属性互相为别名，互相为别名的属性值必须相同，若设置成不同，则会报错
-- 若自定义注解有一个属性，且该属性命名上为了体现其含义，所以有些复杂，这样调用方必须每次使用自定义注解的时候，都必须写明 属性 ，然后设置，这样会比较负责；
-- 同时若自定义注解继承了另一个注解，要想让调用方能够设置继承过来的属性值，就必须在自定义注解中重新定义一个属性，同时声明该属性是父注解某个属性的别名。注解是可以继承的，但是注解是不能继承父注解的属性的,也就是说,我在类扫描的时候,拿到的注解的属性值,依然是父注解的属性值,而不是你定义的注解的属性值，所以此时可以在子注解对应的属性上加上@AliasFor

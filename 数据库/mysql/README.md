@@ -474,3 +474,4 @@ drop index 索引名 on 表名
 #### 工作问题汇总
 
 1. 删除为 null 的值时，不能使用 where xxx = NULL；而是使用 where xxx is NULL；
+2. 查询树形结构数据时（一张表中存储），可以设置一个字段为 ancestors,存放父类的 id 集合，最后用 find_in_set 函数，一次查询即可，不需要遍历查询
