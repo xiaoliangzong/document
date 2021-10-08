@@ -142,6 +142,8 @@ JoinPoint-->程序执行的某个位置,就是连接点对象,可以使用该对
 
 环绕增强:
 
+### AOP 实现原理
+
 ## Spring 注解
 
 **@Configuration**
@@ -199,7 +201,7 @@ public class ImportSee implements ImportSelector {
 
 **Resource 和 Autowire**
 
-![区别](../../images/Spring/ResourceAutowird.png)
+![区别](../images/Spring/ResourceAutowird.png)
 
 **@AliasFor**
 
@@ -251,15 +253,15 @@ public class ImportSee implements ImportSelector {
 
 > 事务管理是应用系统开发中必不可少的一部分，Spring 为事务管理提供了丰富的功能支持。Spring 事务管理分为编程式和声明式两种方式。在实际使用中常用声明式事务
 
-**编程式事务管理**
+### 编程式事务管理
 
 通过编程的方式管理事务，可以带来极大的灵活性，但是难维护。
 
-**声明式事务管理**
+### 声明式事务管理
 
 使用注解@Transactional 或 配置文件（XML） 配置来管理事务，将事务管理代码从业务方法中分离出来。
 
-1. 配置文件（XML）
+**配置文件（XML）**
 
 ```xml
 <!-- 扫描组件 -->
@@ -284,12 +286,55 @@ public class ImportSee implements ImportSelector {
     <aop:pointcut expression="execution(_ com.hxzy.spring.service.._.\*(..))" id="pointCut"/>
     <aop:advisor advice-ref="txAdvice" pointcut-ref="pointCut"/>
 </aop:config>
+```
 
+**@Transactional 注解**
+
+1. 开启事务注解扫描（xml 或@EnableTransactionManagement 注解）
+
+```xml
 <!-- 使用注解方式配置 spring 声明事务（开启事务注解扫描） -->
 <tx:annotation-driven transaction-manager="">
 ```
 
-2. @Transactional 注解
+2.  将@Transactional 注解添加到方法或类上，并设置对应的属性信息
+    - value（transactionManager）：当配置文件中存在多个 TransactionManager，可以使用该属性指定哪个事务管理器
+    - Propagation：事务的传播属性，默认值为 REQUIRED
+    - isolation：事务的隔离级别，默认值 DEFAULT
+    - timeout：事务的超时时间，默认值为-1，如果超过时间限制但事务还没有完成，则自动回滚事务
+    - readOnly：是否为只读事务，默认为 false，为了忽略不需要事务的方法，比如读取数据，可以设置为 true
+    - rollbackFor：指定能够触发事务回滚的异常类型，如果有多个异常类型需要指定，各类型之间使用逗号分隔
+    - noRollbackFor：抛出指定的异常类型，不回滚
+
+**实现机制**
+
+@Transactional 原理是基于 Spring AOP，AOP 又是通过动态代理实现
+
+在代码运行时生成一个代理对象，根据@Transactional 的属性配置信息，代理对象决定该注解标注的目标方法是否由拦截器@TransactionInterceptor 来使用拦截，在拦截中，会在目标方法开始执行前创建并加入事务，并执行目标方法的逻辑，最后根据执行情况是否出现异常，利用抽象事务管理器 AbstractPlatformTransactionManager 操作数据源 DataSource 提交或回滚事务
+
+Spring AOP 代理有 CglibAopProxy 和 JdkDynamicAopProxy 两种，图 1 是以 CglibAopProxy 为例，对于 CglibAopProxy，需要调用其内部类的 DynamicAdvisedInterceptor 的 intercept 方法。对于 JdkDynamicAopProxy，需要调用其 invoke 方法
+
+正确的设置@Transactional 的 propagation 属性
+需要注意下面三种 propagation 可以不启动事务。本来期望目标方法进行事务管理，但若是错误的配置这三种 propagation，事务将不会发生回滚。
+
+TransactionDefinition.PROPAGATION_SUPPORTS：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行。
+TransactionDefinition.PROPAGATION_NOT_SUPPORTED：以非事务方式运行，如果当前存在事务，则把当前事务挂起。
+TransactionDefinition.PROPAGATION_NEVER：以非事务方式运行，如果当前存在事务，则抛出异常。
+
+正确的设置@Transactional 的 rollbackFor 属性
+默认情况下，如果在事务中抛出了未检查异常（继承自 RuntimeException 的异常）或者 Error，则 Spring 将回滚事务；除此之外，Spring 不会回滚事务。
+
+如果在事务中抛出其他类型的异常，并期望 Spring 能够回滚事务，可以指定 rollbackFor。例：
+
+@Transactional(propagation= Propagation.REQUIRED,rollbackFor= MyException.class)
+
+通过分析 Spring 源码可以知道，若在目标方法中抛出的异常是 rollbackFor 指定的异常的子类，事务同样会回滚。
+
+@Transactional 只能应用到 public 方法才有效
+只有@Transactional 注解应用到 public 方法，才能进行事务管理。这是因为在使用 Spring AOP 代理时，Spring 在调用在图 1 中的 TransactionInterceptor 在目标方法执行前后进行拦截之前，DynamicAdvisedInterceptor（CglibAopProxy 的内部类）的的 intercept 方法或 JdkDynamicAopProxy 的 invoke 方法会间接调用 AbstractFallbackTransactionAttributeSource（Spring 通过这个类获取表 1. @Transactional 注解的事务属性配置属性信息）的 computeTransactionAttribute 方法。
+
+避免 Spring 的 AOP 的自调用问题
+在 Spring 的 AOP 代理下，只有目标方法由外部调用，目标方法才由 Spring 生成的代理对象来管理，这会造成自调用问题。若同一类中的其他没有@Transactional 注解的方法内部调用有@Transactional 注解的方法，有@Transactional 注解的方法的事务被忽略，不会发生回滚。
 
 ## Spring 序列化
 
