@@ -32,10 +32,10 @@
     - [Swagger](组件/接口文档/swagger.md)
     - [Knife4j](组件/接口文档/knife4j.md)
   - **持久层框架**
-    - [Mybatis](Java/Mybatis.md)
-    - [MybatisPlus](Java/MybatisPlus.md)
+    - [Mybatis](组件/ORM持久层框架/Mybatis.md)
+    - [MybatisPlus](组件/ORM持久层框架/MybatisPlus.md)
   - **定时器**
-    - [Quartz](Java/Quartz.md)
+    - [Quartz](组件/定时器/Quartz.md)
   - **登录认证、权限控制**
     - [概念](组件/登录认证及权限控制/)
     - [Security](组件/登录认证及权限控制/Security.md)
