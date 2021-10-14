@@ -129,6 +129,14 @@ tasklist | findstr pid
 taskkill /f /pid 值
 ```
 
+4.  Random、ThreadLocalRandom、SecureRandom
+
+5.  Random：伪随机数，通过种子生成随机数，种子默认使用系统时间，可预测，安全性不高，线程安全；
+6.  ThreadLocalRandom：jdk7 才出现的，多线程中使用，虽然 Random 线程安全，但是由于 CAS 乐观锁消耗性能，所以多线性推荐使用
+7.  SecureRandom：可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom。
+
+相同点：种子相同，在相同条件，运行相同次数产生的随机数相同；
+
 # 二、接口和抽象类
 
 |            | 接口 interface                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 抽象类 abstract                                                                        |

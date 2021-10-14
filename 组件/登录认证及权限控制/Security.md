@@ -258,7 +258,7 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
 1. 通过 UserDetail 的 getAuthorities()，将对应用户的权限返回给 security。通过 security 的 access 表达式进行权限认证
 2.
 
-![security原理流程图](../../images/Java_other/security.png)
+![security原理流程图](../../images/Java/security.png)
 
 退出原理:Spring Security 的退出请求（默认为/logout）由 LogoutFilter 过滤器拦截处理。
 清除 Cookie

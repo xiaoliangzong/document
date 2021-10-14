@@ -411,7 +411,7 @@ GenericJacksonRedisSerializer 和 Jackson2JsonRedisSerializer 都是以 JSON 格
 
    - `使用 Validation 验证时如果 Group 不写，默认为 Default.class（接口），如果其他字段想使用默认的验证，则需要自定义的Group继承Default接口，或者每个都写清楚`
 
-![validation](../../images/java_other/springboot-validation.png)
+![validation](../../images/java/springboot-validation.png)
 
 **快速失败 Fail Fast 模式配置**
 

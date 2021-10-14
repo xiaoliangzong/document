@@ -1,6 +1,331 @@
-## springboot 自动装配原理
+## 1. 启动流程分析
 
-### restTemplate
+SpringBoot 的启动流程分为三步：
+
+第一部分进行 SpringApplication 的初始化模块（创建对象实例），收集加载资源，比如应用上下文初始化类、监听器。
+
+第二部分实现了应用具体的启动方案，包括启动流程的监听模块、加载配置环境模块、及核心的创建上下文环境模块。
+
+第三部分是自动化配置模块。该模块作为 springboot 自动配置核心。
+
+1. **创建 SpringApplication 对象**
+
+```java
+public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
+    this.resourceLoader = resourceLoader;
+    // 断言主配置类是否为空
+    Assert.notNull(primarySources, "PrimarySources must not be null");
+    // 保存主配置类
+    this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+    // 设置WebApplicationType枚举值，判断是否是一个web应用
+    this.webApplicationType = WebApplicationType.deduceFromClasspath();
+    // 从类路径下找到META‐INF/spring.factories配置的所有ApplicationContextInitializer；然后保存起来
+    setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+    // 从类路径下找到META‐INF/spring.factories配置的所有ApplicationListener
+    setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+    // 从多个配置类中找到有main方法的主配置类
+    this.mainApplicationClass = deduceMainApplicationClass();
+}
+```
+
+<img src="../images/SpringBoot/initializers.png" width="500" />
+<img src="../images/SpringBoot/listeners.png" width="500" />
+
+2. **运行 run() 方法**
+
+```java
+public ConfigurableApplicationContext run(String... args) {
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
+    ConfigurableApplicationContext context = null;
+    Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
+    configureHeadlessProperty();
+    /* 从类路径下META‐INF/spring.factories获取SpringApplicationRunListeners，
+    即EventPublishingRunListener实现类，该类的作用就是将SpringBoot的事件转换成ApplicationEvent发送出去。*/
+    SpringApplicationRunListeners listeners = getRunListeners(args);
+    // 回调所有的获取SpringApplicationRunListener.starting()方法
+    listeners.starting();
+    try {
+        // 封装命令行参数
+        ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
+        /* 准备环境、创建环境完成后执行SpringApplicationRunListeners.environmentPrepared()方法，
+        通过广播的方式广播事件ApplicationEnvironmentPreparedEvent */
+        ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+        configureIgnoreBeanInfo(environment);
+        // 是否打印Banner内容（图片或文字），可通过配置文件配置或在classpath路径下定义默认值
+        Banner printedBanner = printBanner(environment);
+        // 创建ApplicationContext；决定创建web的ioc还是普通的ioc
+        context = createApplicationContext();
+        exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
+                new Class[] { ConfigurableApplicationContext.class }, context);
+        /* 1. 准备上下文环境，将environment保存到ioc中；
+           2. applyInitializers()方法，回调之前保存的所有的ApplicationContextInitializer的initialize方法
+           3. 回调所有的SpringApplicationRunListener的contextPrepared()；
+        将之前通过@EnableAutoConfiguration获取的所有配置以及其他形式的ioc容器配置加载到已经准备完毕的ApplicationContext
+           4. 回调所有的SpringApplicationRunListener的contextLoaded()； */
+        prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+        // 刷新容器；ioc容器初始化（如果是web应用还会创建嵌入式的Tomcat）；
+        // Spring注解版扫描，创建，加载所有组件的地方；（配置类，组件，自动配置）
+        refreshContext(context);
+        // 从ioc容器中获取所有的ApplicationRunner和CommandLineRunner进行回调
+        // ApplicationRunner先回调，CommandLineRunner再回调
+        afterRefresh(context, applicationArguments);
+        stopWatch.stop();
+        if (this.logStartupInfo) {
+            new StartupInfoLogger(this.mainApplicationClass).logStarted(getApplicationLog(), stopWatch);
+        }
+        listeners.started(context);
+        callRunners(context, applicationArguments);
+    }
+    catch (Throwable ex) {
+        handleRunFailure(context, ex, exceptionReporters, listeners);
+        throw new IllegalStateException(ex);
+    }
+
+    try {
+        listeners.running(context);
+    }
+    catch (Throwable ex) {
+        handleRunFailure(context, ex, exceptionReporters, null);
+        throw new IllegalStateException(ex);
+    }
+    // 整个SpringBoot应用启动完成以后返回启动的ioc容器；
+    return context;
+}
+```
+
+3. **事件监听**
+
+- SpringApplication.addListeners 添加监听器
+- 把监听器纳入到 spring 容器中管理
+- 使用 context.listener.classes 配置项配置（详细内容参照：DelegatingApplicationListener）
+- 使用@EventListener 注解，在方法上面加入@EventListener 注解，且该类需要纳入到 spring 容器中管理（详细内容参照：EventListenerMethodProcessor，EventListenerFactory）
+
+## 2. 自动装配原理
+
+> SpringBoot 启动时，加载主配置类，会扫描引用 jar 包中的 META-INF/spring.factories 文件，将文件中的配置的类型信息加载到 spring 容器，并执行类中定义的各种操作。
+
+**注解详情**
+
+<img src="../images/SpringBoot/SpringBootApplication.png"/>
+
+` springboot 查看自动配置是否生效：通过在配置文件启用 debug=ture 属性，在控制台打印自动配置报告，这样子就可以看到哪些自动配置生效。`
+
+<img src="../images/SpringBoot/conditionxxx.png" width="700"/>
+
+**SpringFactoriesLoader 详解**
+
+借助于 Spring 框架原有的一个工具类：SpringFactoriesLoader 的支持，@EnableAutoConfiguration 可以智能的自动配置功效才得以大功告成！
+
+SpringFactoriesLoader 属于 Spring 框架私有的一种扩展方案，是 Spring 的工厂加载器，其主要功能就是从指定的配置文件 META-INF/spring.factories 加载配置，加载工厂类。配合@EnableAutoConfiguration 使用的话，它更多是提供一种配置查找的功能支持，即根据@EnableAutoConfiguration 的完整类名 org.springframework.boot.autoconfigure.EnableAutoConfiguration 作为查找的 Key,获取对应的一组@Configuration 类
+
+该对象提供了 loadFactoryNames 方法，入参为 factoryClass 和 classLoader 即需要传入工厂类名称和对应的类加载器，方法会根据指定的 classLoader，加载该类加器搜索路径下的指定文件，即 spring.factories 文件；传入的工厂类为接口，而文件中对应的类则是接口的实现类，或最终作为实现类。
+
+## 3. 配置文件
+
+#### 编写规范
+
+```yml
+# 普通的值
+#字符串默认不用加上单引号或者双引号；双引号不会转义字符串里边的特殊字符，特殊字符会作为本身想表示的意思，单引号会转义特殊字符，特殊字符最终只是一个普通的字符串数据
+name: "zhangsan \n lisi"        # 输出:zhangsan 换行 lisi
+name: 'zhangsan \n lisi'        # 输出:zhangsan \n lisi
+
+# map
+person:
+  name: zhangsan
+  age: 18
+person: {name: zhangsan,age: 18}        # 行内写法
+
+# list、set
+pets:
+  - cat
+  - dog
+  - pig
+pets: [cat,dog,pig]                     # 行内写法
+
+# yml支持多文档块，使用---分割
+
+# 激活指定profile，命令行参数--spring.profiles.active=dev，虚拟机参数-Dspring.profile.active=dev
+spring:
+  profiles:
+    active: dev
+
+# 随机数 ${random.value}、${random.int}、${random.long}、${random.int(10)}、${random.int[1024,65536]}
+name: zhangsan${random.uuid}
+age: ${random.int}
+dogNmae: ${name:zhangsan1}_dog      # 指定默认值，使用:指定默认值
+```
+
+#### 加载顺序
+
+1.  SpringBoot 启动会扫描以下位置的 application.properties 或 application.yml 文件作为默认配置文件，优先级由高到底，高优先级的配置会覆盖低优先级的配置
+
+    - -file:./config
+    - -file:./
+    - -classpath:/config/
+    - -classpath:/
+
+2.  `使用命令行参数（spring.config.location）的形式，启动项目的时候来指定配置文件的新位置；指定配置文件和默认加载的这些配置文件共同起作用形成互补配置`
+
+3.  SpringBoot 也可以从以下位置加载配置； 优先级从高到低；高优先级的配置覆盖低优先级的配置，所有的配置会形成互补配置
+
+    - 命令行参数，所有的配置都可以在命令行上进行指定，比如：java -jar xxx.jar --server.port=8087 --server.context-path=/abc 多个配置用空格分开， --配置项=值
+    - 来自 java:comp/env 的 JNDI 属性
+    - Java 系统属性 System.getProperties()
+    - 操作系统环境变量
+    - RandomValuePropertySource 配置的 random.\*属性值，由 jar 包外向 jar 包内进行寻找；优先加载带 profile
+    - jar 包外部的 application-{profile}.properties 或 application.yml(带 spring.profile)配置文件
+    - jar 包内部的 application-{profile}.properties 或 application.yml(带 spring.profile)配置文件
+      再来加载不带 profile
+    - jar 包外部的 application.properties 或 application.yml(不带 spring.profile)配置文件
+    - jar 包内部的 application.properties 或 application.yml(不带 spring.profile)配置文件
+    - @Configuration 注解类上的@PropertySource
+    - 通过 SpringApplication.setDefaultProperties 指定的默认属性
+
+#### 配置文件值注入
+
+[博客链接](https://www.cnblogs.com/dxiaodang/p/14433339.html) https://www.cnblogs.com/dxiaodang/p/14433339.html
+
+```xml
+<!-- 导入配置文件处理器，配置文件进行绑定就会有提示 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring‐boot‐configuration‐processor</artifactId>
+    <optional>true</optional>
+</dependency>
+```
+
+**@importResource**
+
+SpringBoot 里面没有 Spring 的配置文件，我们自己编写的配置文件，也不能自动识别；想让 Spring 的配置文件生效，需要使用@ImportResource 标注在一个配置类上。比如：
+
+```java
+// 导入Spring的配置文件让其生效
+@ImportSource(locations={"calsspath:bean.xml"})
+```
+
+```xml
+<?xml version="1.0" encoding="UTF‐8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema‐instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring‐beans.xsd">
+    <bean id="helloService" class="com.atguigu.springboot.service.HelloService"></bean>
+</beans>
+```
+
+**@EnableConfigurationProperties**
+
+用来开启 ConfigurationProperties 注解配置；如果不使用的话，@ConfigurationProperties 加入注解的类上加@Component 也是可以交于 springboot 管理
+
+**ConfigurationProperties**
+
+是 springboot 的注解，用于把主配置文件中配置属性设置到对应的 Bean 属性上
+
+```java
+// 方式1：ConfigurationProperties + Component作用于类上
+@ConfigurationProperties
+@ConfigurationProperties(prefix="xxx")
+@Componment
+public class Person {
+    private String name;
+}
+// 方式2：ConfigurationProperties + Bean作用在配置类的bean方法上
+public class Person {
+    private String name;
+}
+@Configuration
+public class PersonConf{
+    @Bean
+    @ConfigurationProperties(prefix="xxx")
+    public Person person(){
+        return new Person();
+    }
+}
+// 方式3：ConfigurationProperties注解到普通类、 EnableConfigurationProperties定义为bean
+@ConfigurationProperties(prefix="xxx")
+public class Person {
+    private String name;
+}
+
+@Configuration
+@EnableConfigurationProperties（xxx.class） // 直接加到启动类也可以
+public class PersonConf{
+}
+```
+
+**@Value 和 Environment**
+
+```java
+// @Value作用属性上
+@RestController
+@RequestMapping("/db")
+public class TestController {
+    @Value("${person.name}")
+    private String name;
+
+    @GetMapping("/person")
+    public String parsePerson() {
+        return name;
+    }
+}
+
+// 使用自带的Environment对象
+@RestController
+@RequestMapping("/db")
+public class TestController {
+    @Autowired
+    private Environment environment;
+
+    @GetMapping("/person")
+    public String parsePerson() {
+        return environment.getProperty("person.name");
+    }
+}
+```
+
+**PropertySource**
+
+是 spring 的注解，用于加载指定的属性文件的配置到 Spring 的 Environment 中。可以配合 @Value、Environment、@ConfigurationProperties 使用；`@PropertySource 注解不支持 yml、yaml`
+
+```java
+// 方式1：@Configuration + @PropertySource + Environment
+
+// 方式2：@Configuration + @PropertySource + @Value
+
+// 方式3：@Configuration + @PropertySource + @ConfigurationProperties
+// @Component 标注实体类，则@PropertySource 放在哪都可以，（可以放在实体类上，也可以放在配置类上）；如果使用 Bean 方式注入对象，PropertySource({"classpath:/student.properties"}) //此时只能放在配置类加载
+@Configuration
+@ConfigurationProperties(prefix = "remote", ignoreUnknownFields = false)
+@PropertySource("classpath:config/remote.properties")
+@Data
+public class RemoteProperties {
+private String uploadFilesUrl;
+private String uploadPicUrl;
+}
+```
+
+<img src="../images/SpringBoot/configurationProperties.png"  width="600" />
+
+## 4. 日志
+
+`SpringBoot选用SLF4j和logback，而底层Spring框架，默认是用JCL`
+
+<img src="../images/SpringBoot/SLF4J.png"  width="700" />
+
+<img src="../images/SpringBoot/SLF4Jconstruction.png"  width="700" />
+
+## 5. 自定义 starter
+
+> 自定义 starter 命名规范：xxx-spring-boot-starter
+
+1. 新建项目，pom 中引入相关依赖
+2. 新建配置类 xxxProperties，写好配置项和默认的配置值，指明配置项前缀
+3. 新建自动装配类 Configuration，使用@Configuration 和@Bean 来进行自动装配
+4. 新建 spring.factories 文件，指定 starter 的自动装配类
+
+## 6. restTemplate
 
 ##### 1. 基本介绍
 
@@ -12,7 +337,7 @@ RestTemplate 是 Spring 提供的，用于访问 Rest 服务的同步客户端�
 
 如果向查看所有的 http 客户端类库，可以找下 ClientHttpRequestFactory 接口的实现类：
 
-<img src=".\images\springboot\restTemplate\image-20210717124034829.png" alt="image-20210717124034829" style="zoom:33%;" />
+<img src=".\images\springboot\restTemplate\image-20210717124034829.png" alt="image-20210717124034829"  width="700" />
 
 **RestTemplate、Apache 的 HttpClient、OkHttp 比较：**
 
@@ -26,9 +351,9 @@ RestTemplate 是 Spring 提供的，用于访问 Rest 服务的同步客户端�
 
 ###### 2.1. get 请求
 
-> 除了 getForEntity 和 getForObject 外，使用 exchange()也可以，前两个是基于它实现的，此处不做介绍
+**说明：** 除了 getForEntity 和 getForObject 外，使用 exchange()也可以，前两个是基于它实现的，此处不做介绍
 
-![image-20210717133413370](.\images\springboot\restTemplate/image-20210717133413370.png)
+<img src=".\images\springboot\restTemplate\image-20210717133413370.png"  width="700" />
 
 参数包括请求 url、响应类型的 class、请求参数
 
@@ -53,13 +378,13 @@ ResponseEntity<Object> result = restTemplate.getForObject(url, Object.class, "pa
 
 ###### 2.2. post 请求
 
-![image-20210717160611447](.\images\springboot\restTemplate/image-20210717160611447.png)
+<img src=".\images\springboot\restTemplate/image-20210717160611447.png"  width="700" />
 
 参数和 get 请求的相比，就多了第二个参数（Object request），如果使用最后一个参数传参时，和 get 请求类似，request 设置为 null 就可以，如果使用第二个参数传参时，就需要考虑 request 的类型，request 参数类型必须是实体对象、MultiValueMap、HttpEntity 对象的的一种，其他不可以！！！
 
-- ==实体对象传参时，被请求的接口方法上必须使用@RequestBody，接收参数为实体或者 Map；==
-- ==HttpEntity 传参时，取决于 HttpEntity 对象的第一个参数，可以为任何类型，包括 HashMap；==
-- ==MultiValueMap 传参时，接收参数使用注解@RequestBody 时，使用一个 String 类型、名称随意，使用@RequestParam 时，使用对应个数的 String 类型字符串，名称必须和 map 中的 key 相同；推荐使用@RequestParam==
+- `实体对象传参时，被请求的接口方法上必须使用@RequestBody，接收参数为实体或者 Map；`
+- `HttpEntity 传参时，取决于 HttpEntity 对象的第一个参数，可以为任何类型，包括 HashMap；`
+- `MultiValueMap 传参时，接收参数使用注解@RequestBody 时，使用一个 String 类型、名称随意，使用@RequestParam 时，使用对应个数的 String 类型字符串，名称必须和 map 中的 key 相同；推荐使用@RequestParam`
 
 ```java
 // 使用MultiValueMap传参
@@ -139,33 +464,30 @@ public class TestService implements ITestService {
 ##### 4. 源码分析(postForEntity 为例)
 
 <sapn style="color:red">思考重点:</sapn>
+
 <sapn style="color:red"> 1. 第二个参数为什么不能直接使用 HashMap，而只能使用 MultiValueMap？</sapn>
+
 <sapn style="color:red"> 2. 接收参数时，怎么合理的使用@RequestBody 和@RequestParam？</sapn>
+
 <sapn style="color:red"> 3. restTemplate 底层默认使用的是 SimpleClientHttpRequestFactory，为什么不支持调用 Https 接口？</sapn>
 
 1. 依次进入方法：postForEntity() -> httpEntityCallback -> HttpEntityRequestCallback
 
-![image-20210717165644382](.\images\springboot\restTemplate/image-20210717165644382.png)
+<img src=".\images\springboot\restTemplate/image-20210717165644382.png"  width="700" />
 
-![image-20210717165827241](.\images\springboot\restTemplate/image-20210717165827241.png)
+<img src=".\images\springboot\restTemplate/image-20210717165827241.png"  width="700" />
 
 2. requestBody 参数，会判断类型是否是 HttpEntity，如果不是，则创建一个 HttpEntity 类将 requestBody 参数传入，然后查看 HttpEntity 构造器，具体做了什么？
 
-![image-20210717165927874](.\images\springboot\restTemplate/image-20210717165927874.png)
+<img src=".\images\springboot\restTemplate/image-20210717165927874.png"  width="700" />
 
-3. 可以看到，三个构造方法，上边两个调用的是最下边一个；
+3. 可以看到，三个构造方法，上边两个调用的是最下边一个；第一个传入的是泛型，也就是传入的 Object 对象，第二个传入的是 MultiValueMap，这个值是存放 Headers 的，所有只需要关注这个泛型，在哪块使用的
 
-   第一个传入的是泛型，也就是传入的 Object 对象
-
-   第二个传入的是 MultiValueMap，这个值是存放 Headers 的
-
-   所有只需要关注这个泛型，在哪块使用的
-
-![image-20210717170358763](.\images\springboot\restTemplate/image-20210717170358763.png)
+<img src=".\images\springboot\restTemplate/image-20210717170358763.png"  width="700" />
 
 4. 回到 postForEntity()方法中，找到调用请求的方法 execute，点进去发现是调用方法 doExecute(...)；
 
-![image-20210717171852497](.\images\springboot\restTemplate/image-20210717171852497.png)
+<img src=".\images\springboot\restTemplate/image-20210717171852497.png"  width="700" />
 
 5. 在 doExecute()中
    - 首先使用请求的 url 和 method(post 或者 get)构造出一个 ClientHttpRequest
@@ -174,11 +496,11 @@ public class TestService implements ITestService {
    - 使用 ResponseExtractor 的 extraData 方法将返回的 response 转换为某个特定的类型；
    - 最后关闭 ClientHttpResponse 资源，这样就完成了发送请求并获得对应类型的返回值的全部过程。
 
-![image-20210717171914777](.\images\springboot\restTemplate/\image-20210717171914777.png)
+<img src=".\images\springboot\restTemplate/\image-20210717171914777.png"  width="700" />
 
 6. 进入方法 getRequestFactory() -> getRequestFactory()可以发现，通过 this.requestFactory 初始化了 SimpleClientHttpRequestFactory();通过方法 createRequest(url, method) -> openConnection()发现创建了 HttpURLConnection 连接，因此默认使用的 restTemplate 是无法访问 Https 接口的
 
-![image-20210718224627598](.\images\springboot\restTemplate/image-20210718224627598.png)
+<img src=".\images\springboot\restTemplate/image-20210718224627598.png"  width="700" />
 
 7. 进入方法 doWithRequest(request)可以发现，程序会执行第一个 else 中的逻辑，根据传入的参数，判断 requestBodyClass、requestBodyType 和 MediaType；
    - 如果第二个参数为 HashMap 或者 MultiValueMap 时，MediaType 为 null；
@@ -186,7 +508,7 @@ public class TestService implements ITestService {
 
 接下来会遍历所有的 HttpMessageConverter，这些对象在 RestTemplate 的构造函数中被初始化
 
-![image-20210718125745189](.\images\springboot\restTemplate/image-20210718125745189.png)
+<img src=".\images\springboot\restTemplate/image-20210718125745189.png"  width="700" />
 
 8. 在遍历过程中判断是否可以写入，如果能写入则执行写入操作并返回；判断 MessageConvertor 是否为 GenericHttpMessageConverter 的子类，是因为写入的方式不同；在这些 MessageConvertor 中只有 GsonHttpMessageConverter 是 GenericHttpMessageConverter 的子类，且排在最后；因此，遍历过程中会先判断前六个 convertor，能写入则执行写入，最后才是 GsonHttpMessageConvertor。分析所有的 HTTPMessageConvertor，可以发现
 
@@ -194,15 +516,15 @@ public class TestService implements ITestService {
 
    - HashMap 类型的数据会被 GsonHTTPMessageConvertor 处理，将 MediaType 置为 application/json;charset=UTF-8、将 request 转成 json 并写入到 body 中，==因此，第二个参数设置为 HashMap 时，无法设置 ContentType 值，所有第二个参数无法使用 HashMap！但是可以使用 HttpEntity 对象，将 HashMap 存放在 HttpEntity 对象里边，接收参数时，使用@RequestBody==
 
-<img src=".\images\springboot\restTemplate/image-20210718125937670.png" alt="image-20210718125937670" style="zoom:33%;" />
+<img src=".\images\springboot\restTemplate/image-20210718125937670.png" alt="image-20210718125937670" width="700" />
 
 <br>
 
-![image-20210718132008639](.\images\springboot\restTemplate//image-20210718132008639.png)
+<img src=".\images\springboot\restTemplate//image-20210718132008639.png"  width="700" />
 
 ##### 5. restTemplate 访问 Https 接口
 
-==restTemplate 底层默认使用的是 SimpleClientHttpRequestFactory，是基于 HttpURLConnection，是不支持调用 Https 接口的，可以修改为 HttpComponentsClientHttpRequestFactory==
+`restTemplate 底层默认使用的是 SimpleClientHttpRequestFactory，是基于 HttpURLConnection，是不支持调用 Https 接口的，可以修改为 HttpComponentsClientHttpRequestFactory`
 
 ```java
 public class RestTemplateConfig {
@@ -233,87 +555,17 @@ public class RestTemplateConfig {
 
 ```
 
-3. Random、ThreadLocalRandom、SecureRandom
+## 7. 异步和定时
 
-1. Random：伪随机数，通过种子生成随机数，种子默认使用系统时间，可预测，安全性不高，线程安全；
-1. ThreadLocalRandom：jdk7 才出现的，多线程中使用，虽然 Random 线程安全，但是由于 CAS 乐观锁消耗性能，所以多线性推荐使用
-1. SecureRandom：可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom。
+#### 1. TaskExecutor 任务执行器 与 TaskScheduler 任务调度器
 
-相同点：种子相同，在相同条件，运行相同次数产生的随机数相同；
+- 任务执行器：多线程执行异步任务
+- 任务调度器：定时任务多线程调度，定义一个自定义的任务调度线程池
+- 对于更细粒度的控制，可以实现 SchedulingConfigurer 或 AsyncConfigurer 接口
+  - springboot 默认线程池配置，可以实现 AsyncConfigurer 接口，该接口中有配置线程池和异常处理的方法；
+  - SchedulingConfigurer 接口
 
-## 4. restful 与 rpc
-
-1. RPC： Remote Procedure Call、远程过程调用，是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。
-2. Restful：是一种软件架构风格，设计风格，而不是标准，只是提供了一组设计原则和约束条件，主要用于客户端和服务器交互类的软件。通过 http 协议中的 post、get、put、delete 等方法和一个可读性强的 url 提供一个 http 请求。
-
-   - 面向资源。通过 url 将资源暴露出来；与资源的操作无关，操作通过该 http 动词来体现。比如 get /rest/api/getDogs => get /rest/api/dogs
-   - rest 利用 http 本身的就有的一些特性。比如 http 状态码，http 报头
-     200 OK
-     400 Bad Request 客服端错误，前端调用的问题
-     500 Internal Server Error 服务器错误，后端代码问题
-
-3. 区别：
-
-   - restful 是基于 http。而 rpc 则不一定通过 http，更常用的是使用 TCP 来实现。RPC 可以获得更好的性能（省去了 HTTP 报头等一系列东西）,TCP 更加高效，而 HTTP 在实际应用中更加的灵活。
-   - restfull 和 rpc 都是 client/server 模式的，都是在 Server 端 把一个个函数封装成接口暴露出去
-   - 从使用上来说：Http 接口只关注服务提供方（服务端），对于客户端怎么调用，调用方式怎样并不关心；而 RPC 服务则需要客户端接口与服务端保持一致，服务端提供一个方法，客户端通过接口直接发起调用。
-   - restful 采用标准的数据格式，异构的客户端与服务器通信方便；RPC 整个请求的方法对客户端不可见，异构的客户端与服务器通信比较难；
-
-   ## 1. 热部署
-
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-	<version>2.2.1.RELEASE</version>
-</dependency>
-```
-
-## 2. Junit 单元测试
-
-> springboot 2.2 版本之前使用 JUnit4(org.junit.junit.Test)，之后版本使用 JUnit5(org.junit.juniter.api.Test)
->
-> `由于初始化创建Springboot时，版本高于2.2，导致引入包为jupiter；而改为低版本时，需要手动导JUnit5或者使用Junit4测试单元`
-
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-test</artifactId>
-    <scope>test</scope>
-    <exclusions>
-    	<exclusion>
-    		<groupId>org.junit.vintage</groupId>
-    		<artifactId>junit-vintage-engine</artifactId>
-    	</exclusion>
-    </exclusions>
-</dependency>
-<dependency>
-    <groupId>org.junit.jupiter</groupId>
-    <artifactId>junit-jupiter</artifactId>
-    <version>5.6.2</version>
-    <scope>test</scope>
-</dependency>
-```
-
-| 2.2 版本之前                             | 2.2 版本之后                                                                                   |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| JUnit4(org.junit.junit.Test)             | JUnit(org.junit.juniter.api.Test)                                                              |
-| 需要使用注解@RunWith(SpringRunner.class) | @ExtendWith(SpringExtension.class)                                                             |
-|                                          | 支持 lambda 表达式                                                                             |
-| 测试引擎：vintage-engine                 | 测试引擎：juniter-engine                                                                       |
-|                                          | org.junit.jupiter.api.Assertions 包的 stratic 方法<br />assertTrue、assertFalse、assertNotNull |
-
-## 3. 异步和定时
-
-### 3.1 TaskExecutor 任务执行器 与 TaskScheduler 任务调度器
-
-1. 任务执行器：多线程执行异步任务
-2. 任务调度器：定时任务多线程调度，定义一个自定义的任务调度线程池
-3. 对于更细粒度的控制，可以实现 SchedulingConfigurer 或 AsyncConfigurer 接口
-   - springboot 默认线程池配置，可以实现 AsyncConfigurer 接口，该接口中有配置线程池和异常处理的方法；
-   - SchedulingConfigurer 接口
-
-### 3.2 异步（注解和接口）
+#### 2. 异步（注解和接口）
 
 > @Async 标注异步方法，@EnableAsync 开启异步执行调用，可以直接标注在启动类、也可以写在自定义配置类上
 >
@@ -421,7 +673,7 @@ public class AsyncThreadPoolAutoConfiguration implements AsyncConfigurer {
 }
 ```
 
-### 3.3 定时（注解和接口）
+#### 3. 定时（注解和接口）
 
 > 定时的几种实现方式：
 >
@@ -490,7 +742,43 @@ public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
 }
 ```
 
-## 4. 多模块整合
+## 常见问题
+
+#### 1. SpringBoot 切换版本后，Junit 报错
+
+`springboot 2.2 版本之前使用 JUnit4(org.junit.junit.Test)，之后版本使用 JUnit5(org.junit.juniter.api.Test)，由于初始化创建springboot时，版本高于2.2，导致引入包为jupiter；而改为低版本时，需要手动导JUnit5或者使用Junit4测试单元`
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+    <exclusions>
+    	<exclusion>
+    		<groupId>org.junit.vintage</groupId>
+    		<artifactId>junit-vintage-engine</artifactId>
+    	</exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter</artifactId>
+    <version>5.6.2</version>
+    <scope>test</scope>
+</dependency>
+```
+
+| 2.2 版本之前                             | 2.2 版本之后                                                                                   |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| JUnit4(org.junit.junit.Test)             | JUnit(org.junit.juniter.api.Test)                                                              |
+| 需要使用注解@RunWith(SpringRunner.class) | @ExtendWith(SpringExtension.class)                                                             |
+|                                          | 支持 lambda 表达式                                                                             |
+| 测试引擎：vintage-engine                 | 测试引擎：juniter-engine                                                                       |
+|                                          | org.junit.jupiter.api.Assertions 包的 stratic 方法<br />assertTrue、assertFalse、assertNotNull |
+
+#### 2.
+
+#### 4. 多模块整合
 
 > 问题汇总：
 >
@@ -523,6 +811,9 @@ Caused by: org.springframework.boot.autoconfigure.jdbc.DataSourceProperties$Data
 5. 默认关闭 test 单元测试
 
 ```xml
+<!-- maven-compiler-plugin 是用于在编译（compile）阶段加入定制化参数，比如指定java jdk版本号，以及bootclasspath；
+而 spring-boot-maven-plugin 是用于 spring boot 项目的打包（package）阶段，两者没什么关系。 -->
+<!--  -->
 <build>
 	<plugins>
 		<plugin>
@@ -532,8 +823,10 @@ Caused by: org.springframework.boot.autoconfigure.jdbc.DataSourceProperties$Data
 			<configuration>
 				<source>${java.version}</source>
 				<target>${java.version}</target>
+                <encoding>UTF-8</encoding>
 			</configuration>
 		</plugin>
+        <!-- maven里执行测试用例的插件，不显示配置就会用默认配置。这个插件的surefire:test命令会默认绑定maven执行的test阶段。 -->
 		<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-surefire-plugin</artifactId>
@@ -546,7 +839,7 @@ Caused by: org.springframework.boot.autoconfigure.jdbc.DataSourceProperties$Data
 </build>
 ```
 
-## 5. spring-boot-maven-plugin 插件
+#### 5. spring-boot-maven-plugin 插件
 
 > maven 中的 classfier 标签，在打包的使用起别名，为了生成一个普通 jar，一个可执行 jar，可执行 jar 的后缀为 xxx-exec.jar
 >
@@ -562,7 +855,7 @@ Caused by: org.springframework.boot.autoconfigure.jdbc.DataSourceProperties$Data
 </plugin>
 ```
 
-## 6. 单元测试异步执行问题
+#### 6. 单元测试异步执行问题
 
 springboot 单元测试中测试异步线程，发现异步线程没有执行?
 
@@ -570,7 +863,7 @@ springboot 单元测试中测试异步线程，发现异步线程没有执行?
 
 解决办法：在 springboot 单元测试中，测试异步方法时，在主线程增加 Thread.sleep(),等待子线程执行结束后结束主线程，在实际环境中，springboot 一直运行中，故不会出现这种情况。
 
-## 7. 传参
+#### 7. 传参
 
 ```java
 // @PathVariable 获取路径参数，比如url/{id}   	--一般用在GET，DELETE，PUT方法
@@ -612,77 +905,11 @@ public void demo3(@RequestHeader(name = "myHeader") String myHeader,
 
 ```
 
-## 8. 读取配置文件属性
-
-@importResource -> 导入 Spring 的配置文件，让配置文件里边的内容生效，@ImportSource(locations={"calsspath:bean.xml"})
-
-```java
-@ConfigurationProperties  	// 是springboot的注解，用于把主配置文件中配置属性设置到对应的Bean属性上
-方式1：ConfigurationProperties + Component作用于类上
-@ConfigurationProperties(prefix="xxx")
-@Componment
-public class Person {
-    private String name；
-}
-方式2：ConfigurationProperties + Bean作用在配置类的bean方法上
-public class Person {
-    private String name；
-}
-@Configuration
-public class PersonConf{
-    @Bean
-    @ConfigurationProperties(prefix="xxx")
-    public Person person(){
-        return new Person();
-    }
-}
-方式3：ConfigurationProperties注解到普通类、 EnableConfigurationProperties定义为bean
-@ConfigurationProperties(prefix="xxx")
-public class Person {
-    private String name；
-}
-@Configuration
-@EnableConfigurationProperties（xxx.class） // 直接加到启动类即可
-public class PersonConf{
-
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@PropertySource				// 是spring的注解，用于加载指定的属性文件的配置到 Spring 的 Environment 中。可以配合 @Value 和 @ConfigurationProperties 使用
-用法：
-// @Configuration+ @PropertySource+Environment
-
-// @Configuration+ @PropertySource+@Value
-
-@Component标注实体类， 则@PropertySource放在哪都可以，（可以放在实体类上，也可以放在配置类上）
-
-如果使用Bean方式注入对象，PropertySource({"classpath:/student.properties"}) //此时只能放在配置类加载
-
-// @Configuration+ @PropertySource+@ConfigurationProperties
-@Configuration
-@ConfigurationProperties(prefix = "remote", ignoreUnknownFields = false)
-@PropertySource("classpath:config/remote.properties")
-@Data
-public class RemoteProperties {
-  private String uploadFilesUrl;
-  private String uploadPicUrl;
-}
-```
-
-## 9. 测试连接数据库
+#### 8. 测试连接数据库
 
 > 必须导入 spring-boot-starter-jdbc 包，如果时整合 mybatis 或 mybatisplus 时，就不需要导入了，因为它们底层都依赖 spring-boot-starter-jdbc 的
 
-## 10. xxxAutoConfiguration 自动配置类
-
-1. 配置类注解详解
-   - @ConditionalOnClass：只有在 classpath 类路径下要有这个类才能激活当前配置类
-   - @ConditionalOnBean：仅仅在当前上下文中存在某个对象时，才会实例化一个 Bean
-   - @ConditionalOnExpression：当表达式为 true 时，才会实例化一个 Bean
-   - @ConditionalOnMissingBean：仅仅在当前上下文中不存在某个 Bean 时，才会实例化一个 Bean
-   - @COnditionalOnMissingClass：当某个 class 类路径上不存在的时候，才会实例化一个 Bean
-   - @ConditioonalOnNotWebApplication：不是 web 应用
-
-## 11. RestController 和 Controller
+#### 9. RestController 和 Controller
 
 1. @Controller 注解
 
@@ -691,7 +918,7 @@ public class RemoteProperties {
 2. @RestController 注解
    - 相当于@Controller+@ResponseBody 两个注解的结合，返回 json 数据不需要在方法前面加@ResponseBody 注解了，但使用@RestController 这个注解，就不能返回 jsp,html 页面，视图解析器无法解析 jsp,html 页面
 
-## 12. @RestControllerAdvice 和 @ControllerAdvice
+#### 10. @RestControllerAdvice 和 @ControllerAdvice
 
 - @RestControllerAdvice 注解包含了@ControllerAdvice 注解和@ResponseBody 注解
 
@@ -699,42 +926,7 @@ public class RemoteProperties {
 
 - 通常和 @ExceptionHandler 配合使用，用于处理全局异常情况
 
-## 13. RestTemplateBuilder 实例化 RestTemplate
-
-> 使用 restTemplateBuilder 实例化，因为 spring 自动化配置注入到 Ioc 容器的。
-
-![restTemplate](../../images/SpringBoot/springboot.png)
-
-## 14. springboot 的自动装配和启动过程
-
-> 通过注解或者一些简单的配置就能在 springboot 的帮助下实现某块功能
->
-> 在启动时，会扫描外部引用 jar 包中的 META-INF/spring.factories 文件，将文件中的配置的类型信息加载到 spring 容器，并执行类中定义的各种操作。
->
-> @SpringBootApplication 注解包括：
->
-> 1. @SpringBootConfiguration（@Configuration）就是将当前的类作为一个 javaconfig，然后触发其他两个注解的处理，本质上就是@Configuration 注解
-> 2. @EnableAutoConfiguration
-> 3. @ComponentScan
-
-1.  其中@EnableAutoConfiguration 是自动配置机制的核心，
-2.  通过@Import 注解引入了 AutoConfigurationImportSelector 加载自动装配类。
-3.  selectImports 方法主要用于`获取所有符合条件的类的全限定类名，这些类需要被加载到 IoC 容器中。`
-4.  其中通过 SpringFactoriesLoader
-5.  ConfigurationClassPostProcessor 解析启动主类，并且读取解析注解 ConfigurationClassPostProcessor 类中 parse 方法解析启动类
-
-## springboot 查看自动配置是否生效：通过启用 debug=ture 属性，在控制台打印自动配置报告，这样子就可以看到哪些自动配置生效。
-
-## 15. Springboot 配置文件
-
-1. 占位符
-   ${random.value}、${random.int}、${random.long}
-    ${random.int(10)}、${random.int[1024,65536]}
-2. 指定默认值，使用:指定默认值
-   ${person.hello:hello}
-3. 多文档块，使用---分割
-
-## 16. spring cache + caffeine
+#### 11. spring cache + caffeine
 
 1. @CacheConfig：主要用于配置该类中会用到的一些共用的缓存配置
 2. @Cacheable：主要方法返回值加入缓存，同时在查询时，会先从缓存中取，若不存在才再发起对数据的访问
@@ -749,7 +941,7 @@ public class RemoteProperties {
 @Caching：组合定义多种缓存功能
 @CacheConfig：定义公共设置，位于 class 之上
 
-### 16.1 导入依赖：
+##### 11.1 导入依赖：
 
 ```xml
  <dependency>
@@ -763,7 +955,7 @@ public class RemoteProperties {
 </dependency>
 ```
 
-### 16.2 yml 配置 通过 yaml 文件配置的方式不够灵活，无法实现多种缓存策略，所以现在一般使用 javaconfig 的形式进行配置。
+##### 11.2 yml 配置 通过 yaml 文件配置的方式不够灵活，无法实现多种缓存策略，所以现在一般使用 javaconfig 的形式进行配置。
 
 ```yaml
 spring:
@@ -791,11 +983,11 @@ maximumSize 和 maximumWeight 不可以同时使用
 weakValues 和 softValues 不可以同时使用
 ```
 
-### 16.3 开启缓存 @EnableCaching
+##### 11.3 开启缓存 @EnableCaching
 
-### 16.4 使用
+##### 11.4 使用
 
-## 17 RequestBodyAdvice 和 ResponseBodyAdvice
+#### 12 RequestBodyAdvice 和 ResponseBodyAdvice
 
 对@RequestBody 的参数进行各种处理，例如加解密、打印日志，这些东西我们可以用到 RequestBodyAdvice 和 ResponseBodyAdvice 来对请求前后进行处理，本质上他俩都是 AOP
 
@@ -809,7 +1001,7 @@ weakValues 和 softValues 不可以同时使用
 
 > 对 controller 结果二次封装，在 spring 中，我们需要实现 HandlerMethodReturnValueHandler 接口，这并不会有任何问题；在使用 SpringBoot 的情况下，SpringBoot 对返回值的处理，默认就是 HandlerMethodReturnValueHandler，我们写的 HandlerMethodReturnValueHandler 无法直接生效，如果非要使用 HandlerMethodReturnValueHandler，那么只能想办法替换掉默认的
 
-## 18 拦截器
+#### 13 拦截器
 
 1. 实现方式
    - 定义一个类，实现 org.springframework.web.servlet.HandlerInterceptor 接口
