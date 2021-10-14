@@ -8,9 +8,9 @@
   - [Spring](Java/Spring.md)
   - [SpringBoot](Java/SpringBoot.md)
   - <font color=#505d6b size=2.8px>微服务</font>
-    - [概念](java/微服务/概念.md)
-    - [SpringCloud](java/微服务/SpringCloudNetflix.md)
-    - [SpringCloud](java/微服务/SpringCloudAlibaba.md)
+    - [概念](Java/微服务/概念.md)
+    - [SpringCloud Netflix](Java/微服务/SpringCloudNetflix.md)
+    - [SpringCloud Alibaba](Java/微服务/SpringCloudAlibaba.md)
 
 - **Linux**
 
