@@ -157,7 +157,7 @@ wc 统计行号    line=`wc -l $path |cut -d' ' -f1`    #
 - /opt：主机额外安装软件的目录，默认为空
 - /root：该目录为系统管理员，也称作超级权限者的用户目录
 - /tmp：存放临时文件的，用完即丢，可以放安装包
-- /usr：存放用户的应用目录和文件，类似于 windows 下的 program files 目录
+- /usr：系统级的目录，存放用户的应用目录和文件，类似于 windows 下的 C:/Windows/System32 目录
 - /var：存放在不断扩充着的东西，比如日志文件， 习惯将经常修改的目录放在这个目录。
 
 ## 4. grep sed cut awk(print) seq
@@ -276,9 +276,32 @@ pgrep命令：以名称为依据从运行进程队列中查找进程，并显示
 
 ## 7. 安装软件
 
+> 默认安装在 /usr/local 用户级的程序目录下，可以理解为 C:/Progrem Files，用户自己编译的软件默认会安装到这个目录下。
+
+> /opt：用户级的程序目录，可以理解为 D:/Software，一般三方大型软件安装在该目录下。
+
 ```sh
-# wget 获取rpm包
-# yum在线安装  yun -y install
+# 1. 使用压缩包安装
+tar -zxvf xxx.tar.gz
+./configure --prefix=/usr/local/xxx  # 配置安装路径，默认安装在/usr/local/bin/
+make
+make install                        # make install PREFIX=/usr/local/xxx可以替代./configure命令
+
+# 2. yum在线安装
+yum -y install xxx # yum install 安装命令 -y 所有的提示都为 y
+yum -y install gcc
+yum -y install gcc-c++
+
+ip配置:setup
+网络yum源（即网络地址池）:vi /etc/yum.repos.d/CentOS-Base.repo 打开CentOS-Base.repo文件
+
+yum -y update 包名							 # 升级
+yum list                               # 查询所有可用软件包列表
+yum search 关键字                       # 搜索服务器上所有和关键字相关的包
+yum grouplist                          #列出所有可用的软件组列表
+
+# 3. 使用rpm包安装
+wget 获取rpm包，或者自行下载并上传
 rpm -ivh 二进制软件包         # i安装 v详细信息 h显示进度  --nodeps 不检测依赖性
 
 rpm -uvh xx.rpm 	 # 升级
@@ -288,28 +311,8 @@ rpm -qi -qip		 # information软件信息  p package
 rpm -ql -qlp  		 # 查询(未)文件安装位置
 rpm -qf				 # f 查询系统文件命令属于哪个软件包
 rpm -qR	 -qRp		 # R查询软件包的依赖性requires
-校验是否修改过文件  rpm -V  验证内容中的信息的具体内容：：：：：
+校验是否修改过文件  rpm -V  验证内容中的信息的具体内容
 rpm2cpio 包全名 | cpio -idv .文件绝对路径   # 换行时加上\
-~~~~~~~~~~~~~~~~~~~~~
-ip配置:setup
-网络yum源（即网络地址池）:vi /etc/yum.repos.d/CentOS-Base.repo 打开CentOS-Base.repo文件
-
-yum -y update 包名							 # 升级
-yum list                               # 查询所有可用软件包列表
-yum search 关键字                       # 搜索服务器上所有和关键字相关的包
-yum grouplist                          #列出所有可用的软件组列表
-
-# 查看版本
-[root@localhost ~]# cat /etc/redhat-release
-CentOS Linux release 7.8.2003 (Core)
-
-yum -y install 包名 # yum install 安装命令 -y 所有的提示都为 y
-yum -y install gcc
-yum -y install gcc-c++
-
-1. 获取安装包：wget http://downloads.sourceforge.net/project/pcre/pcre/8.37/pcre-8.37.tar.gz
-2. 拷贝之后安装
-3. yum -y install
 ```
 
 ## 8. 链接

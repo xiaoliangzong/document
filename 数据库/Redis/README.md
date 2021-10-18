@@ -2,51 +2,75 @@
 
 ## 1. windows 安装
 
-> Windows 版的 Redis 有 2 个配置文件，一个是：redis.windows.conf，另一个是 redis.windows-service.conf。
->
-> 设置登录密码，只需要在 redis.windows.conf 中设置
-> 客户端访问时，需要输入密码：`auth password`
->
-> 由于安装版(xxx.msi)的 Redis 服务自启动，是直接通过 redis-server.exe 启动的，但是启动时并没有加载 Redis 的配置文件（redis.windows.conf），导致 redis 中 bind 绑定配置和密码设置不生效
-> 解决办法：
->
-> 1. 禁用 Redis 的自启动，设置为手动（计算机-管理-服务-设置为手动）
-> 2. 不要使用 Redis 安装版，使用压缩版，通过命令行加载配置文件 redis.windows.conf 启动
+> windows 系统的 Redis 有两个配置文件，redis.windows.conf 和 redis.windows-service.conf，设置密码、配置时，只需要在 redis.windows.conf 文件中设置
+
+**安装方式**
+
+1. 使用 xxx.msi 安装，Redis 服务默认是自启动，即直接通过 redis-server.exe 启动；
+2. 使用压缩包安装；
+
+<font color="red">不管是哪种方式安装，都可以通过命令行加载配置文件方式或自启动服务启动。
+但是第一种方式默认是自启动的，也就是安装后会自动生成启动命令，启动命令并没有加载 Redis 的配置文件（redis.windows.conf），因此会导致 redis 中绑定配置和密码设置不生效。可以设置为手动（计算机-管理-服务-设置为手动），禁用 Redis 的自启动用命令行方式启动</font>
+
+**启动**
 
 ```shell
-# 第一种：通过命令行启动
-# 1. 下载压缩包，直接解压
-# 2. 启动服务端
-./redis-server.exe redis.windows.conf
-# 3. 启动客户端
-./redis-cli.exe            # 精简模式
-./redis-cli.exe -h 127.0.0.1 -p 6379 -a 密码      # 指定模式  -a  密码
-./redis-cli.exe -h 127.0.0.1 -p 6379
+# 1. 命令行方式启动
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# 第二种：通过服务自启动
-# 1. 不是安装版的Redis，如果需要实现自启动，只需将Redis服务注册成windows服务
+# 启动服务端
+./redis-server.exe redis.windows.conf
+# 启动客户端
+./redis-cli.exe                                     # 精简模式
+./redis-cli.exe -h 127.0.0.1 -p 6379
+./redis-cli.exe -h 127.0.0.1 -p 6379 -a 密码        # -a是指定密码，如果启动时不指定，也可以通过命令行 auth password 指定
+
+
+# 2. 服务自启动方式， 使用压缩方式安装的Redis，如果需要实现自启动，只需将Redis服务注册成windows服务。在安装目录下，执行命令 redis-server --service-install redis.windows.conf --loglevel verbose --service-name Redis；执行成功后表示已经安装成为windows服务了，但是安装服务后，默认不是马上启动的，但启动类型是自启动，如果想马上启动，需要执行启动命令或重启电脑
+
 # --service-install redis.windows.conf 指定redis配置文件
 # --loglevel notice  指定日志级别，Redis总共支持四个级别：debug、verbose、notice、warning，默认为verbose
 # --service-name   指定redis服务名称
-安装目录下，执行 redis-server --service-install redis.windows.conf --loglevel verbose --service-name Redis  ；执行此命令成功后表示已经安装成为windows服务了，但是安装服务后，默认不是马上启动的，但启动类型是自启动，如果想马上启动，需要执行启动命令或重启电脑
-# 2. 启动redis服务
+
+# 2.1 启动redis服务
 redis-server --service-start
-# 3. 停止redis服务
+# 2.2 停止redis服务
 redis-server --service-stop
-# 4. 还可以安装多个服务
+# 2.3 还可以安装多个服务
 redis-server --service-install -service-name redisService1 -port 3306
 redis-server --service-install -service-name redisService2 -port 3307
-# 5. 卸载删除redis服务
+# 2.4 卸载删除redis服务
 redis-server --service-uninstall
 sc delete 服务名  # 删除服务（管理员身份运行）
+
 ```
 
-## redis 的配置文件详解
+## 2. Linux 安装
+
+参考：https://www.cnblogs.com/xsge/p/13841875.html
+
+使用压缩包方式或 rpm 包安装，启动命令基本相同，如果要添加配置、设置密码，只需要修改 redis.conf 文件
 
 ```sh
-#redis的配置
+# 解压，将解压文件存放在 /usr/local/redis 目录
+tar -zxvf redis-6.0.6
+# 安装gcc，ContOS7默认安装4.8.5版本
+yum -y gcc-c++
+# 升级gcc，不升级因为版本低，安装时会报错
+yum -y install centos-release-scl
+yum -y install devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils
+echo "source /opt/rh/devtoolset-9/enable" >>/etc/profile
+systemctl enable devtoolset-9 bash
+# redis程序编译
+make
+make install PREFIX=/usr/local/redis    # 将redis安装在指定位置，默认在/usr/local/bin，也可以在编译前通过./configure --prefix=/usr/local/bin设置安装位置
+# 在安装位置新增配置文件redis.conf，可以用来配置属性和设置密码
+mkdir conf
+cp redis.conf /usr/local/redis/bin/conf/
+```
 
+## 3. Redis 的配置文件详解
+
+```sh
 #Redis默认不是以守护进程的方式运行，可以通过该配置项修改，使用yes启用守护进程
 daemonize yes
 #当Redis以守护进程方式运行时，Redis默认会把pid写入redis.pid文件，可以通过pidfile指定
@@ -93,14 +117,16 @@ appendfilename 'appendonly.aof'
 #always：表示每次更新操作后手动调用fsync()将数据写到磁盘（慢，安全）
 #everysec：表示每秒同步一次（折衷，默认值）
 appendfsync everysec
-
 ```
 
-## 2. 启动报错: Creating Server TCP listening socket \*:6379: bind: No error
+## 常见问题
 
-`解决步骤`
+**启动报错: Creating Server TCP listening socket \*:6379: bind: No error**
 
+```sh
+# 解决步骤
 1. redis-cli.exe
 2. shutdown
 3. exit
 4. 重新启动
+```

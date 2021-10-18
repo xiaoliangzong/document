@@ -180,3 +180,29 @@ git commit
 # 8.本地仓库代码提交到远程仓库
 git push
 ```
+
+### 问题汇总
+
+**git Failed to connect to 127.0.0.1 port 1181: Connection refused**
+
+用 git 拉取代码时，出现了该错误，经过百度得知：是因为我自己安装了外网插件，导致自动设置代理了
+
+```sh
+# 查一下代理（https同理）
+git config --global http.proxy
+
+# 有就取消
+git config --global --unset http.proxy
+```
+
+**git 默认大小写不敏感，即忽略大小写**
+
+在修改文件夹大小写后，默认提不上去，是因为 git 忽略大小写
+
+```sh
+# 查看大小写配置（core.ignore属性）
+git config -l
+
+# 修改
+git config core.ignore false
+```
