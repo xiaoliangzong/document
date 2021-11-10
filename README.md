@@ -1,73 +1,56 @@
 ## 1. 命名规范
 
-1.  骆驼拼写法（CamelCase）
-
-    - 大驼峰：CamelCase
-    - 小驼峰：camelCase
-
-2.  蛇形命名法（snake case）
-    - 下划线将单词链接：file_name
+- DO、BO、DTO、VO 需要大写
+- 蛇形命名法（snake case），下划线将单词链接：file_name
+- 骆驼拼写法（CamelCase）
+  - 大驼峰：CamelCase
+  - 小驼峰：camelCase
 
 ## 2. 反射
 
-JVM 为每个加载的 class 及 interface 创建了对应的 Class 实例来保存 class 及 interface 的所有信息；获取一个 class 对应的 Class 实例后，就可以获取该 class 的所有信息；通过 Class 实例获取 class 信息的方法称为反射（Reflection）；
+反射就是动态加载对象，是指程序在运行期间可以拿到一个对象的所有信息；
 
-JVM 总是动态加载 class，可以在运行期根据条件来控制加载 class。
+JVM 为每个加载的 class 及 interface 创建了对应的 Class 实例来保存 class 及 interface 的所有信息；获取一个 class 对应的 Class 实例后，就可以获取该 class 的所有信息；通过 Class 实例获取 class 信息的方法称为反射（Reflection）。
+
+**用途**
+
+- Spring 框架底层大量使用，比如 IOC 基于反射创建对象和设置依赖属性。
+- Spring MVC 的请求调用对应方法，也是通过反射。
+- poi 通用工具解析类：解析 excel 为 List<LinkedHashMap<Integer, String>>数据，通过反射转换为各种不同的对象
+- 行列互换，数据库字段横向插入，在 vo 使用时，需要转换成纵向
+
+**API**
 
 ```java
 // 获取Class实例的三种方式
-Class cls = String.class;
+Class clazz = A.class;
+Class clazz = b.getClass();
+Class clazz = Class.forName("全限定类名");
 
-String s = "Hello";
-Class cls = s.getClass();
+// 获取构造器对象，通过构造器创建对象，有参无参都可以
+Constructor<?> constructor = clazz.getConstructor(Class<?>... parameterTypes);
+T t = constructor.newInstance();    // 参数个数与声明的个数必须一样，否则报异常：IllegalArgumentException
 
-Class cls = Class.forName("java.lang.String");
+// 通过对象创建实例
+T t = clazz.newInstance();
+
+// 通过class对象获取属性、方法
+Field[] fields = clazz.getFields();         // 获得某个类的所有的公共（public）的字段，包括父类中的字段。
+Method[] methods = clazz.getMethods();
+
+Field[] fields = clazz.getDeclaredFields(); // 获得某个类的所有声明的字段，即包括public、private和proteced，但是不包括父类的申明字段
+ Method[] methods = clazz.getDeclaredMethods();
+
+// 通过class对象获得指定属性或方法
+Method method = clazz.getMethod("方法名", Class<?>... parameterTypes);         // 只能获取公共的
+
+Method method = clazz.getDeclaredMethod("方法名", Class<?>... parameterTypes); // 获取任意修饰的方法，不能执行私有
+
+method.setAccessible(true);  // 让私有的方法可以执行
+
+// 让方法执行
+method.invoke(clazz);
 ```
-
-## 1. 拦截器、过滤器、AOP
-
-> 过滤器能做的，拦截器基本上都能做
-
-Filter 和 Interceptor 区别：
-
-1. 拦截器是基于 java 的反射机制，使用代理模式；而过滤器是基于函数回调
-2. 拦截器不依赖 servlet 容器，依赖 spring 容器；而过滤器依赖于 servlet 容器，只能在 web 环境下使用
-3. 拦截器只能对 action 起作用；而过滤器可以对几乎所有的请求起作用
-4. 拦截器可以访问 action 上下文，堆栈里边的对象；而过滤器不可以
-5. 拦截器有更精细的控制，可以在 controller 对请求处理之前和之后被调用，也可以在渲染视图呈现给用户之后调用；而过滤器的控制比较粗，只能在请求进来时进行处理，对请求和响应进行包装。
-6. 拦截器可以在 preHandle 方法内返回 false 进行中断；而过滤器就比较复杂，需要处理请求和响应对象来引发中断，比如将用户重定向到错误页面
-
-过滤器拦截 web 访问 url 地址，用在 web 环境中，是基于函数回调机制实现的，只能控制最初的 http 请求，可以对拦截到方法的请求和响应，并做出过滤操作，主要用于设置字符编码、鉴权操作。
-拦截器可以控制请求的控制器和方法，但控制不了请求方法里边的参数，只能获取到参数的名称，具体的值获取不到；主要用于处理提交的请求响应并进行处理，例如国际化，做主题更换，过滤等
-
-Spring 的 AOP：
-
-- 常用于日志，事务，请求参数安全验证等。
-- 获取 http 请求：((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
-
-## 2. 深拷贝和浅拷贝
-
-> 区别：最根本的区别在于是否真正获取一个对象的复制实体，而不是引用。
-> java 的赋值都是传值的，对于基础类型来说，会拷贝具体的内容，但是对于引用对象来说，存储的这个值只是指向实际对象的地址，拷贝也只会拷贝引用地址。
-
-1. 浅拷贝：官方的定义为对基本数据类型进行值传递，对引用数据类型进行引用传递般的拷贝。
-2. 深拷贝：官方的定义为对基本数据类型进行值传递，对引用数据类型，创建一个新的对象，并复制其内容。
-
-深拷贝：基本类型和包装类、String，对象实现 Cloneable 接口，重写 clone 方法。
-
-浅拷贝：对象复制
-import org.springframework.beans.BeanUtils;
-BeanUtils.copyProperties(Object source, Object target) // 浅拷贝
-
-方法的参数传递
-
-`结论：Java中其实还是值传递的，只不过对于引用类型参数，值的内容是对象的引用。`
-
-`传递参数分为两种`
-
-`值传递：`调用函数时，是实际参数复制一份传递，对参数的修改不会影响实际参数
-
-`引用传递：`传递的是引用地址
 
 ## 3. String.format()
 
@@ -114,54 +97,7 @@ System.out.println("方式4：" + format2);
 // Math.round()
 ```
 
-## 5. 废弃注解
-
-@Deprecated 表示此方法已废弃、暂时可用，但以后此类或方法都不会再更新、后期可能会删除，建议后来人不要调用此方法
-可以作用到类、方法、属性上
-
-## 6. BigDecimal
-
-```java
-// 1. 两数相除异常：java.lang.ArithmeticException: Non-terminating decimal expansion; no exact representable decimal result.
-// 分析根因：BigDecimal是不可变的，任意精度的有符号十进制数。可以做精确计算
-// 解决办法：divide有重载方法，可以传入 MathContext 对象或 RoundingMode 对象，指定精度和舍入模式
-// 两个参数（Bigdecimal，舍入模式）
-// 三个参数（Bigdecimal，指定精度，舍入模式）
-// 常用的舍入模式有BigDecimal.HALE_UP
-```
-
-## 7. 测试分类
-
-- 单元测试 UT：测试的最小功能单元，
-- 集成测试（Integration Test）：通过组合代码单元和测试单元来检验其组合结果是否正确，
-- 功能测试 （Fuctional Test）：功能测试用户检查特定的功能是否正常
-
-## 8. 删除表中重复元素
-
-方法一：delete from tt where id in (select \* from (select max(id) from tt group by name having count(name)>1) as b );
-
-方法二：delete s1 from tt as s1 left join (select \* from tt group by name having count(name)>1)as s2 on s1.name = s2.name where s1.id>s2.id;
-
-## 9. 端口占用
-
-```sh
-# 查看端口
-netstat -ano | findstr port
-# 查询PID对应的进程
-tasklist | findstr pid
-# 杀死进程
-taskkill /f /pid 值
-```
-
-4.  Random、ThreadLocalRandom、SecureRandom
-
-5.  Random：伪随机数，通过种子生成随机数，种子默认使用系统时间，可预测，安全性不高，线程安全；
-6.  ThreadLocalRandom：jdk7 才出现的，多线程中使用，虽然 Random 线程安全，但是由于 CAS 乐观锁消耗性能，所以多线性推荐使用
-7.  SecureRandom：可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom。
-
-相同点：种子相同，在相同条件，运行相同次数产生的随机数相同；
-
-# 二、接口和抽象类
+# 5. 接口和抽象类
 
 |            | 接口 interface                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 抽象类 abstract                                                                        |
 | ---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
@@ -192,6 +128,87 @@ taskkill /f /pid 值
 实现类可以不必覆写 default 方法。default 方法的目的是，当我们需要给接口新增一个方法时，会涉及到修改全部子类。如果新增的是 default 方法，那么子类就不必全部修改，只需要在需要覆写的地方去覆写新增方法。
 
 default 方法和抽象类的普通方法是有所不同的。因为 interface 没有字段，default 方法无法访问字段，而抽象类的普通方法可以访问实例字段。
+
+## 1. 拦截器、过滤器、AOP
+
+> 过滤器能做的，拦截器基本上都能做
+
+Filter 和 Interceptor 区别：
+
+1. 拦截器是基于 java 的反射机制，使用代理模式；而过滤器是基于函数回调
+2. 拦截器不依赖 servlet 容器，依赖 spring 容器；而过滤器依赖于 servlet 容器，只能在 web 环境下使用
+3. 拦截器只能对 action 起作用；而过滤器可以对几乎所有的请求起作用
+4. 拦截器可以访问 action 上下文，堆栈里边的对象；而过滤器不可以
+5. 拦截器有更精细的控制，可以在 controller 对请求处理之前和之后被调用，也可以在渲染视图呈现给用户之后调用；而过滤器的控制比较粗，只能在请求进来时进行处理，对请求和响应进行包装。
+6. 拦截器可以在 preHandle 方法内返回 false 进行中断；而过滤器就比较复杂，需要处理请求和响应对象来引发中断，比如将用户重定向到错误页面
+
+过滤器拦截 web 访问 url 地址，用在 web 环境中，是基于函数回调机制实现的，只能控制最初的 http 请求，可以对拦截到方法的请求和响应，并做出过滤操作，主要用于设置字符编码、鉴权操作。
+拦截器可以控制请求的控制器和方法，但控制不了请求方法里边的参数，只能获取到参数的名称，具体的值获取不到；主要用于处理提交的请求响应并进行处理，例如国际化，做主题更换，过滤等
+
+Spring 的 AOP：
+
+- 常用于日志，事务，请求参数安全验证等。
+- 获取 http 请求：((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+
+## 2. 深拷贝和浅拷贝
+
+> 区别：最根本的区别在于是否真正获取一个对象的复制实体，而不是引用。
+> java 的赋值都是传值的，对于基础类型来说，会拷贝具体的内容，但是对于引用对象来说，存储的这个值只是指向实际对象的地址，拷贝也只会拷贝引用地址。
+
+1. 浅拷贝：官方的定义为对基本数据类型进行值传递，对引用数据类型进行引用传递般的拷贝。
+2. 深拷贝：官方的定义为对基本数据类型进行值传递，对引用数据类型，创建一个新的对象，并复制其内容。
+
+深拷贝：基本类型和包装类、String，对象实现 Cloneable 接口，重写 clone 方法。
+
+浅拷贝：对象复制
+import org.springframework.beans.BeanUtils;
+BeanUtils.copyProperties(Object source, Object target) // 浅拷贝
+
+方法的参数传递
+
+`结论：Java中其实还是值传递的，只不过对于引用类型参数，值的内容是对象的引用。`
+
+`传递参数分为两种`
+
+`值传递：`调用函数时，是实际参数复制一份传递，对参数的修改不会影响实际参数
+
+`引用传递：`传递的是引用地址
+
+## 5. 废弃注解
+
+@Deprecated 表示此方法已废弃、暂时可用，但以后此类或方法都不会再更新、后期可能会删除，建议后来人不要调用此方法
+可以作用到类、方法、属性上
+
+## 6. BigDecimal
+
+```java
+// 1. 两数相除异常：java.lang.ArithmeticException: Non-terminating decimal expansion; no exact representable decimal result.
+// 分析根因：BigDecimal是不可变的，任意精度的有符号十进制数。可以做精确计算
+// 解决办法：divide有重载方法，可以传入 MathContext 对象或 RoundingMode 对象，指定精度和舍入模式
+// 两个参数（Bigdecimal，舍入模式）
+// 三个参数（Bigdecimal，指定精度，舍入模式）
+// 常用的舍入模式有BigDecimal.HALE_UP
+```
+
+## 7. 测试分类
+
+- 单元测试 UT：测试的最小功能单元，
+- 集成测试（Integration Test）：通过组合代码单元和测试单元来检验其组合结果是否正确，
+- 功能测试 （Fuctional Test）：功能测试用户检查特定的功能是否正常
+
+## 8. 删除表中重复元素
+
+方法一：delete from tt where id in (select \* from (select max(id) from tt group by name having count(name)>1) as b );
+
+方法二：delete s1 from tt as s1 left join (select \* from tt group by name having count(name)>1)as s2 on s1.name = s2.name where s1.id>s2.id;
+
+4.  Random、ThreadLocalRandom、SecureRandom
+
+5.  Random：伪随机数，通过种子生成随机数，种子默认使用系统时间，可预测，安全性不高，线程安全；
+6.  ThreadLocalRandom：jdk7 才出现的，多线程中使用，虽然 Random 线程安全，但是由于 CAS 乐观锁消耗性能，所以多线性推荐使用
+7.  SecureRandom：可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom。
+
+相同点：种子相同，在相同条件，运行相同次数产生的随机数相同；
 
 # 自定义异常
 
