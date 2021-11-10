@@ -1,4 +1,28 @@
-# 基础知识总结
+## 1. 命名规范
+
+1.  骆驼拼写法（CamelCase）
+
+    - 大驼峰：CamelCase
+    - 小驼峰：camelCase
+
+2.  蛇形命名法（snake case）
+    - 下划线将单词链接：file_name
+
+## 2. 反射
+
+JVM 为每个加载的 class 及 interface 创建了对应的 Class 实例来保存 class 及 interface 的所有信息；获取一个 class 对应的 Class 实例后，就可以获取该 class 的所有信息；通过 Class 实例获取 class 信息的方法称为反射（Reflection）；
+
+JVM 总是动态加载 class，可以在运行期根据条件来控制加载 class。
+
+```java
+// 获取Class实例的三种方式
+Class cls = String.class;
+
+String s = "Hello";
+Class cls = s.getClass();
+
+Class cls = Class.forName("java.lang.String");
+```
 
 ## 1. 拦截器、过滤器、AOP
 
@@ -165,15 +189,9 @@ taskkill /f /pid 值
 
 （4）接口成员变量默认为 public static final，必须赋初值，不能被修改；其所有的成员方法都是 public、abstract 的。抽象类中成员变量默认 default，可在子类中被重新定义，也可被重新赋值；抽象方法被 abstract 修饰，不能被 private、static、synchronized 和 native 等修饰，必须以分号结尾，不带花括号。
 
-### 命令
+实现类可以不必覆写 default 方法。default 方法的目的是，当我们需要给接口新增一个方法时，会涉及到修改全部子类。如果新增的是 default 方法，那么子类就不必全部修改，只需要在需要覆写的地方去覆写新增方法。
 
-1.  骆驼拼写法（CamelCase）
-
-    - 大驼峰：CamelCase
-    - 小驼峰：camelCase
-
-2.  蛇形命名法（snake case）
-    - 下划线将单词链接：file_name
+default 方法和抽象类的普通方法是有所不同的。因为 interface 没有字段，default 方法无法访问字段，而抽象类的普通方法可以访问实例字段。
 
 # 自定义异常
 

@@ -1,0 +1,1 @@
+copy *.txt aaa.txt

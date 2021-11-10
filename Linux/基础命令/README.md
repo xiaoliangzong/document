@@ -302,7 +302,7 @@ yum grouplist                          #列出所有可用的软件组列表
 
 # 3. 使用rpm包安装
 wget 获取rpm包，或者自行下载并上传
-rpm -ivh 二进制软件包         # i安装 v详细信息 h显示进度  --nodeps 不检测依赖性
+rpm -ivh --prefix=/usr/local/xxx 二进制软件包         # i安装 v详细信息 h显示进度  --nodeps 不检测依赖性  --prefix 安装到指定目录
 
 rpm -uvh xx.rpm 	 # 升级
 rpm -e 				 # 卸载

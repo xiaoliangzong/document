@@ -2,27 +2,27 @@ net stop mysql
 
 net start mysql
 
-#### 1、导入导出
+#### 1、导入导出（备份）
 
-```markdown
-# 1.导出整个数据库
+```sh
+# 1. 导出（不需要登录）
 
-mysqldump --column-statistics=0 -u username -h ip -p database>D:\xxx.sql # 不需要登录，直接
+mysqldump --column-statistics=0 -u username -h ip -p database>D:\xxx.sql  # 导出数据库
 
-执行
+mysqldump --column-statistics=0 -u username -h ip -p databases 表 1 表 2>D:\xxx.sql # 导出表结构和内容
 
-# --column-statistics=0 解决版本不兼容问题，新版的 mysqldump 默认启用了一个新标志，作用是禁用他
-
+# --column-statistics=0 解决版本不兼容问题，新版的 mysqldump 默认启用了一个新标志，作用是禁用它
+# --databases 导出多个数据库
+# -t 只导出表数据
+# -d 只导出表结构
 # 结尾不能加；，要不然就报错！！！
 
-# 3. 导出表（包括内容和表结构）
-
-mysqldump --column-statistics=0 -u username -h ip -p databases 表 1 表 2>D:\xxx.sql # -t 只导出表数据 -d 只导出表结构
-
-# 2.导入
+# 2. 导入
 
 mysql -u root -h ip -p # 登录
+
 use database # 选择对应的数据库，或者创建数据库 create table 数据库名 character set 字符集
+
 source D:\xxx.sql
 ```
 
