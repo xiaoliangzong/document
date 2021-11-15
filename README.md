@@ -10,7 +10,7 @@
 
 反射就是动态加载对象，是指程序在运行期间可以拿到一个对象的所有信息；
 
-JVM 为每个加载的 class 及 interface 创建了对应的 Class 实例来保存 class 及 interface 的所有信息；获取一个 class 对应的 Class 实例后，就可以获取该 class 的所有信息；通过 Class 实例获取 class 信息的方法称为反射（Reflection）。
+JVM 为每个加载的 class 及 interface 创建了对应的 Class 实例来保存它的所有信息；获取一个 class 对应的 Class 实例后，就可以获取该 class 的所有信息；通过 Class 实例获取 class 信息的方法称为反射（Reflection）。
 
 **用途**
 
@@ -54,47 +54,46 @@ method.invoke(clazz);
 
 ## 3. String.format()
 
-```s
-转换符	详细说明	示例
-%s	字符串类型	“喜欢请收藏”
-%c	字符类型	‘m’
-%b	布尔类型	true
-%d	整数类型（十进制）	88
-%x	整数类型（十六进制）	FF
-%o	整数类型（八进制）	77
-%f	浮点类型	8.888
-%a	十六进制浮点类型	FF.35AE
-%e	指数类型	9.38e+5
-%g	通用浮点类型（f和e类型中较短的）	不举例(基本用不到)
-%h	散列码	不举例(基本用不到)
-%%	百分比类型	％(%特殊字符%%才能显示%)
-%n	换行符	不举例(基本用不到)
-%tx	日期与时间类型（x代表不同的日期与时间转换符)	不举例(基本用不到)
-```
+| 转换符 | 详细说明                                       | 示例       |
+| ------ | ---------------------------------------------- | ---------- |
+| %s     | 字符串类型                                     |            |
+| %c     | 字符类型                                       | 'm'        |
+| %b     | 布尔类型                                       | true       |
+| %d     | 整数类型（10 进制）                            |            |
+| %x     | 整数类型（16 进制）                            | FF         |
+| %o     | 整数类型（8 进制）                             | 77         |
+| %f     | 浮点类型                                       | 2.123      |
+| %a     | 浮点类型（16 进制）                            |            |
+| %e     | 指数类型                                       | 9.39e+5    |
+| %g     | 通用浮点类型（f 和 e 类型重较短的）            | 基本用不到 |
+| %h     | 散列码                                         | 基本用不到 |
+| %%     | 百分比类型%（%特殊字符%%才能显示%）            |            |
+| %n     | 换行符                                         | 基本用不到 |
+| %tx    | 日期和时间类型（x 代表不同的日期与时间转换符） | 基本用不到 |
 
-## 4. 保留小数（四舍五入）
+## 4. 设置小数位数（四舍五入）
 
 ```java
-// 保留几位小数
+// 方式一 String.format()
+// %n.mf：n表示字符串总长度，m表示小数位数，如果m<=n+1+整数部分长度，编译结果按照实际数据输出整数部分，小数位数按照m长度输出；如果m>n+1+整数部分长度，小数位数按照m长度输出，整数部分在左边补空格；
 double d =123.12345678845242;
-String format = String.format("%.2f", d);       String.format("%02d", number)
-System.out.println("方式1：" + format);
-// 方式二
-DecimalFormat df = new DecimalFormat("#.00");
-String format1 = df.format(d);
-System.out.println("方式2：" + format1);
-// 方式三
-BigDecimal bigDecimal = BigDecimal.valueOf(d);
-BigDecimal bigDecimal1 = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP);
-System.out.println("方式3：" + bigDecimal1);
-// 方式四
+String format = String.format("%.2f", d);
+String format = String.format("%02d", number)   // 2位整数，不够补0，如果整数大于位数，按照实际输出
+
+// 方式二 DecimalFormat
+// #表示数字或占位符，不存在就显示为空；0表示数字，不存在就补0；%表示百分号，可以转换为对应的百分值
+String format1 =  new DecimalFormat("#.00").format(d);
+
+// 方式三 BigDecimal
+BigDecimal bigDecimal1 =  BigDecimal.valueOf(d).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+// 方式四 NumberFormat
 NumberFormat numberInstance = NumberFormat.getNumberInstance();
 numberInstance.setMaximumFractionDigits(2);
-String format2 = numberInstance.format(d);
-System.out.println("方式4：" + format2);
-// 方式五
-通过乘除来取值
-// Math.round()
+numberInstance.format(d);
+
+// 方式五 Math 通过乘除来取值
+Math.round(d * 100) / 100.0
 ```
 
 # 5. 接口和抽象类
@@ -129,7 +128,7 @@ System.out.println("方式4：" + format2);
 
 default 方法和抽象类的普通方法是有所不同的。因为 interface 没有字段，default 方法无法访问字段，而抽象类的普通方法可以访问实例字段。
 
-## 1. 拦截器、过滤器、AOP
+## 6. 拦截器、过滤器、AOP
 
 > 过滤器能做的，拦截器基本上都能做
 
@@ -150,7 +149,7 @@ Spring 的 AOP：
 - 常用于日志，事务，请求参数安全验证等。
 - 获取 http 请求：((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
 
-## 2. 深拷贝和浅拷贝
+## 7. 深拷贝和浅拷贝
 
 > 区别：最根本的区别在于是否真正获取一个对象的复制实体，而不是引用。
 > java 的赋值都是传值的，对于基础类型来说，会拷贝具体的内容，但是对于引用对象来说，存储的这个值只是指向实际对象的地址，拷贝也只会拷贝引用地址。
@@ -174,446 +173,17 @@ BeanUtils.copyProperties(Object source, Object target) // 浅拷贝
 
 `引用传递：`传递的是引用地址
 
-## 5. 废弃注解
+## 8. 随机数
 
-@Deprecated 表示此方法已废弃、暂时可用，但以后此类或方法都不会再更新、后期可能会删除，建议后来人不要调用此方法
-可以作用到类、方法、属性上
+1.  Random、ThreadLocalRandom、SecureRandom
 
-## 6. BigDecimal
-
-```java
-// 1. 两数相除异常：java.lang.ArithmeticException: Non-terminating decimal expansion; no exact representable decimal result.
-// 分析根因：BigDecimal是不可变的，任意精度的有符号十进制数。可以做精确计算
-// 解决办法：divide有重载方法，可以传入 MathContext 对象或 RoundingMode 对象，指定精度和舍入模式
-// 两个参数（Bigdecimal，舍入模式）
-// 三个参数（Bigdecimal，指定精度，舍入模式）
-// 常用的舍入模式有BigDecimal.HALE_UP
-```
-
-## 7. 测试分类
-
-- 单元测试 UT：测试的最小功能单元，
-- 集成测试（Integration Test）：通过组合代码单元和测试单元来检验其组合结果是否正确，
-- 功能测试 （Fuctional Test）：功能测试用户检查特定的功能是否正常
-
-## 8. 删除表中重复元素
-
-方法一：delete from tt where id in (select \* from (select max(id) from tt group by name having count(name)>1) as b );
-
-方法二：delete s1 from tt as s1 left join (select \* from tt group by name having count(name)>1)as s2 on s1.name = s2.name where s1.id>s2.id;
-
-4.  Random、ThreadLocalRandom、SecureRandom
-
-5.  Random：伪随机数，通过种子生成随机数，种子默认使用系统时间，可预测，安全性不高，线程安全；
-6.  ThreadLocalRandom：jdk7 才出现的，多线程中使用，虽然 Random 线程安全，但是由于 CAS 乐观锁消耗性能，所以多线性推荐使用
-7.  SecureRandom：可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom。
+2.  Random：伪随机数，通过种子生成随机数，种子默认使用系统时间，可预测，安全性不高，线程安全；
+3.  ThreadLocalRandom：jdk7 才出现的，多线程中使用，虽然 Random 线程安全，但是由于 CAS 乐观锁消耗性能，所以多线性推荐使用
+4.  SecureRandom：可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom。
 
 相同点：种子相同，在相同条件，运行相同次数产生的随机数相同；
 
-# 自定义异常
-
-## 1.说明：
-
-在后台编写业务逻辑时，可能会遇到异常捕获并抛出处理的情况，基本上来说只需要使用 try-catch 来判断即可，遇到一些比较复杂的逻辑，try-catch 还是很有必要的，但是如果只是简单的异常要阻断当前流程并返回相应的信息，业务比较多的系统的话，自定义一个抛出异常工具类可以减少相应代码量，方便后期维护完善。
-
-后端通常会通过 throw 出一个异常对象，前端再将接收到的异常对象 code 和 message 进行二次判断
-
-## 2.使用步骤
-
-### 2.1 自定义异常继承 RunTimeException
-
-```java
-@Data
-public class BaseException extends RuntimeException
-{
-private static final long serialVersionUID = 1L;
-
-/**
- * 所属模块
- */
-private String module;
-
-/**
- * 错误码
- */
-private String code;
-
-/**
- * 错误码对应的参数
- */
-private Object[] args;
-
-/**
- * 错误消息
- */
-private String defaultMessage;
-
-public BaseException(String module, String code, Object[] args, String defaultMessage)
-{
-    this.module = module;
-    this.code = code;
-    this.args = args;
-    this.defaultMessage = defaultMessage;
-}
-
-public BaseException(String module, String code, Object[] args)
-{
-    this(module, code, args, null);
-}
-
-public BaseException(String module, String defaultMessage)
-{
-    this(module, null, null, defaultMessage);
-}
-
-public BaseException(String code, Object[] args)
-{
-    this(null, code, args, null);
-}
-
-public BaseException(String defaultMessage)
-{
-    this(null, null, null, defaultMessage);
-}
-
-@Override
-public String getMessage()
-{
-    String message = null;
-    if (!StringUtils.isEmpty(code))
-    {
-        message = MessageUtils.message(code, args);
-    }
-    if (message == null)
-    {
-        message = defaultMessage;
-    }
-    return message;
-}
-}
-```
-
-### 2.2 自定义异常处理类，方便对各种类型的异常进行封装对象，并返回
-
-@RestControllerAdvice 和@ControllerAdvice
-@RestControllerAdvice 注解包含了@ControllerAdvice 注解和@ResponseBody 注解
-当自定义类加注解@RestControllerAdvice 或 ControllerAdvice 和 RequestBody 时，方法返回 json 数据。
-
-```java
-/**
-* 全局异常处理器
-*
-* @author ruoyi
-*/
-@RestControllerAdvice
-public class GlobalExceptionHandler
-{
-private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-/**
- * 基础异常
- */
-@ExceptionHandler(BaseException.class)
-public AjaxResult baseException(BaseException e)
-{
-    return AjaxResult.error(e.getMessage());
-}
-
-/**
- * 业务异常
- */
-@ExceptionHandler(CustomException.class)
-public AjaxResult businessException(CustomException e)
-{
-    if (StringUtils.isNull(e.getCode()))
-    {
-        return AjaxResult.error(e.getMessage());
-    }
-    return AjaxResult.error(e.getCode(), e.getMessage());
-}
-
-@ExceptionHandler(NoHandlerFoundException.class)
-public AjaxResult handlerNoFoundException(Exception e)
-{
-    log.error(e.getMessage(), e);
-    return AjaxResult.error(HttpStatus.NOT_FOUND, "路径不存在，请检查路径是否正确");
-}
-
-@ExceptionHandler(AccessDeniedException.class)
-public AjaxResult handleAuthorizationException(AccessDeniedException e)
-{
-    log.error(e.getMessage());
-    return AjaxResult.error(HttpStatus.FORBIDDEN, "没有权限，请联系管理员授权");
-}
-
-@ExceptionHandler(AccountExpiredException.class)
-public AjaxResult handleAccountExpiredException(AccountExpiredException e)
-{
-    log.error(e.getMessage(), e);
-    return AjaxResult.error(e.getMessage());
-}
-
-@ExceptionHandler(UsernameNotFoundException.class)
-public AjaxResult handleUsernameNotFoundException(UsernameNotFoundException e)
-{
-    log.error(e.getMessage(), e);
-    return AjaxResult.error(e.getMessage());
-}
-
-@ExceptionHandler(Exception.class)
-public AjaxResult handleException(Exception e)
-{
-    log.error(e.getMessage(), e);
-    return AjaxResult.error(e.getMessage());
-}
-
-/**
- * 自定义验证异常
- */
-@ExceptionHandler(BindException.class)
-public AjaxResult validatedBindException(BindException e)
-{
-    log.error(e.getMessage(), e);
-    String message = e.getAllErrors().get(0).getDefaultMessage();
-    return AjaxResult.error(message);
-}
-
-/**
- * 自定义验证异常
- */
-@ExceptionHandler(MethodArgumentNotValidException.class)
-public Object validExceptionHandler(MethodArgumentNotValidException e)
-{
-    log.error(e.getMessage(), e);
-    String message = e.getBindingResult().getFieldError().getDefaultMessage();
-    return AjaxResult.error(message);
-}
-}
-```
-
-# 读取文件的几种方式
-
-## InputStream 读取二进制文件，包括图片、文件、声音、影像等
-
-```java
-public static void readFileByBytes(String fileName) {
-    File file = new File(fileName);
-    InputStream in = null;
-    try {
-        System.out.println("以字节为单位读取文件内容，一次读一个字节：");
-        // 一次读一个字节
-        in = new FileInputStream(file);
-        int tempbyte;
-        while ((tempbyte = in.read()) != -1) {
-            System.out.write(tempbyte);
-        }
-        in.close();
-    } catch (IOException e) {
-        e.printStackTrace();
-        return;
-    }
-    try {
-        System.out.println("以字节为单位读取文件内容，一次读多个字节：");
-        // 一次读多个字节
-        byte[] tempbytes = new byte[100];
-        int byteread = 0;
-        in = new FileInputStream(fileName);
-        ReadFromFile.showAvailableBytes(in);
-        // 读入多个字节到字节数组中，byteread为一次读入的字节数
-        while ((byteread = in.read(tempbytes)) != -1) {
-            System.out.write(tempbytes, 0, byteread);
-        }
-    } catch (Exception e1) {
-        e1.printStackTrace();
-    } finally {
-        if (in != null) {
-            try {
-                in.close();
-            } catch (IOException e1) {
-            }
-        }
-    }
-}
-/**
-    * 显示输入流中还剩的字节数
-    */
-private static void showAvailableBytes(InputStream in) {
-    try {
-        System.out.println("当前字节输入流中的字节数为:" + in.available());
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-}
-```
-
-## Reader 读取文件
-
-```java
-public static void readFileByChars(String fileName) {
-    File file = new File(fileName);
-    Reader reader = null;
-    try {
-        System.out.println("以字符为单位读取文件内容，一次读一个字节：");
-        // 一次读一个字符
-        reader = new InputStreamReader(new FileInputStream(file));
-        int tempchar;
-        while ((tempchar = reader.read()) != -1) {
-            // 对于windows下，\r\n这两个字符在一起时，表示一个换行。
-            // 但如果这两个字符分开显示时，会换两次行。
-            // 因此，屏蔽掉\r，或者屏蔽\n。否则，将会多出很多空行。
-            if (((char) tempchar) != '\r') {
-                System.out.print((char) tempchar);
-            }
-        }
-        reader.close();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    try {
-        System.out.println("以字符为单位读取文件内容，一次读多个字节：");
-        // 一次读多个字符
-        char[] tempchars = new char[30];
-        int charread = 0;
-        reader = new InputStreamReader(new FileInputStream(fileName));
-        // 读入多个字符到字符数组中，charread为一次读取字符数
-        while ((charread = reader.read(tempchars)) != -1) {
-            // 同样屏蔽掉\r不显示
-            if ((charread == tempchars.length)
-                    && (tempchars[tempchars.length - 1] != '\r')) {
-                System.out.print(tempchars);
-            } else {
-                for (int i = 0; i < charread; i++) {
-                    if (tempchars[i] == '\r') {
-                        continue;
-                    } else {
-                        System.out.print(tempchars[i]);
-                    }
-                }
-            }
-        }
-
-    } catch (Exception e1) {
-        e1.printStackTrace();
-    } finally {
-        if (reader != null) {
-            try {
-                reader.close();
-            } catch (IOException e1) {
-            }
-        }
-    }
-}
-```
-
-## 行为单位读取文件，常用于读面向行的格式化文件
-
-```java
-public static void readFileByLines(String fileName) {
-    File file = new File(fileName);
-    BufferedReader reader = null;
-    try {
-        System.out.println("以行为单位读取文件内容，一次读一整行：");
-        reader = new BufferedReader(new FileReader(file));
-        String tempString = null;
-        int line = 1;
-        // 一次读入一行，直到读入null为文件结束
-        while ((tempString = reader.readLine()) != null) {
-            // 显示行号
-            System.out.println("line " + line + ": " + tempString);
-            line++;
-        }
-        reader.close();
-    } catch (IOException e) {
-        e.printStackTrace();
-    } finally {
-        if (reader != null) {
-            try {
-                reader.close();
-            } catch (IOException e1) {
-            }
-        }
-    }
-}
-```
-
-## 随机读取文件内容
-
-```java
-public static void readFileByRandomAccess(String fileName) {
-    RandomAccessFile randomFile = null;
-    try {
-        System.out.println("随机读取一段文件内容：");
-        // 打开一个随机访问文件流，按只读方式
-        randomFile = new RandomAccessFile(fileName, "r");
-        // 文件长度，字节数
-        long fileLength = randomFile.length();
-        // 读文件的起始位置
-        int beginIndex = (fileLength > 4) ? 4 : 0;
-        // 将读文件的开始位置移到beginIndex位置。
-        randomFile.seek(beginIndex);
-        byte[] bytes = new byte[10];
-        int byteread = 0;
-        // 一次读10个字节，如果文件内容不足10个字节，则读剩下的字节。
-        // 将一次读取的字节数赋给byteread
-        while ((byteread = randomFile.read(bytes)) != -1) {
-            System.out.write(bytes, 0, byteread);
-        }
-    } catch (IOException e) {
-        e.printStackTrace();
-    } finally {
-        if (randomFile != null) {
-            try {
-                randomFile.close();
-            } catch (IOException e1) {
-            }
-        }
-    }
-}
-```
-
-# 网络 URL 获取文件、图片
-
-```java
-URL url = new URL(path);
-HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-httpURLConnection.setConnectTimeout(1000*5);
-//设置请求方式，默认是GET
-httpURLConnection.setRequestMethod("GET");
-// 设置字符编码
-httpURLConnection.setRequestProperty("Charset", "UTF-8");
-httpURLConnection.connect();
-// 文件大小
-int fileLength = httpURLConnection.getContentLength();
-// 控制台打印文件大小
-System.out.println("您要下载的文件大小为:" + fileLength / (1024 * 1024) + "MB");
-
-BufferedInputStream bis = new BufferedInputStream(httpURLConnection.getInputStream());
-// 指定文件名称(有需求可以自定义)
-String fileFullName = "aaa.json";
-// 指定存放位置(有需求可以自定义)
-String savePath = "excel_template" + File.separatorChar + fileFullName;
-file = new File(savePath);
-// 校验文件夹目录是否存在，不存在就创建一个目录
-if (!file.getParentFile().exists()) {
-    file.getParentFile().mkdirs();
-}
-OutputStream out = new FileOutputStream(file);
-int size = 0;
-int len = 0;
-byte[] buf = new byte[2048];
-while ((size = bis.read(buf)) != -1) {
-    len += size;
-    out.write(buf, 0, size);
-    // 控制台打印文件下载的百分比情况
-    System.out.println("下载了-------> " + len * 100 / fileLength + "%\n");
-}
-// 关闭资源
-bis.close();
-out.close();
-System.out.println("文件下载成功！");
-```
-
-## 13. CollectionUtils 工具类
+## 9. CollectionUtils 工具类
 
 > `取交集intersection、并集union、差集subtract、补集disjunction、`
 
