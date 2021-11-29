@@ -133,28 +133,7 @@ Math.round(d * 100) / 100.0
 3. 虽然接口和抽象类都不能被实例化，但是抽象类可以有构造器，接口没有构造器；
 4. 抽象类中成员变量默认 default，可在子类中被重新定义，也可被重新赋值；抽象方法被 abstract 修饰，不能被 private、static、synchronized 和 native 等修饰，必须以分号结尾，不带花括号。
 
-## 6. 拦截器、过滤器、AOP
-
-> 过滤器能做的，拦截器基本上都能做
-
-Filter 和 Interceptor 区别：
-
-1. 拦截器是基于 java 的反射机制，使用代理模式；而过滤器是基于函数回调
-2. 拦截器不依赖 servlet 容器，依赖 spring 容器；而过滤器依赖于 servlet 容器，只能在 web 环境下使用
-3. 拦截器只能对 action 起作用；而过滤器可以对几乎所有的请求起作用
-4. 拦截器可以访问 action 上下文，堆栈里边的对象；而过滤器不可以
-5. 拦截器有更精细的控制，可以在 controller 对请求处理之前和之后被调用，也可以在渲染视图呈现给用户之后调用；而过滤器的控制比较粗，只能在请求进来时进行处理，对请求和响应进行包装。
-6. 拦截器可以在 preHandle 方法内返回 false 进行中断；而过滤器就比较复杂，需要处理请求和响应对象来引发中断，比如将用户重定向到错误页面
-
-过滤器拦截 web 访问 url 地址，用在 web 环境中，是基于函数回调机制实现的，只能控制最初的 http 请求，可以对拦截到方法的请求和响应，并做出过滤操作，主要用于设置字符编码、鉴权操作。
-拦截器可以控制请求的控制器和方法，但控制不了请求方法里边的参数，只能获取到参数的名称，具体的值获取不到；主要用于处理提交的请求响应并进行处理，例如国际化，做主题更换，过滤等
-
-Spring 的 AOP：
-
-- 常用于日志，事务，请求参数安全验证等。
-- 获取 http 请求：((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
-
-## 7. 深拷贝和浅拷贝
+## 6. 深拷贝和浅拷贝
 
 > 区别：最根本的区别在于是否真正获取一个对象的复制实体，而不是引用。
 
@@ -178,34 +157,65 @@ String 类型非常特殊，它属于引用数据类型，但是 String 类型�
 
 1. 通过构造方法实现浅拷贝
 2. 重写 clone()方法，Object 类虽然有这个方法，但是这个方法是受保护的（被 protected 修饰），所以我们无法直接使用。但是可以实现 Cloneable 接口，否则会抛出异常 CloneNotSupportedException。
+3. 使用 springboot 自带的 jar 包；import org.springframework.beans.BeanUtils.copyProperties(Object source, Object target)
+4. 使用三方 jar 包，比如 hutool-all，（高版本还支持 list 中的对象复制）
 
 **深拷贝实现方式**
 
 1. 实现 Cloneable 接口，重写 clone 方法，如果主类包装其他类，那么其他类必须都要实现 Cloneable 接口重写 clone 方法，最后在主类的重写的 clone 方法中调用所有的 clone 方法即可实现深拷贝
 2. 通过对象序列化实现深拷贝
 
-浅拷贝：对象复制
-import org.springframework.beans.BeanUtils;
-BeanUtils.copyProperties(Object source, Object target) // 浅拷贝
+## 7. java 注解
 
-## 8. 随机数
+**@Deprecated 废弃**
 
-1.  Random、ThreadLocalRandom、SecureRandom
+表示此方法已废弃、暂时可用，但以后此类或方法都不会再更新、后期可能会删除，建议后来人不要调用此方法；可以作用到类、方法、属性上
 
-2.  Random：伪随机数，通过种子生成随机数，种子默认使用系统时间，可预测，安全性不高，线程安全；
-3.  ThreadLocalRandom：jdk7 才出现的，多线程中使用，虽然 Random 线程安全，但是由于 CAS 乐观锁消耗性能，所以多线性推荐使用
-4.  SecureRandom：可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom。
+**@SuppressWarnings 警告**
 
-相同点：种子相同，在相同条件，运行相同次数产生的随机数相同；
+用于抑制编译器产生警告信息，即告诉编译器忽略指定的警告，不用在编译完成后出现警告信息。注解目标为类，字段，函数，函数入参，构造函数和函数的局部变量。
 
-## 9. CollectionUtils 工具类
-
-> `取交集intersection、并集union、差集subtract、补集disjunction、`
-
-```xml
-<dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-collections4</artifactId>
-    <version>4.3</version>
-</dependency>
+```java
+@SuppressWarnings("deprecation")  // 使用了@Deprecated注解标注的类或方法时的警告
+@SuppressWarnings("unchecked")	// 执行了未检查的转换时的警告，例如使用List，ArrayList等未进行参数化，当使用集合时没有用泛型 (Generics) 来指定集合保存的类型
+@SuppressWarnings("unused")  // 未使用的变量
+@SuppressWarnings("resource")  // 有泛型未指定类型
+@SuppressWarnings("serial")// 某类实现Serializable(序列化)， 但没有定义 serialVersionUID 时的警告
+@SuppressWarnings("rawtypes") // 没有传递带有泛型的参数
+@SuppressWarnings("path")  // 在类路径、源文件路径等中有不存在的路径时的警告
+@SuppressWarnings("fallthrough") // 当 Switch 程序块直接通往下一种情况而没有 break; 时的警告
+@SuppressWarnings("finally") // 任何 finally 子句不能正常完成时的警告。
+@SuppressWarnings("try") 	// 没有catch时的警告
+@SuppressWarnings("all") // 所有类型的警告
 ```
+
+## 8. 伪随机数生成器
+
+伪随机数生成器使用确定的数学算法产生具备良好统计属性的数字序列，但实际上这种数字序列并非具备真正的随机特性；通常是以一个种子值为起始，每次计算使用当前种子值生成一个输出及一个新种子，这个新种子会被用于下次计算。如果种子相同，在相同条件，运行相同次数产生的随机数相同；
+
+1. **Random：**线程安全；通过种子生成随机数；如果使用不带参数的构造器生成实例时，系统会使用系统时钟的当前时间作为种子值，那么系统在初始化或重启时生成的 Random 实例的种子值可能都是相同的。可预测，安全性不高，比如攻击者可以在系统中植入监听并构建相应的查询表预测将要使用的种子值；如果 Random 的不同实例如果使用相同种子值创建，则后续产生的随机数相等。
+
+2. **ThreadLocalRandom：**jdk7 才出现的，多线程中使用，虽然 Random 线程安全，但是由于 CAS 乐观锁消耗性能，所以多线性推荐使用。
+
+3. **SecureRandom：**是 Random 的子类，本质上仍然是伪随机数生成器原理，可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，因此会带来一定的性能开销，但安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom；SecureRandom 内置两种随机数算法：NativePRNG 和 SHA1PRNG，可以指定随机数算法生成 SecureRandom 实例。
+
+## 9. 拦截器、过滤器、AOP
+
+> 过滤器能做的，拦截器基本上都能做
+
+Filter 和 Interceptor 区别：
+
+1. 拦截器是基于 java 的反射机制（动态代理）；而过滤器是基于函数回调
+2. 拦截器不依赖 servlet 容器，依赖 spring 容器；而过滤器依赖于 servlet 容器，只能在 web 环境下使用
+3. 拦截器只能对 action 起作用；而过滤器可以对几乎所有的请求起作用
+4. 拦截器可以访问 action 上下文，堆栈里边的对象；而过滤器不可以
+5. 拦截器有更精细的控制，可以在 controller 对请求处理之前和之后被调用，也可以在渲染视图呈现给用户之后调用；而过滤器的控制比较粗，只能在请求进来时进行处理，对请求和响应进行包装。
+6. 拦截器可以在 preHandle 方法内返回 false 进行中断；而过滤器就比较复杂，需要处理请求和响应对象来引发中断，比如将用户重定向到错误页面
+
+过滤器拦截 web 访问 url 地址，用在 web 环境中，是基于函数回调机制实现的，只能控制最初的 http 请求，可以对拦截到方法的请求和响应，并做出过滤操作，主要用于设置字符编码、鉴权操作。
+拦截器可以控制请求的控制器和方法，但控制不了请求方法里边的参数，只能获取到参数的名称，具体的值获取不到；主要用于处理提交的请求响应并进行处理，例如国际化，做主题更换，过滤等
+
+Spring 的 AOP：
+
+- 常用于日志，事务，请求参数安全验证等。
+- 获取 http 请求：((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())

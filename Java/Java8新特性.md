@@ -102,7 +102,7 @@ Arrays.sort(rosterAsArray, Person::compareByAge);
 
 接口中可以定义静态方法
 
-**java.util.Collection**接口添加新方法，如**stream()**、**parallelStream()**、**forEach()**和**removeIf()**等等
+**java.util.Collection**接口添加新方法，如**stream()、parallelStream()、forEach()和 removeIf()**等等
 
 **常见的四大函数式接口**
 
@@ -206,6 +206,22 @@ Map<String, Integer> prodMap = prodList.stream().collect(Collectors.groupingBy(P
 Map<String, Product> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparingInt(Product::getNum)), Optional::get)));
 // 联合其他收集器
 Map<String, Set<String>> prodMap = prodList.stream().collect(Collectors.groupingBy(Product::getCategory, Collectors.mapping(Product::getName, Collectors.toSet())));
+```
+
+#### anyMatch，allMatch，noneMatch
+
+```java
+long count();   // 返回的都是这个集合流的元素的长度
+
+boolean anyMatch(Predicate<? super T> predicate);        // anyMatch表示，判断的条件里，任意一个元素成功，返回true
+
+boolean allMatch(Predicate<? super T> predicate);       // allMatch表示，判断条件里的元素，所有的都是，返回true
+
+boolean noneMatch(Predicate<? super T> predicate);      // noneMatch跟allMatch相反，判断条件里的元素，所有的都不是，返回true
+
+// 特殊：当list的为空集合时候，这个返回默认为true；
+List<String> list = new ArrayList<>();
+boolean allMatch = list.stream().allMatch(e -> "a".equals(e));
 ```
 
 #### 问题汇总
