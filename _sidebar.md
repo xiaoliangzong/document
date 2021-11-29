@@ -24,10 +24,6 @@
 
 - **组件**
 
-  - **构建工具**
-    - [Maven](组件/Maven.md)
-  - **版本控制**
-    - [Git](组件/Git.md)
   - **接口文档**
     - [Swagger](组件/接口文档/swagger.md)
     - [Knife4j](组件/接口文档/knife4j.md)
@@ -41,14 +37,22 @@
     - [Security](组件/登录认证及权限控制/Security.md)
     - [Shrio](组件/登录认证及权限控制/Shrio.md)
   - **消息队列**
+
     - [rabbit](组件/消息队列/rabbitMQ.md)
     - [kafka](组件/消息队列/kafka.md)
-  - **Nginx**
-    - [**Nginx**](组件/Nginx.md)
 
-- **插件**
-  - [软件](插件/软件/)
-  - [常用 API](插件/开源三方API/)
+  - [<font color=#364149 size=3>**常用 API**</font>](组件/三方依赖API.md)
+
+  - [<font color=#364149 size=4>**Git**</font>](组件/Git.md)
+
+  - [<font color=#364149 size=4>**Maven**</font>](组件/Maven.md)
+
+  - [<font color=#364149 size=4>**Nginx**</font>](组件/Nginx.md)
+
+- **软件**
+
+  - [软件](软件/)
+
 - **前端**
   - [基础](前端/基础/)
   - [VUE](前端/Vue/)
