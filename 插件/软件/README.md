@@ -1,6 +1,15 @@
-## vscode
+## 1. vscode
 
-### 插件
+**常用快捷键**
+
+- ctrl+shift+P 无能搜索
+- alt+上下键 上下移
+- shift+alt+上下键 向上下复制一行
+- shift+ctrl+k 删除一行
+- ctrl+enter 下边插入一行
+- ctrl+shift+\ 跳转到匹配的括号
+
+**常用插件**
 
 - chinese
 - open in browser
@@ -19,22 +28,13 @@
 - vetur vue 高亮
 - eslint(常用)
 
-### 快捷键
-
-- ctrl+shift+P 无能搜索
-- alt+上下键 上下移
-- shift+alt+上下键 向上下复制一行
-- shift+ctrl+k 删除一行
-- ctrl+enter 下边插入一行
-- ctrl+shift+\ 跳转到匹配的括号
-
-### 解决换行问题
+**解决换行问题**
 
 - npm run lint --fix
 
-## Sonar 代码检查工具
+## 2. Sonar 代码检查工具
 
-### docker 安装
+**docker 安装**
 
 1. 安装 mysql 或 postgres（pgsql）；启动容器
    - docker run -it --name mysql-sonar -p 3306:3306 -v /opt/sonar/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 mysql:latest
@@ -51,7 +51,7 @@
    docker pull sonarqube:7.1 6.7.3
    docker run -it --name sonarqube --link postgres -e SONAQUBE_JDBC_URL=jdbc:postgresql://postgres:5432/sonar -p 9000:9000 -v /opt/sonar/sonarqube/data:/opt/sonarqube/data -v /opt/sonar/sonarqube/extensions:/opt/sonarqube/extensions sonarqube:7.8-community
 
-### 使用方式
+**使用方式**
 
 1. 方案 1：根据页面提示，创建用户名密码，选择编程语言，版本控制工具，生成一个 maven 命令；
    - mvn sonar:sonar -Dsonar.host.url=https://localhost:9000 -Dsonar.login=0c9cc0b3b23cdecbb58e8fcd0929e99aa3bec050
@@ -87,9 +87,11 @@
 <!-- 执行命令：mvn clean install sonar:sonar -->
 ```
 
-## Nexus 私服：nexus-repository-manager
+## 3. Nexus 私服仓库
 
-### 上传
+> nexus-repository-manager
+
+**上传**
 
 ```xml
 <!-- 一般，仓库的下载和部署是在pom.xml文件中的repositories和distributionManagement元素中定义的，然而，一般类似于用户名，密码等信息不应该在pom.xml文件配置中，这些信息可以配置在setting.xml中 -->
@@ -122,7 +124,7 @@
 <!-- 执行maven clean deploy -->
 ```
 
-### 下载（只需要在 settings 中配置）
+**下载（只需要在 settings 中配置）**
 
 ```xml
 <!-- id和下面的mirror中的id一致，代表拉取是也需要进行身份校验；下载私服仓库镜像不需要身份验证!!! -->
