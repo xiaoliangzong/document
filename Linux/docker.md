@@ -217,7 +217,7 @@ docker-compose kill eureka			# kill：通过发送 SIGKILL 信号来停止指定
 
 ## 8. docker stack
 
-![image-20210517182851579](../../images/Linux/docker-stack.png)
+![image-20210517182851579](../images/Linux/docker-stack.png)
 
 1. stack 是构成特定环境中的 service 集合, 它是自动部署多个相互关联的服务的简便方法，而无需单独定义每个服务；stack --> service --> task(container)
 
@@ -384,14 +384,14 @@ docker run -d -p 5001:8080 --name regisry-web-5001 --link registry-5000 -e regis
    - 重启命令：`systemctl restart docker`
    - 命令：`ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock`
 
-![image-20210311172031335](../../images/Linux/docker-idea2.png)
+![image-20210311172031335](../images/Linux/docker-idea2.png)
 
 2. 防火墙开启 2375 端口
 
 3. 远程测试自验：http://docker 宿主机 ip:2375/version
 4. idea 配置 docker
 
-![image-20210311172906434](../../images/Linux/docker-idea.png)
+![image-20210311172906434](../images/Linux/docker-idea.png)
 
 ## 12. gitlab 集成 cicd
 
