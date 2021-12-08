@@ -19,23 +19,16 @@
 ## 2. 安装
 
 ```shell
-# 1、卸载旧版本
-sudo yum remove docker \
-docker-client \
-docker-client-latest \
-docker-common \
-docker-latest \
-docker-latest-logrotate \
-docker-logrotate \
-docker-engine
-# 2、需要的安装包
-sudo yum install -y yum-utils   # /var/lib/docker docker的默认工作路径
-# 3、设置镜像的仓库
+# 1、卸载旧版本，\表示换行
+sudo yum remove docker docker-client docker-client-latest docker-common \
+docker-latest docker-latest-logrotate docker-logrotate docker-engine
+# 2、安装依赖包
+sudo yum install -y yum-utils
+# 3、设置镜像的仓库、更新yum软件包索引
 yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-# 更新yum软件包索引
 yum makecache fast
 # 4、安装docker相关的源 docker-ce 社区 ee 企业版
-yum install docker-ce docker-ce-cli containerd.io
+yum install docker-ce docker-ce-cli containerd.io   # docker的默认工作路径：/var/lib/docker，--installroot=[file]指定安装位置
 # 5、启动docker
 systemctl start docker
 service docker start
@@ -51,7 +44,7 @@ sudo systemctl restart docker
 # 8、docker run hello-world
 ```
 
-## 3. 命令
+## 3. 基础命令
 
 ```shell
 # 1、帮助命令

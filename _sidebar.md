@@ -14,9 +14,9 @@
 
 - **Linux**
 
-  - [基础命令](Linux/基础命令/)
-  - [shell](Linux/shell/)
-  - [docker](Linux/docker/)
+  - [基础命令](Linux/基础命令.md)
+  - [shell](Linux/shell.md)
+  - [docker](Linux/docker.md)
 
 - **系统**
 
