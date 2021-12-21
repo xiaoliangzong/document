@@ -1,29 +1,79 @@
-net stop mysql
+## 1. 安装（5.7.31）
 
-net start mysql
+windows 安装有两种方式，一种 msi 直接安装，一种 zip 包解压缩安装，zip 安装过程：
 
-#### 1、导入导出（备份）
+1. 解压 zip 包
+2. 新建 my.ini 配置文件，用于配置字符集，端口等信息
+3. 新建 data 文件夹，存放 mysql 数据
+4. 管理员身份运行 cmd，进入 bin 目录，执行 mysqld --initialize --console；执行完成后，其中有一行话 temporary password is generated for root@localhost:，@localhost:后的就是 root 用户的初始密码
+5. 执行 mysqld --install [服务名]，可以不写服务名，默认是 mysql，如果安装多个服务，可以起不同的名字
+6. 配置环境变量
+7. 启动 net start mysql，停止命令 net stop mysql
+8. 登录后修改密码 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '新密码';
+
+```ini
+[mysqld]
+# 设置3306端口
+port=3306
+# 设置mysql的安装目录
+basedir=E:\\software\\mysql\\mysql-8.0.11-winx64   # 切记此处一定要用双斜杠\\，单斜杠我这里会出错，不过看别人的教程，有的是单斜杠。自己尝试吧
+# 设置mysql数据库的数据的存放目录
+datadir=E:\\software\\mysql\\mysql-8.0.11-winx64\\Data   # 此处同上
+# 允许最大连接数
+max_connections=200
+# 允许连接失败的次数。这是为了防止有人从该主机试图攻击数据库系统
+max_connect_errors=10
+# 服务端使用的字符集默认为UTF8
+character-set-server=utf8
+# 创建新表时将使用的默认存储引擎
+default-storage-engine=INNODB
+# 默认使用“mysql_native_password”插件认证
+default_authentication_plugin=mysql_native_password
+[mysql]
+# 设置mysql客户端默认字符集
+default-character-set=utf8
+[client]
+# 设置mysql客户端连接服务端时默认使用的端口
+port=3306
+default-character-set=utf8
+
+```
+
+## 2. 备份
+
+1. 数据库软件备份
+2. mysqldump 备份
 
 ```sh
 # 1. 导出（不需要登录）
-
-mysqldump --column-statistics=0 -u username -h ip -p database>D:\xxx.sql  # 导出数据库
-
+	# --column-statistics=0 解决版本不兼容问题，新版的 mysqldump 默认启用了一个新标志，作用是禁用它
+	# databases 只导出一个数据库的几张表
+	# -t 只导出表数据
+	# -d 只导出表结构
+mysqldump --column-statistics=0 -u username -h ip -p database>D:\xxx.sql  # 导出数据库，结尾不能加；，要不然就报错！！！
 mysqldump --column-statistics=0 -u username -h ip -p databases 表 1 表 2>D:\xxx.sql # 导出表结构和内容
 
-# --column-statistics=0 解决版本不兼容问题，新版的 mysqldump 默认启用了一个新标志，作用是禁用它
-# --databases 导出多个数据库
-# -t 只导出表数据
-# -d 只导出表结构
-# 结尾不能加；，要不然就报错！！！
-
 # 2. 导入
-
-mysql -u root -h ip -p # 登录
-
-use database # 选择对应的数据库，或者创建数据库 create table 数据库名 character set 字符集
-
+mysql -u root -h ip -p 	# 登录
+use database 			# 选择对应的数据库，或者创建数据库 create table 数据库名 character set 字符集
 source D:\xxx.sql
+```
+
+## 3. 函数
+
+```sh
+# 1. contact 连接字符串
+# 2. length	 字符串的字节长度，utf-8时，一个汉字三个字节
+# 3. upper/lower 转换大小写
+# 4. substr、substring
+# 5. instr
+# 6. ifnull
+# 7. lpad/rpad
+# 8. replace
+# 9.
+# 10.
+# 11. version()、database()
+
 ```
 
 #### 2、库操作
@@ -38,6 +88,9 @@ mysql -u root -h ip -p
 create database 数据库名 character set 字符集（gbk、utf8） # 默认字符集为 utf8
 show databases # 展示所有数据库
 use database_name # 选择某个数据库
+show tables
+show tables from xxx;
+desc 表名 # 查看表结构
 show create database database_name # 查看字符编码
 
 # 3、删除数据库
