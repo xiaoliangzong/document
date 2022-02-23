@@ -199,7 +199,11 @@ String 类型非常特殊，它属于引用数据类型，但是 String 类型�
 
 3. **SecureRandom：**是 Random 的子类，本质上仍然是伪随机数生成器原理，可以理解为 Random 升级，它的种子选取比较多，主要有：时间，cpu，使用情况，点击事件等一些种子，因此会带来一定的性能开销，但安全性高；特别是在生成验证码的情况下，不要使用 Random，因为它是线性可预测的。所以在安全性要求比较高的场合，应当使用 SecureRandom；SecureRandom 内置两种随机数算法：NativePRNG 和 SHA1PRNG，可以指定随机数算法生成 SecureRandom 实例。
 
-## 9. 拦截器、过滤器、AOP
+## 9. AES
+
+AES（Advanced Encryption Standard）高级加密标准，是最常见的对称加密算法，对称加密算法也就是加密和解密用相同的密钥。
+
+## 10. 拦截器、过滤器、AOP
 
 > 过滤器能做的，拦截器基本上都能做
 

@@ -12,6 +12,12 @@
     - [SpringCloud Netflix](Java/微服务/SpringCloudNetflix.md)
     - [SpringCloud Alibaba](Java/微服务/SpringCloudAlibaba.md)
 
+- **数据库**
+
+  - [Mysql](数据库/Mysql.md)
+  - [Oracle](数据库/Oracle.md)
+  - [Redis](数据库/Redis.md)
+
 - **Linux**
 
   - [基础命令](Linux/基础命令.md)
@@ -54,6 +60,7 @@
   - [软件](软件/)
 
 - **前端**
+
   - [基础](前端/基础/)
   - [VUE](前端/Vue/)
     - [前言](前端/Vue/1-前言.md)
@@ -63,11 +70,6 @@
     - [axios](前端/Vue/5-axios.md)
     - [vuex](前端/Vue/6-vuex.md)
   - [ES6 语法](前端/ES6新语法/)
-- **数据库**
-
-  - [mysql](数据库/mysql/)
-  - [oracle](数据库/oracle/)
-  - [Redis](数据库/Redis/)
 
 - **美图**
   - [PhotoShop](PhotoShop/)

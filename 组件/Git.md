@@ -38,9 +38,9 @@ git branch -D 分支名             # 8. 强制删除分支
 ### 2.2 克隆
 
 ```bash
-# 1. 默认分支(master)克隆
-git clone <remote_url>
-# 2. 指定分支克隆
+# 1. 克隆所有分支
+git clone <remote_url> 文件夹名
+# 2. 克隆指定分支
 git clone -b 远端分支名称 <remote_url>
 # 3. idea 工具(http 协议)克隆
 点击 VCS -> 选择 Get from version control
@@ -63,7 +63,7 @@ git remote rm <name>                                     # 方式2：先删后�
 git remote add <name> <url>
 
 git remote set-url --delete <name> <url>      # <url>是正则表达式，因此删除时基本不用，如果存在多个远程仓库，可以在config文件中删除
-git remote set-url --add <name> <url>         # 给已有远程仓库添加多个远程url地址，push时就可以一次性推送到所有仓库，拉取时，默认使用fetch-ur，也就是添加的第一个地址
+git remote set-url --add <name> <url>         # 给已有远程仓库的本地仓库添加多个远程url地址，name名称必须和已存在的远程仓库名称一致，push时就可以一次性推送到所有仓库，拉取时，默认使用fetch-url，也就是添加的第一个地址，如果拉取时，需要使用后边的url，则调整config中的顺序即可
 
 # 5. 更改远程仓库名
 git remote rename <old> <new>
@@ -119,14 +119,28 @@ git show commit 	   # 查看具体的改动内容
 
 ### 3.1 冲突
 
+git stash 和 git commit 都是解决冲突的途径
+
 ```bash
-git stash
+git stash -h                   # 查看命令帮助
+git stash list                 # 查询存储列表
 
-git stash pop
+# 展示[<stash>]做了哪些改动
+# [<stash>]格式为：stash@{$num}，比如第二个，git stash show stash@{1}；如果[<stash>]不写，默认show第一个，其他同理
+git stash show [<stash>]
+# 展示改动的细节
+git stash show -p [<stash>]
 
-git stash list
+# 增加存储；其实git stash 也是可以的，但查找时不方便识别
+git stash [save] [<message>]
 
-git stash drop xxx
+git stash pop [<stash>]           # 释放缓存，将缓存堆栈中的对应stash删除
+git stash apply [<stash>]         # 应用缓存，但不会把存储从存储列表中删除
+
+# 删除某个存储
+git stash drop [<stash>]
+# 删除所有存储
+git stash clear
 ```
 
 ### 3.2 合并分支
