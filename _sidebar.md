@@ -33,6 +33,7 @@
   - **接口文档**
     - [Swagger](组件/接口文档/swagger.md)
     - [Knife4j](组件/接口文档/knife4j.md)
+    - [OpenAPI](组件/接口文档/OpenAPI.md)
   - **持久层框架**
     - [Mybatis](组件/ORM持久层框架/Mybatis.md)
     - [MybatisPlus](组件/ORM持久层框架/MybatisPlus.md)
