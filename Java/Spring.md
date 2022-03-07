@@ -416,7 +416,7 @@ GenericJacksonRedisSerializer 和 Jackson2JsonRedisSerializer 都是以 JSON 格
 
    - `使用 Validation 验证时如果 Group 不写，默认为 Default.class（接口），如果其他字段想使用默认的验证，则需要自定义的Group继承Default接口，或者每个都写清楚`
 
-![validation](../../images/java/springboot-validation.png)
+![validation](../images/SpringBoot/springboot-validation.png)
 
 **快速失败 Fail Fast 模式配置**
 
@@ -722,4 +722,4 @@ public static void main(String[] args) throws java.lang.Exception {
 原理：启动 jar 时，增加配置参数（端口）
 jar -jar xxx.jar --server.port=8080
 
-![ieda配置多个启动](../../images/Spring/idea.png)
+![ieda配置多个启动](../images/Spring/idea.png)
