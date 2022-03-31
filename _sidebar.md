@@ -1,9 +1,10 @@
 - **Java**
 
+  - [基础](Java/常用基础知识.md)
   - [JVM](Java/JVM.md)
   - [JUC](Java/JUC.md)
   - [Java8 新特性](Java/Java8新特性.md)
-  - [常用基础知识](Java/常用基础知识.md)
+
   - [开源三方 API](Java/开源三方API.md)
   - [QuartZ](Java/Quartz.md)
   - [Spring](Java/Spring.md)
@@ -28,7 +29,7 @@
 
 - **Linux**
 
-  - [基础命令](Linux/基础命令.md)
+  - [基础](Linux/基础.md)
   - [shell](Linux/shell.md)
   - [docker](Linux/docker.md)
 
@@ -37,6 +38,11 @@
   - [Mysql](Database/Mysql.md)
   - [Oracle](Database/Oracle.md)
   - [Redis](Database/Redis.md)
+
+- **MQ**
+
+  - [rabbit](MQ/rabbitMQ.md)
+  - [kafka](MQ/kafka.md)
 
 - **Network**
 
@@ -62,18 +68,11 @@
 
 - **接口文档**
 
-  - [Swagger](组件/接口文档/swagger.md)
-  - [Knife4j](组件/接口文档/knife4j.md)
-  - [OpenAPI](组件/接口文档/OpenAPI.md)
+  - [Swagger](接口文档/swagger.md)
+  - [Knife4j](接口文档/knife4j.md)
+  - [OpenAPI](接口文档/OpenAPI.md)
 
-- **消息队列**
-
-  - [rabbit](组件/消息队列/rabbitMQ.md)
-  - [kafka](组件/消息队列/kafka.md)
-
-- **软件**
-
-  - [软件](软件/)
+- [<font color=#364149 size=3px>**软件**</font>](软件/)
 
 - **前端**
 
