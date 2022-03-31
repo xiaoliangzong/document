@@ -2,6 +2,8 @@
 
 ### 1.1 **创建 SpringApplication 对象**
 
+SpringApplication 的初始化模块，即创建对象实例，作用是收集加载资源，比如应用上下文初始化类、监听器。
+
 ```java
 /**
  * 创建一个 SpringApplication 实例
@@ -29,6 +31,10 @@ public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySourc
 
 ### 1.2 **运行 run() 方法**
 
+启动方案，其中包括启动流程的监听模块、加载配置环境模块、及核心的创建上下文环境模块。
+
+自动化配置模块。该模块作为 springboot 自动配置核心。
+
 ```java
 /**
  * 运行spring应用程序，创建并刷新一个新的 {@link ApplicationContext}.
@@ -45,9 +51,9 @@ public ConfigurableApplicationContext run(String... args) {
     configureHeadlessProperty();
     /*
         获取监听器：
-            1. 使用SPI机制从类路径下META‐INF/spring.factories获取SpringApplicationRunListener的子类EventPublishingRunListener，并实例化；
-            2. 在实例化时，会把所有ApplicationListener对象都添加到initialMulticaster广播器里面；
-            3. SpringApplicationRunListeners对象包括所有的SpringApplicationRunListener对象（实例化时传入进去的）；
+            1. 使用SPI机制从类路径下META‐INF/spring.factories获取SpringApplicationRunListener的子类EventPublishingRunListener，
+            并实例化；在实例化时，会把所有ApplicationListener对象都添加到initialMulticaster广播器里面；
+            2. SpringApplicationRunListeners对象包括所有的SpringApplicationRunListener对象（实例化时传入进去的）；
         作用：
             在不同的时点发布不同类型的事件时，只需要调用其对应方法即可（根据事件类型找到对应的listener去发布事件）；
         说简单点，就是在SpringBoot启动初始化的过程中可以通过SpringApplicationRunListener接口回调来让用户在启动的各个流程中可以加入自己的逻辑。
@@ -112,22 +118,9 @@ public ConfigurableApplicationContext run(String... args) {
 }
 ```
 
-### 1.3. **事件监听**
+### 1.3 自动装配
 
-SpringApplication 的初始化模块（创建对象实例），收集加载资源，比如应用上下文初始化类、监听器。
-
-第二部分实现了应用具体的启动方案，包括启动流程的监听模块、加载配置环境模块、及核心的创建上下文环境模块。
-
-第三部分是自动化配置模块。该模块作为 springboot 自动配置核心。
-
-- SpringApplication.addListeners 添加监听器
-- 把监听器纳入到 spring 容器中管理
-- 使用 context.listener.classes 配置项配置（详细内容参照：DelegatingApplicationListener）
-- 使用@EventListener 注解，在方法上面加入@EventListener 注解，且该类需要纳入到 spring 容器中管理（详细内容参照：EventListenerMethodProcessor，EventListenerFactory）
-
-## 2. 自动装配原理
-
-> SpringBoot 启动时，加载主配置类，会扫描引用 jar 包中的 META-INF/spring.factories 文件，将文件中的配置的类型信息加载到 spring 容器，并执行类中定义的各种操作。
+SpringBoot 启动时，加载主配置类，会扫描引用 jar 包中的 META-INF/spring.factories 文件，将文件中的配置的类型信息加载到 spring 容器，并执行类中定义的各种操作。
 
 **注解详情**
 
@@ -145,7 +138,7 @@ SpringFactoriesLoader 属于 Spring 框架私有的一种扩展方案，是 Spri
 
 该对象提供了 loadFactoryNames 方法，入参为 factoryClass 和 classLoader 即需要传入工厂类名称和对应的类加载器，方法会根据指定的 classLoader，加载该类加器搜索路径下的指定文件，即 spring.factories 文件；传入的工厂类为接口，而文件中对应的类则是接口的实现类，或最终作为实现类。
 
-## 3. 配置文件
+## 2. 配置文件
 
 #### 编写规范
 
@@ -332,7 +325,7 @@ private String uploadPicUrl;
 
 <img src="../images/SpringBoot/configurationProperties.png"  width="600" />
 
-## 4. 日志
+## 3. 日志
 
 `SpringBoot选用SLF4j和logback，而底层Spring框架，默认是用JCL`
 
@@ -340,7 +333,7 @@ private String uploadPicUrl;
 
 <img src="../images/SpringBoot/SLF4Jconstruction.png"  width="700" />
 
-## 5. 自定义 starter
+## 4. 自定义 starter
 
 > 自定义 starter 命名规范：xxx-spring-boot-starter
 
@@ -349,7 +342,7 @@ private String uploadPicUrl;
 3. 新建自动装配类 Configuration，使用@Configuration 和@Bean 来进行自动装配
 4. 新建 spring.factories 文件，指定 starter 的自动装配类
 
-## 6. restTemplate
+## 5. restTemplate
 
 ##### 1. 基本介绍
 
@@ -579,7 +572,7 @@ public class RestTemplateConfig {
 
 ```
 
-## 7. 异步和定时
+## 6. 异步和定时
 
 #### 1. TaskExecutor 任务执行器 与 TaskScheduler 任务调度器
 
@@ -766,7 +759,7 @@ public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
 }
 ```
 
-## 常见问题
+## 7. 常见问题
 
 #### 1. SpringBoot 切换版本后，Junit 报错
 
@@ -799,8 +792,6 @@ public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
 |                                          | 支持 lambda 表达式                                                                             |
 | 测试引擎：vintage-engine                 | 测试引擎：juniter-engine                                                                       |
 |                                          | org.junit.jupiter.api.Assertions 包的 stratic 方法<br />assertTrue、assertFalse、assertNotNull |
-
-#### 2.
 
 #### 4. 多模块整合
 

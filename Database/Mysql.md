@@ -9,7 +9,7 @@ windows 系统下 mysql 安装有两种方式: msi 直接安装和 zip 包解压
 - 管理员身份运行 cmd，进入 bin 目录，执行 mysqld --initialize --console；执行完成后，其中有一行话 temporary password is generated for root@localhost:，@localhost:后的就是 root 用户的初始密码；
 - 执行 mysqld --install [服务名]，可以不写服务名，默认是 mysql，如果安装多个服务，可以起不同的名字；
 - 配置环境变量；
-- 启动 net start/stop mysql [mysql]，mysql 为服务名
+- 启动 net start/stop [mysql]，mysql 为服务名
 - 登录后修改密码 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '新密码';
 
 ### 1.2 linux
