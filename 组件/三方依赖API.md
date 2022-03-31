@@ -13,6 +13,7 @@
 6.  @Getter ： 注在属性上，提供 get 方法
 7.  @EqualsAndHashCode ： 注在类上，提供对应的 equals 和 hashCode 方法，默认仅使用该类中定义的属性且不调用父类的方法，通过 callSuper=true，让其生成的方法中调用父类的方法。
 8.  @Log4j/@Slf4j ： 注在类上，提供对应的 Logger 对象，变量名为 log
+9.  @RequiredArgsConstructor : 替代@Autowired，注入时使用 final 修饰或@NotNull 注解
 
 **注意点**
 

@@ -1,68 +1,83 @@
-## 1. 启动流程分析
+## 1. 启动流程源码解析
 
-SpringBoot 的启动流程分为三步：
-
-第一部分进行 SpringApplication 的初始化模块（创建对象实例），收集加载资源，比如应用上下文初始化类、监听器。
-
-第二部分实现了应用具体的启动方案，包括启动流程的监听模块、加载配置环境模块、及核心的创建上下文环境模块。
-
-第三部分是自动化配置模块。该模块作为 springboot 自动配置核心。
-
-1. **创建 SpringApplication 对象**
+### 1.1 **创建 SpringApplication 对象**
 
 ```java
+/**
+ * 创建一个 SpringApplication 实例
+ *
+ * @param resourceLoader the resource loader to use
+ * @param primarySources the primary bean sources
+ */
 public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
     this.resourceLoader = resourceLoader;
     // 断言主配置类是否为空
     Assert.notNull(primarySources, "PrimarySources must not be null");
-    // 保存主配置类
+    // 将主配置类作为primarySources属性存储起来
     this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
-    // 设置WebApplicationType枚举值，判断是否是一个web应用
+    // 根据classpath推断是否是一个web应用，枚举类型
     this.webApplicationType = WebApplicationType.deduceFromClasspath();
-    // 从类路径下找到META‐INF/spring.factories配置的所有ApplicationContextInitializer；然后保存起来
+    // 设置初始化器（Initializer），从类路径下找到META‐INF/spring.factories配置的所有ApplicationContextInitializer
+    // 说明：SpringFactoriesLoader 类似于ServiceLoader，采用SPI机制，查找配置文件的内容
     setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
-    // 从类路径下找到META‐INF/spring.factories配置的所有ApplicationListener
+    // 设置监听器（Listener），从类路径下找到META‐INF/spring.factories配置的所有ApplicationListener
     setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
     // 从多个配置类中找到有main方法的主配置类
     this.mainApplicationClass = deduceMainApplicationClass();
 }
 ```
 
-<img src="../images/SpringBoot/initializers.png" width="500" />
-<img src="../images/SpringBoot/listeners.png" width="500" />
-
-2. **运行 run() 方法**
+### 1.2 **运行 run() 方法**
 
 ```java
+/**
+ * 运行spring应用程序，创建并刷新一个新的 {@link ApplicationContext}.
+ *
+ * @param args the application arguments  其中包括命令行参数
+ * @return a running {@link ApplicationContext}
+ */
 public ConfigurableApplicationContext run(String... args) {
+    // 计时工具，启动计时器
     StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     ConfigurableApplicationContext context = null;
     Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
     configureHeadlessProperty();
-    /* 从类路径下META‐INF/spring.factories获取SpringApplicationRunListeners，
-    即EventPublishingRunListener实现类，该类的作用就是将SpringBoot的事件转换成ApplicationEvent发送出去。*/
+    /*
+        获取监听器：
+            1. 使用SPI机制从类路径下META‐INF/spring.factories获取SpringApplicationRunListener的子类EventPublishingRunListener，并实例化；
+            2. 在实例化时，会把所有ApplicationListener对象都添加到initialMulticaster广播器里面；
+            3. SpringApplicationRunListeners对象包括所有的SpringApplicationRunListener对象（实例化时传入进去的）；
+        作用：
+            在不同的时点发布不同类型的事件时，只需要调用其对应方法即可（根据事件类型找到对应的listener去发布事件）；
+        说简单点，就是在SpringBoot启动初始化的过程中可以通过SpringApplicationRunListener接口回调来让用户在启动的各个流程中可以加入自己的逻辑。
+    */
     SpringApplicationRunListeners listeners = getRunListeners(args);
-    // 回调所有的获取SpringApplicationRunListener.starting()方法
+    // 发布应用程序开始启动事件（ApplicationStartingEvent）
     listeners.starting();
     try {
         // 封装命令行参数
         ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
-        /* 准备环境、创建环境完成后执行SpringApplicationRunListeners.environmentPrepared()方法，
-        通过广播的方式广播事件ApplicationEnvironmentPreparedEvent */
+        /*
+            准备应用上下文环境、完成后调用listeners.environmentPrepared()方法，
+            通过广播的方式广播事件ApplicationEnvironmentPreparedEvent
+        */
         ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+        // 配置忽略的bean信息
         configureIgnoreBeanInfo(environment);
         // 是否打印Banner内容（图片或文字），可通过配置文件配置或在classpath路径下定义默认值
         Banner printedBanner = printBanner(environment);
-        // 创建ApplicationContext；决定创建web的ioc还是普通的ioc
+        // 创建ApplicationContext容器，决定创建web的ioc还是普通的ioc
         context = createApplicationContext();
         exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
                 new Class[] { ConfigurableApplicationContext.class }, context);
-        /* 1. 准备上下文环境，将environment保存到ioc中；
-           2. applyInitializers()方法，回调之前保存的所有的ApplicationContextInitializer的initialize方法
-           3. 回调所有的SpringApplicationRunListener的contextPrepared()；
+        /*
+            1. 准备容器，将environment保存到ioc中；
+            2. applyInitializers()方法，回调之前保存的所有的ApplicationContextInitializer的initialize方法
+            3. 回调所有的SpringApplicationRunListener的contextPrepared()；
         将之前通过@EnableAutoConfiguration获取的所有配置以及其他形式的ioc容器配置加载到已经准备完毕的ApplicationContext
-           4. 回调所有的SpringApplicationRunListener的contextLoaded()； */
+            4. 回调所有的SpringApplicationRunListener的contextLoaded()；
+        */
         prepareContext(context, environment, listeners, applicationArguments, printedBanner);
         // 刷新容器；ioc容器初始化（如果是web应用还会创建嵌入式的Tomcat）；
         // Spring注解版扫描，创建，加载所有组件的地方；（配置类，组件，自动配置）
@@ -70,6 +85,7 @@ public ConfigurableApplicationContext run(String... args) {
         // 从ioc容器中获取所有的ApplicationRunner和CommandLineRunner进行回调
         // ApplicationRunner先回调，CommandLineRunner再回调
         afterRefresh(context, applicationArguments);
+        // 停止计时器
         stopWatch.stop();
         if (this.logStartupInfo) {
             new StartupInfoLogger(this.mainApplicationClass).logStarted(getApplicationLog(), stopWatch);
@@ -83,9 +99,11 @@ public ConfigurableApplicationContext run(String... args) {
     }
 
     try {
+        // 发布应用程序running事件
         listeners.running(context);
     }
     catch (Throwable ex) {
+        // 处理运行异常，主要是通过异常报告器，解析运行时产生的异常，然后解析成容易阅读和方便排查问题的文本，然后打印
         handleRunFailure(context, ex, exceptionReporters, null);
         throw new IllegalStateException(ex);
     }
@@ -94,7 +112,13 @@ public ConfigurableApplicationContext run(String... args) {
 }
 ```
 
-3. **事件监听**
+### 1.3. **事件监听**
+
+SpringApplication 的初始化模块（创建对象实例），收集加载资源，比如应用上下文初始化类、监听器。
+
+第二部分实现了应用具体的启动方案，包括启动流程的监听模块、加载配置环境模块、及核心的创建上下文环境模块。
+
+第三部分是自动化配置模块。该模块作为 springboot 自动配置核心。
 
 - SpringApplication.addListeners 添加监听器
 - 把监听器纳入到 spring 容器中管理

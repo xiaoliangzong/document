@@ -173,7 +173,7 @@ String 类型非常特殊，它属于引用数据类型，但是 String 类型�
 
 **@SuppressWarnings 警告**
 
-用于抑制编译器产生警告信息，即告诉编译器忽略指定的警告，不用在编译完成后出现警告信息。注解目标为类，字段，函数，函数入参，构造函数和函数的局部变量。
+是给编译器一条指令，用于抑制编译器产生警告信息，即告诉编译器忽略指定的警告，不用在编译完成后出现警告信息。注解目标为类，字段，函数，函数入参，构造函数和函数的局部变量。
 
 ```java
 @SuppressWarnings("deprecation")  // 使用了@Deprecated注解标注的类或方法时的警告
@@ -223,3 +223,20 @@ Spring 的 AOP：
 
 - 常用于日志，事务，请求参数安全验证等。
 - 获取 http 请求：((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+
+## 泛型
+
+泛型是 Java SE 1.5 的新特性，泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数，替代了以前对类型 Object 的引用来实现参数的‘任意化’（强制类型转换）。
+
+1. T - Type，在调用时指定类型（java 类）
+2. E - Element，在集合中使用
+3. K - Key，V - Value
+4. N - Number，数值类型
+5. ? - 表示不确定的 java 类型，是类型通配符，代表所有类型
+
+```java
+// List<? extends T>可以接受任何继承自T的类型的List，List<? super T>可以接受任何T的父类构成的List。
+// 例如List<? extends Number>可以接受List<Integer>或List<Float>。
+List<? extends T> list1
+List<? super T> list2
+```
