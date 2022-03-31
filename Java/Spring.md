@@ -27,9 +27,7 @@ http://springcloud.fun/
 
 ## Spring 核心模块
 
-<p align=center>
-    <img src="../../images/Spring/spring-module.png" width="500" />
-</p>
+![spring-module](../images/Spring/spring-module.png)
 
 **Core Container**
 

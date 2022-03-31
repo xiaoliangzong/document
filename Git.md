@@ -171,7 +171,7 @@ git push
 
 > 如果是多人协作，别人本地分支的版本是最新的，当别人再次 push 时，就会被重新填充，使用于回退自己本地仓库
 
- <img src="../images/Tool/git-reset.png" style="zoom:26%">
+![git-reset](images/Tool/git-reset.png)
 
 ```bash
 git log 						         # 查看要回退的版本号
@@ -189,7 +189,7 @@ git reset --hard：彻底回退到某个版本，本地的源码也会变为上�
 >
 > 适用场景： 如果我们想撤销之前的某一版本，但是又想保留该目标版本后面的版本，记录下这整个版本变动流程，就可以用这种方法。
 
-<img src="../images/Tool/git-revert.png" style="zoom:28%">
+![git-revert](images/Tool/git-revert.png)
 
 ```shell
 git log 						# 找到误提交之前的版本号
