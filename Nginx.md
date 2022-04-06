@@ -258,11 +258,11 @@ location ~* ^(/v2|/webjars|/swagger-resources|/swagger-ui.html){
 >
 > 解决办法：只保留一个 location 或者修改其中一个 location 指定的路径
 >
-> ![image-20210107183913785](../images/Tool/nginx01.png)
+> ![image-20210107183913785](images/nginx01.png)
 >
 > 2.  无效的 PID：nginx 未启动
 >
-> ![image-20210107184135848](../images/Tool/nginx02.png)
+> ![image-20210107184135848](images/nginx02.png)
 >
 > 3.  location 中每个 url 之后需要添加英文分号；不管位置在哪，和 json 不太一样，json 最后一个不需要分号
 > 4.  使用正则表达式之后，proxy_pass 中 url 不能追加

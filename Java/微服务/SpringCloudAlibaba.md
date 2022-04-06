@@ -20,7 +20,7 @@
 
 ### 2.2 Senetinel 与 Hystrix 对比
 
-![cloud-sentinel](../../images/SpringCloud/cloud-sentinel.png)
+![cloud-sentinel](../../images/Java/SpringCloud/cloud-sentinel.png)
 
 ### 2.3 dashboard 管理控制台
 

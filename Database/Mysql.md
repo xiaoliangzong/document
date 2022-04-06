@@ -194,7 +194,9 @@ drop database/table if exists [<name>]
 4. 默认约束（DEFAULT）
 5. 检查约束（CHECK）mysql 中不支持，可以通过枚举类型或触发器来约束， 枚举类型 enum('男','女')
 6. 外键约束（FOREIGN KEY）对于添加外键约束的表叫参照表(从表)(子表)，对于引用数据的表叫被参照表(主表)(父表)，主表的关联列必须是一个 key（一般是主键或唯一）；可以使用列级外键约束，但是不会生效；插入数据时，先插入主表，再插入从表；删除数据时，先删除从表，再删除主表。
-7. 自增长（AUTO_INCREMENT），只能添加到类型为数值型、且是一个 key 的列，一个表中最多只能有一个；可以通过 SET auto_increment_increment=3 设置步长，也可以通过 手动插入值，设置起始值。
+7. 自增长（AUTO_INCREMENT），只能添加到数值型、且是一个 key 的列，一个表中最多只能有一个；可以通过 SET auto_increment_increment=3 设置步长，也可以通过 手动插入值，设置起始值。
+8. 无符号（UNSIGNED），从 0 开始，无负数
+9. 填充 0（zerofill），表示用 0 填充
 
 主键和唯一键对比：
 
@@ -256,6 +258,38 @@ create table if not exists [<tableName>] (
 ```
 
 ### 3.3 值
+
+**数据类型**
+
+1. 整型：bit、tinyint、smallint、mediumint、int、bigint
+2. 浮点型：float、double
+3. 定点型：decimal
+4. 字符型：char varchar、tinytext、text、mediumtext、longtext、tinyblob、blob、mediumblob、longblob
+5. 日期类型：date、datetime、time、year、timestamp、
+6. 其他：json、binary、varbinary、enum、set、geometry、point、multipoint、linestring、multilinestring、polygon、geometrycollection ...
+
+| 类型      | 字节 | 有符号最小值 | 有符号最大值 | 无符号最小值 | 有符号最大值 |
+| --------- | ---- | ------------ | ------------ | ------------ | ------------ |
+| tinyint   | 1    | -128         | 127          | 0            | 255          |
+| smallint  | 2    | -32768       | 32767        | 0            | 65535        |
+| mediumint | 3    | -8388608     | 8388607      | 0            | 16777215     |
+| int       | 4    | -2147483648  | 2147483647   | 0            | 4294967295   |
+| bigint    | 8    | -2^63        | 2^63 -1      | 0            | 2^64 - 1     |
+
+- 整数类型后边括号里边的数值 M，就是指字段的显示宽度（配合 ZEROFILL 可以看出效果），如果不写 M，则默认为类型的最大显示宽度；显示宽度与类型可包含的值范围无关。比如设置 TINYINT(1)时，可以插入-1。
+- 定点型后边括号包含两个值，（M，D），M 总位数、D 小数位数，小数点和（负数） -符号不计入 M，如果 D 省略，则默认值为 0.如果 M 省略，则默认值为 10。M 的范围是 1 到 65。D 范围为 0 到 30，且不得大于 M。
+- 当 MySQL 将值存储在超出列数据类型允许范围的数值列中时，结果取决于当时生效的 SQL 模式：如果启用了严格的 SQL 模式，则 MySQL 会根据 SQL 标准拒绝带有错误的超出范围的值，并且插入失败；
+  如果未启用限制模式，MySQL 会将值截断到列数据类型范围的相应端点，并存储结果值，并产生一个警告。
+- binary 和 varbinary 用于保存较短的二进制，enum 用于保存枚举，set 用于保存集合
+- 较长的文本：text、blob(较大的二进制)
+- 较短得文本：char、varchar
+
+| 类型       | M 值含义                     | 定长           | 空间消耗 | 效率 |
+| ---------- | ---------------------------- | -------------- | -------- | ---- |
+| char(M)    | 最大字符数，可省略，默认为 1 | 固定长度的字符 | 比较耗费 | 高   |
+| varchar(M) | 最大字符数，不可以省略       | 可变长度的字符 | 比较节省 | 低   |
+
+**值**
 
 ```sql
 -- 增
