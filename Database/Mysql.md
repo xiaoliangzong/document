@@ -296,7 +296,7 @@ create table if not exists [<tableName>] (
 insert into [<tableName>] (field1, field2, ...) values (value1, value2, ...);
 -- 删
 delete from [<tableName>] where [condition];
-truncate table [<tableName>]          -- 截取，可以恢复
+truncate table [<tableName>]          -- 截取，可恢复
 drop table if exists [<tableName>]    -- 删除整张表
 -- 改
 update [<tableName>] set field1 = value1, field2 = value2 where condition;
