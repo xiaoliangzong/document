@@ -354,7 +354,7 @@ RestTemplate 是 Spring 提供的，用于访问 Rest 服务的同步客户端�
 
 如果向查看所有的 http 客户端类库，可以找下 ClientHttpRequestFactory 接口的实现类：
 
-![restTemplate1](..\images\Java\SpringBoot\restTemplate\image-20210717124034829.png)
+![restTemplate1](../images/Java/SpringBoot/restTemplate/image-20210717124034829.png)
 
 **RestTemplate、Apache 的 HttpClient、OkHttp 比较：**
 
@@ -395,7 +395,7 @@ ResponseEntity<Object> result = restTemplate.getForObject(url, Object.class, "pa
 
 ###### 2.2. post 请求
 
-![restTemplate3](..\images\Java\SpringBoot\restTemplate\image-20210717160611447.png)
+![restTemplate3](../images/Java/SpringBoot/restTemplate/image-20210717160611447.png)
 
 参数和 get 请求的相比，就多了第二个参数（Object request），如果使用最后一个参数传参时，和 get 请求类似，request 设置为 null 就可以，如果使用第二个参数传参时，就需要考虑 request 的类型，request 参数类型必须是实体对象、MultiValueMap、HttpEntity 对象的的一种，其他不可以！！！
 
@@ -490,21 +490,21 @@ public class TestService implements ITestService {
 
 1. 依次进入方法：postForEntity() -> httpEntityCallback -> HttpEntityRequestCallback
 
-![restTemplate5](..\images\Java\springboot\restTemplate\image-20210717165644382.png)
+![restTemplate5](../images/Java/SpringBoot/restTemplate/image-20210717165644382.png)
 
-![restTemplate6](..\images\Java\springboot\restTemplate\image-20210717165827241.png)
+![restTemplate6](../images/Java/SpringBoot/restTemplate/image-20210717165827241.png)
 
 2. requestBody 参数，会判断类型是否是 HttpEntity，如果不是，则创建一个 HttpEntity 类将 requestBody 参数传入，然后查看 HttpEntity 构造器，具体做了什么？
 
-![restTemplate7](..\images\Java\springboot\restTemplate\image-20210717165927874.png)
+![restTemplate7](../images/Java/SpringBoot/restTemplate/image-20210717165927874.png)
 
 3. 可以看到，三个构造方法，上边两个调用的是最下边一个；第一个传入的是泛型，也就是传入的 Object 对象，第二个传入的是 MultiValueMap，这个值是存放 Headers 的，所有只需要关注这个泛型，在哪块使用的
 
-![restTemplate8](..\images\Java\springboot\restTemplate\image-20210717170358763.png)
+![restTemplate8](../images/Java/SpringBoot/restTemplate/image-20210717170358763.png)
 
 4. 回到 postForEntity()方法中，找到调用请求的方法 execute，点进去发现是调用方法 doExecute(...)；
 
-![restTemplate9](..\images\Java\springboot\restTemplate\image-20210717171852497.png)
+![restTemplate9](../images/Java/SpringBoot/restTemplate/image-20210717171852497.png)
 
 5. 在 doExecute()中
    - 首先使用请求的 url 和 method(post 或者 get)构造出一个 ClientHttpRequest
@@ -513,11 +513,11 @@ public class TestService implements ITestService {
    - 使用 ResponseExtractor 的 extraData 方法将返回的 response 转换为某个特定的类型；
    - 最后关闭 ClientHttpResponse 资源，这样就完成了发送请求并获得对应类型的返回值的全部过程。
 
-![restTemplate10](..\images\Java\springboot\restTemplate\image-20210717171914777.png)
+![restTemplate10](../images/Java/SpringBoot/restTemplate/image-20210717171914777.png)
 
 6. 进入方法 getRequestFactory() -> getRequestFactory()可以发现，通过 this.requestFactory 初始化了 SimpleClientHttpRequestFactory();通过方法 createRequest(url, method) -> openConnection()发现创建了 HttpURLConnection 连接，因此默认使用的 restTemplate 是无法访问 Https 接口的
 
-![restTemplate11](..\images\Java\springboot\restTemplate\image-20210718224627598.png)
+![restTemplate11](../images/Java/SpringBoot/restTemplate/image-20210718224627598.png)
 
 7. 进入方法 doWithRequest(request)可以发现，程序会执行第一个 else 中的逻辑，根据传入的参数，判断 requestBodyClass、requestBodyType 和 MediaType；
    - 如果第二个参数为 HashMap 或者 MultiValueMap 时，MediaType 为 null；
@@ -525,7 +525,7 @@ public class TestService implements ITestService {
 
 接下来会遍历所有的 HttpMessageConverter，这些对象在 RestTemplate 的构造函数中被初始化
 
-![restTemplate12](..\images\Java\springboot\restTemplate\image-20210718125745189.png)
+![restTemplate12](../images/Java/SpringBoot/restTemplate/image-20210718125745189.png)
 
 8. 在遍历过程中判断是否可以写入，如果能写入则执行写入操作并返回；判断 MessageConvertor 是否为 GenericHttpMessageConverter 的子类，是因为写入的方式不同；在这些 MessageConvertor 中只有 GsonHttpMessageConverter 是 GenericHttpMessageConverter 的子类，且排在最后；因此，遍历过程中会先判断前六个 convertor，能写入则执行写入，最后才是 GsonHttpMessageConvertor。分析所有的 HTTPMessageConvertor，可以发现
 
@@ -533,11 +533,11 @@ public class TestService implements ITestService {
 
    - HashMap 类型的数据会被 GsonHTTPMessageConvertor 处理，将 MediaType 置为 application/json;charset=UTF-8、将 request 转成 json 并写入到 body 中，==因此，第二个参数设置为 HashMap 时，无法设置 ContentType 值，所有第二个参数无法使用 HashMap！但是可以使用 HttpEntity 对象，将 HashMap 存放在 HttpEntity 对象里边，接收参数时，使用@RequestBody==
 
-![restTemplate13](..\images\Java\springboot\restTemplate\image-20210718125937670.png)
+![restTemplate13](../images/Java/SpringBoot/restTemplate/image-20210718125937670.png)
 
 <br>
 
-![restTemplate14](..\images\Java\springboot\restTemplate\image-20210718132008639.png)
+![restTemplate14](../images/Java/SpringBoot/restTemplate/image-20210718132008639.png)
 
 ##### 5. restTemplate 访问 Https 接口
 
