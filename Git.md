@@ -57,15 +57,25 @@ git remote -h           # 1. 查看远程的所有操作命令
 git remote -v           # 2. 查看详情verbose：包括远程仓库名和url
 git remote show origin  # 3. 查看配置的远程仓库信息
 
-# 4. 重新设置远程仓库（更换地址）
+# 4. 删除
+git remote rm <name>                      # 方式1：删除
+git remote set-url --delete <name> <url>  # 方式2：<url>是正则表达式，因此删除时基本不用，如果存在多个远程仓库，可以在config文件中删除
+
+# 5. 重新设置远程仓库（更换地址）
 git remote set-url [--push] <name> <newurl> [<oldurl>]   # 方式1：以覆盖的形式操作，直接设置远程url即可，简化：git remote set-url origin xxxxx.git
 git remote rm <name>                                     # 方式2：先删后加
 git remote add <name> <url>
 
-git remote set-url --delete <name> <url>      # <url>是正则表达式，因此删除时基本不用，如果存在多个远程仓库，可以在config文件中删除
-git remote set-url --add <name> <url>         # 给已有远程仓库的本地仓库添加多个远程url地址，name名称必须和已存在的远程仓库名称一致，push时就可以一次性推送到所有仓库，拉取时，默认使用fetch-url，也就是添加的第一个地址，如果拉取时，需要使用后边的url，则调整config中的顺序即可
+# 6. 添加多个远程仓库
+# 方式1：直接添加，pull或push时，需要指定远程仓库名
+git remote add <newName> <url>
+:<<EOF
+方式2：name名称必须和已存在的远程仓库名称一致；push时就可以一次性推送到所有仓库，
+pull时默认使用fetch-url，也就是添加的第一个地址，如果pull时需要使用后边的url，则调整config中的顺序即可
+EOF
+git remote set-url --add <name> <url>
 
-# 5. 更改远程仓库名
+# 7. 更改远程仓库名
 git remote rename <old> <new>
 ```
 
