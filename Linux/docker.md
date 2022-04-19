@@ -223,8 +223,9 @@ docker-compose version
 **常用命令**
 
 ```shell
+# 执行命令，是针对项目工程而言的，必须在对应的目录下执行
 docker-compose build [options] [SERVICE...]				# 构建或重新构建服务，–force-rm删除构建过程中的临时容器
-docker-compose config [SERVICE]                            # 验证Compose文件格式是否正确
+docker-compose config [SERVICE]                   # 验证Compose文件格式是否正确
 docker-compost up -d [options] [SERVICE...]	      # 部署一个Compose应用，默认读取 docker-compose.yaml/yml 文件，-f 指定其他文件名，-d 应用在后台启动
 
 docker-compose ls                                 # 列出所有项目
@@ -249,7 +250,6 @@ docker-compose port SERVICE PRIVATE_PORT          # 显示某个容器端口所�
 | 开发语言 | go 语言                                                                                                                     | python 语言                                                                                                                       |
 | 支持版本 | 只支持 version3 以上版本                                                                                                    | 都可以                                                                                                                            |
 | 安装     | Swarm 模式已经在 1.12 中集成到 Docker Engine 中，docker stack 是 swarm mode 的一部分, 即使是单机使用, 也需要一个 swarm 节点 | 需要额外的安装                                                                                                                    |
-|          |
 | 命令     | docker stack deploy -c docker-compose.yml serviceName                                                                       | docker-compose up -d -f docker-compose.yml                                                                                        |
 | 作用     | 适合于迭代开发、测试和 快速验证原型                                                                                         | 适用于开发、测试环境的容器编排工具                                                                                                |
 | 区别     | 通过 deploy，构建服务，不支持 build，无法使用 stack 命令构建 build 新镜像，它是需要镜像是预先已经构建好的。                 | 通过 build，构建服务;更适合于开发场景，不支持 deploy，所以在 yml 中使用 deploy 就会报错，可以是镜像，也可以和 Dockerfile 配合使用 |
@@ -425,12 +425,10 @@ docker run -d -p 5001:8080 --name regisry-web --link registry -e registry_url=ht
 
 **horbar**
 
-1. 安装
-
-   - 安装 docker-compose [安装 docker-compose 详情链接](#7-docker-compose)
-   - 官网下载 harbor
-
-2. 使用
+- [安装 docker-compose](#7-docker-compose)
+- 官网下载 harbor
+- ./install.sh
+- 开机自启动 docker-compose start
 
 ## 10. IDEA 集成 Docker 的远程访问
 
