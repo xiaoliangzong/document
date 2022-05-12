@@ -374,23 +374,33 @@ RestTemplate 是 Spring 提供的，用于访问 Rest 服务的同步客户端�
 
 参数包括请求 url、响应类型的 class、请求参数
 
-- url：String 字符串或者 URI 对象；常用字符串
+- url：String 字符串或者 URI 对象
 - 响应对象的 class 实例
   - getForEntity() ==> 响应为 ResponseEntity<T>，其中包括请求的响应码和 HttpHeaders
   - getForObject() ==> 响应为传入的 class 对象，只包括响应内容
-- 请求参数：替换 url 中的占位符，可以使用可变长的 Object，也可以使用 Map；如果没有，可以不填 ==其中 object 是按照占位符的顺序匹配的，map 是根据 key 匹配，如果匹配不上，就报错==
+- 请求参数：替换 url 中的占位符，可以使用可变长的 Object，也可以使用 Map；如果没有，可以不填 **其中 object 是按照占位符的顺序匹配的，map 是根据 key 匹配，如果匹配不上，就报错**
 
 ```java
-// 不带参数的
+// 方式1：不带参数的
 String url = "localhost:8001/test/method";
 Object object = restTemplate.getForObject(url, Object.class);
 
-// 带参数的，使用@PathVariable接收
-String url = "localhost:8001/test/method/{param1}";
+// 方式2：带参数的，使用@PathVariable接收
+String url = "localhost:8001/test/method/{param}";
 Object object = restTemplate.getForObject(url, Object.class, "param");
-// 带参数的，使用@Requestparam接收
-String url = "localhost:8001/test/method?param={dd}";
+// 方式3：带参数的，使用@Requestparam接收
+String url = "localhost:8001/test/method?param={param}";
 ResponseEntity<Object> result = restTemplate.getForObject(url, Object.class, "param");
+// 方式4：带参数的，使用@Requestparam接收
+String url = "localhost:8001/test/method?param={param}";
+Map<String, String> param = Collections.singletonMap("param", 111);
+ResponseEntity<Object> result = restTemplate.getForObject(url, Object.class, param);
+// 方式5：带参数的，使用@Requestparam接收
+String url = "localhost:8001/test/method";
+MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+params.add("param", 111);
+URI uri = UriComponentsBuilder.fromHttpUrl(url).queryParams(params).build().encode().toUri();
+ResponseEntity<Object> result = restTemplate.getForObject(uri, Object.class);
 ```
 
 ###### 2.2. post 请求
@@ -692,17 +702,6 @@ public class AsyncThreadPoolAutoConfiguration implements AsyncConfigurer {
 
 #### 3. 定时（注解和接口）
 
-> 定时的几种实现方式：
->
-> 1. while 循环执行 thread 线程，线程调用 sleep 睡眠
-> 2. Timer 和 TimerTask， 简单无门槛，一般也没人用
-> 3. 线程池，Executors.newScheduledThreadPool，底层 ScheduledThreadPoolExecutor；
-> 4. spring 自带的 springtask（@Schedule），一般集成于项目中，小任务很方便
-> 5. Quartz，开源工具 Quartz，分布式集群开源工具，以下两个分布式任务应该都是基于 Quartz 实现的，可以说是中小型公司必选，当然也视自身需求而定
-> 6. 分布式任务 XXL-JOB，是一个轻量级分布式任务调度框架，支持通过 Web 页面对任务进行 CRUD 操作，支持动态修改任务状态、暂停/恢复任务，以及终止运行中任务，支持在线配置调度任务入参和在线查看调度结果。
-> 7. 分布式任务 Elastic-Job，是一个分布式调度解决方案，由两个相互独立的子项目 Elastic-Job-Lite 和 Elastic-Job-Cloud 组成。定位为轻量级无中心化解决方案，使用 jar 包的形式提供分布式任务的协调服务。支持分布式调度协调、弹性扩容缩容、失效转移、错过执行作业重触发、并行调度、自诊。
-> 8. 分布式任务 Saturn，Saturn 是唯品会在 github 开源的一款分布式任务调度产品。它是基于当当 elastic-job 来开发的，其上完善了一些功能和添加了一些新的 feature。目前在 github 上开源大半年，470 个 star。Saturn 的任务可以用多种语言开发比如 python、Go、Shell、Java、Php。其在唯品会内部已经发部署 350+个节点，每天任务调度 4000 多万次。同时，管理和统计也是它的亮点。
->
 > @Schedule 注解：
 >
 > `核心属性是cron，代表定时任务的触发计划表达式，@Scheduled(cron="seconds minutes hours day month week")；也可以使用fixedRate、fixedDelay、initialDelay`

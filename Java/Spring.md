@@ -721,3 +721,8 @@ public static void main(String[] args) throws java.lang.Exception {
 jar -jar xxx.jar --server.port=8080
 
 ![ieda配置多个启动](../images/Spring/idea.png)
+
+## 15. @JsonProperty 序列化失效
+
+- POST 接口请求方式为 application/json 方式，@JsonProperty 序列化能够生效；
+- GET 请求方式，参数拼接在 URL 后面，此时参数对象中的 @JsonProperty 不会生效。

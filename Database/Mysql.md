@@ -1,16 +1,25 @@
 ## 1. 安装（5.7.31）
 
-### 1.1 windows
+### 1.1 windows(zip)
 
-windows 系统下 mysql 安装有两种方式: msi 直接安装和 zip 包解压缩安装；第二种方式比较难，下面讲解第二种方式：
+windows 系统下 mysql 安装有两种方式: msi 直接安装和 zip 解压缩安装，本章节详细讲解 zip 包方式
 
-- 解压；
-- 根目录下新建 my.ini 配置文件和 data 存放数据文件夹；
-- 管理员身份运行 cmd，进入 bin 目录，执行 mysqld --initialize --console；执行完成后，其中有一行话 temporary password is generated for root@localhost:，@localhost:后的就是 root 用户的初始密码；
-- 执行 mysqld --install [服务名]，可以不写服务名，默认是 mysql，如果安装多个服务，可以起不同的名字；
-- 配置环境变量；
-- 启动 net start/stop [mysql]，mysql 为服务名
-- 登录后修改密码 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '新密码';
+- 1. 解压，在根目录下新建 my.ini 配置文件
+- 2. 管理员身份运行进入 cmd 命令行，然后进入 bin 目录，执行初始化命令：mysqld --initialize-insecure --user=mysql --console
+- 3. 创建服务，可以不写服务名，默认是 mysql，如果安装多个服务，可以起不同的名字； mysqld --install [服务名]
+- 4. 配置环境变量
+- 5. 启动 net start [mysql]
+- 6. 登录后修改密码
+  - alter user 'root'@'localhost' identified with mysql_native_password by '新密码';
+  - set password for 'root'@'localhost'=password('新密码');
+
+> **说明：**
+>
+> - 初始化时，可以使用命令（ mysqld --verbose --help）查看参数配置，--initialize-insecure 标识初始化时创建 root 用户，无密码
+> - 启动/停止服务命令：net start/stop [服务名]
+> - 如果使用 zip 包安装多个版本 mysql，则第一个安装之后，不需要设置环境变量，否则第二次执行 mysqld 初始化时，不知道使用哪个 mysqld；如果第二个版本的安装成功，但启动失败，尝试重启电脑后，卸载重新安装即可
+> - 如果卸载，zip 包安装方式在控制面板是找不到的，删除服务时，使用命令 sc delete [服务名]
+> - 默认只能使用 localhost 连接，如果需要使用 ip 连接，则修改 root 账号的 host 信息：update user set host='%' where user='root';
 
 ### 1.2 linux
 
@@ -36,12 +45,21 @@ default-storage-engine=INNODB
 default_authentication_plugin=mysql_native_password
 # 设置默认时区
 default-time-zone=+8:00
+# 严格sql模式(strict mode)
+# ONLY_FULL_GROUP_BY: 对于GROUP BY聚合操作,如果在SELECT中的列,没有在GROUP BY中出现,那么这个SQL是不合法的,因为列不在GROUP BY从句中
+# NO_AUTO_VALUE_ON_ZERO: 该值影响自增长列的插入。默认设置下，插入0或NULL代表生成下一个自增长值。如果希望插入的值为0,而该列又是自增长的,那么这个选项就有用了
+# STRICT_TRANS_TABLES: 在该模式下，如果一个值不能插入到一个事务表中，则中断当前的操作,对非事务表不做限制
+# NO_ZERO_IN_DATE: 在严格模式下,不允许日期和月份为零
+# NO_ZERO_DATE: 设置该值,不允许插入零日期,插入零日期会抛出错误而不是警告。
+# NO_AUTO_CREATE_USER: 禁止GRANT创建密码为空的用户
+# NO_ENGINE_SUBSTITUTION: 如果需要的存储引擎被禁用或未编译，那么抛出错误。不设置此值时，用默认的存储引擎替代，并抛出一个异常
+# ERROR_FOR_DIVISION_BY_ZERO: 在INSERT或UPDATE过程中,如果数据被零除,则产生错误而非警告。如果未给出该模式,那么数据被零除时MySQL返回NULL
+sql_mode=ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+
 [mysql]
 # 设置mysql客户端默认字符集
 default-character-set=utf8
 [client]
-# 设置mysql客户端连接服务端时默认使用的端口
-port=3306
 default-character-set=utf8
 ```
 
@@ -538,6 +556,9 @@ set password for 用户名@主机地址=password(新密码)
 
 -- 6. 撤销用户权限
 revoke privileges on databasename.tablename from 'username'@'host'
+
+--7. 刷新权限
+flush privileges;
 ```
 
 ## 10. 三大范式和 er 图
@@ -569,9 +590,9 @@ navicat 工具\powerdesigner 工具
 
 ## 11. 索引
 
-> 索引在提供查询速度的同时，会降低增删改的速度；索引存储了指定列数据值的指针，根据指定的排序顺序对这些指针排序
+索引在提供查询速度的同时，会降低增删改的速度；索引存储了指定列数据值的指针，根据指定的排序顺序对这些指针排序
 
-##### 10.0.1 优点
+**优点**
 
 - 通过创建唯一索引可以保证数据库表中每一行数据的唯一性。
 - 可以给所有的 MySQL 列类型设置索引。
@@ -579,86 +600,85 @@ navicat 工具\powerdesigner 工具
 - 在实现数据的参考完整性方面可以加速表与表之间的连接。
 - 在使用分组和排序子句进行数据查询时也可以显著减少查询中分组和排序的时间
 
-##### 10.0.2 缺点
+**缺点**
 
 - 创建和维护索引组要耗费时间，并且随着数据量的增加所耗费的时间也会增加。
 - 索引需要占磁盘空间，除了数据表占数据空间以外，每一个索引还要占一定的物理空间。如果有大量的索引，索引文件可能比数据文件更快达到最大文件尺寸。
 - 当对表中的数据进行增加、删除和修改的时候，索引也要动态维护，这样就降低了数据的维护速度。
 
-##### 10.0.3 创建索引
+### 11.1 分类
 
-查看索引
-SHOW INDEX FROM <表名> [ FROM <数据库名>]
+1.  普通索引 index
+2.  唯一索引 unique // 索引列的值必须唯一，但允许有空值（注意和主键不同）。如果是组合索引，则列值的组合必须唯一，创建方法和普通索引类似
+3.  主键索引 primary key
 
-1. 给已存在的表添加索引
+    - 主键是一种约束，一张表只能有一个主键；唯一索引是一种索引，一张表可以创建多个唯一索引
+    - 主键创建后一定包含一个唯一索引，唯一索引不一定是主键，
+    - 主键不能为 null，唯一索引可以为 null
+    - 主键可以作为外键，但是唯一索引不行
 
-create index <索引名> on <表名> (<列名>[length] [ASC | DESC])
+4.  全文索引
+5.  外键索引
+6.  联合索引 最左前缀：对多个字段同时建立的索引，有顺序，
 
-- 索引名：一般命令规则：表名\_列名
-- 列名的长度：CHAR，VARCHAR 类型，length 可以小于字段实际长度；如果是 BLOB 和 TEXT 类型，必须指定 length。
-- 升降序：可选
+    - 建立这样的索引相当于建立了索引 a、ab、abc 三个索引。
+    - 覆盖索引，真正的实际应用中，覆盖索引是主要的提升性能的优化手段之一
+    - 索引列越多，通过索引筛选出来的数据越少
 
-2. 通过修改表结构的方式添加索引
+      最左匹配原则。(A,B,C) 这样 3 列，mysql 会首先匹配 A，然后再 B，C.
 
-alter table <表名> add index/unique/fulltext <索引名>(列名 1，列名 2)
+    如果用(B,C)这样的数据来检索的话，就会找不到 A 使得索引失效。如果使用(A,C)这样的数据来检索的话，就会先找到所有 A 的值然后匹配 C，此时联合索引是失效的。
 
-3. 创建表的时候直接指定
+7.  覆盖索引
 
-create table table_name ( [...], INDEX [索引的名字] (列的列表) );
+    - select 的数据列只用从索引中就能够取得，不必从数据表中读取，换句话说查询列要被所使用的索引覆盖
 
-##### 10.0.4 查看索引
+    主键索引名为 pk*字段名；唯一索引名为 uk*字段名；普通索引名则为 idx*字段名。
+    说明：pk* 即 primary key；uk* 即 unique key；idx* 即 index 的简称。
 
-show index from 表名
-
-##### 10.0.5 删除索引
-
-alter table 表名 drop index 索引名
-
-- DROP PRIMARY KEY：表示删除表中的主键。一个表只有一个主键，主键也是一个索引。
-- DROP INDEX index_name：表示删除名称为 index_name 的索引。
-- DROP FOREIGN KEY fk_symbol：表示删除外键。
-
-drop index 索引名 on 表名
-
-##### 10.0.6 索引分类
-
-```java
-普通索引 index
-唯一索引 unique		// 索引列的值必须唯一，但允许有空值（注意和主键不同）。如果是组合索引，则列值的组合必须唯一，创建方法和普通索引类似
-主键索引 primary key
-    主键是一种约束，一张表只能有一个主键；唯一索引是一种索引，一张表可以创建多个唯一索引
-    主键创建后一定包含一个唯一索引，唯一索引不一定是主键，
-    主键不能为null，唯一索引可以为null
-    主键可以作为外键，但是唯一索引不行
-
-全文索引
-外键索引
-联合索引 最左前缀：对多个字段同时建立的索引，有顺序，
-    建立这样的索引相当于建立了索引a、ab、abc三个索引。
-    覆盖索引，真正的实际应用中，覆盖索引是主要的提升性能的优化手段之一
-    索引列越多，通过索引筛选出来的数据越少
-
-    最左匹配原则。(A,B,C) 这样3列，mysql会首先匹配A，然后再B，C.
-如果用(B,C)这样的数据来检索的话，就会找不到A使得索引失效。如果使用(A,C)这样的数据来检索的话，就会先找到所有A的值然后匹配C，此时联合索引是失效的。
-```
-
-##### 10.0.7 like 语句操作
-
-一般情况下不鼓励使用 like 操作；like “%aaa%” 不会使用索引而 like “aaa%”可以使用索引。
-
-`覆盖索引`：
-
-- select 的数据列只用从索引中就能够取得，不必从数据表中读取，换句话说查询列要被所使用的索引覆盖
-
-##### 10.0.7 聚集索引和非聚集索引
+### 11.2 聚集索引和非聚集索引
 
 1. 聚集索引：索引中键值的逻辑顺序决定了表中相应行的物理顺序。
 
 2. 非聚集索引：索引中索引的逻辑顺序与磁盘上行的物理存储顺序不同。
 
-#### 11、EXPLAIN
+当 mysql 查询时，使用非聚簇索引（也叫二级索引，辅助索引） 查到相应的叶子节点获取主键值，然后通过 主键索引（聚簇索引） 再查到相应的数据行信息，找到主键后通过聚簇索引 找到相应数据行的过程叫做回表。
 
-> 是查看优化器如何决定执行查询的主要方法，
+当需要回表的数据越多，二级索引+回表到聚簇索引查找的代价就越大。而且当需要回表的数量巨大时，mysql 会认为全表扫描的性能会比使用二级索引的性能更好，从而放弃使用二级索引。
+
+InnoDB 在选择聚集索引的优先级上符合以下顺序：通过主键聚集数据，如果没有定义主键，innodb 会选择非空唯一索引作为聚集索引。如果以上条件都不满足，innodb 会隐式的定义一个 6 字节 rowid 来作为聚簇索引。
+
+### 11.3 常用语法
+
+```sql
+-- 查看索引
+show index from [<table_name>];
+-- 添加索引
+-- 如果是CHAR，VARCHAR类型，length可以小于字段实际长度；如果是BLOB和TEXT类型，必须指定 length。
+CREATE INDEX index_name ON table_name (column_name ...);
+ALTER table table_name ADD INDEX index_name(column_name ...);
+
+CREATE TABLE mytable(
+`id` INT NOT NULL,
+`username` VARCHAR(16) NOT NULL,
+INDEX [index_name] (username(length))
+);
+
+-- 删除索引
+ALTER TABLE table_name DROP INDEX index_name;
+DROP INDEX  index_name ON table_name;
+```
+
+### 11.4 索引失效
+
+```sql
+like    -- like "%xxx%" 不会使用索引，而like "xxx%"会使用索引
+
+```
+
+#### 11.5 explain
+
+> 是查看优化器如何决定执行查询的主要方法
 
 #### 11、面试必问
 
@@ -681,3 +701,11 @@ drop index 索引名 on 表名
 ```
 
 ```
+
+1、复制旧 mysql 的 data 文件夹中的数据库到新 mysql 的 data 文件夹内。
+
+2、删掉旧的“ib_logfile\*”等日志文件，重启 MySQL 后会自动生成新的日志文件的。
+
+3、复制旧的“ibdata1”文件到新的目录，替换掉。
+
+4、确保“ibdata1”文件不是只读属性
