@@ -247,105 +247,80 @@ spring:
 
 - 6.4 实现主程序
 
-```properties
-
-#Configure Main Scheduler Properties
-#==============================================================
-#配置集群时，quartz调度器的id，由于配置集群时，只有一个调度器，必须保证每个服务器该值都相同，可以不用修改，只要每个ams都一样就行
-org.quartz.scheduler.instanceName = Scheduler1
-#集群中每台服务器自己的id，AUTO表示自动生成，无需修改
-org.quartz.scheduler.instanceId = AUTO
-#==============================================================
-#Configure ThreadPool
-#==============================================================
-#quartz线程池的实现类，无需修改
-org.quartz.threadPool.class = org.quartz.simpl.SimpleThreadPool
-#quartz线程池中线程数，可根据任务数量和负责度来调整
-org.quartz.threadPool.threadCount = 5
-#quartz线程优先级
-org.quartz.threadPool.threadPriority = 5
-#==============================================================
-#Configure JobStore
-#==============================================================
-#表示如果某个任务到达执行时间，而此时线程池中没有可用线程时，任务等待的最大时间，如果等待时间超过下面配置的值(毫秒)，本次就不在执行，而等待下一次执行时间的到来，可根据任务量和负责程度来调整
-org.quartz.jobStore.misfireThreshold = 60000
-#实现集群时，任务的存储实现方式，org.quartz.impl.jdbcjobstore.JobStoreTX表示数据库存储，无需修改
-org.quartz.jobStore.class = org.quartz.impl.jdbcjobstore.JobStoreTX
-#quartz存储任务相关数据的表的前缀，无需修改
-org.quartz.jobStore.tablePrefix = QRTZ_
-#连接数据库数据源名称，与下面配置中org.quartz.dataSource.myDS的myDS一致即可，可以无需修改
-org.quartz.jobStore.dataSource = myDS
-#是否启用集群，启用，改为true,注意：启用集群后，必须配置下面的数据源，否则quartz调度器会初始化失败
-org.quartz.jobStore.isClustered = false
-#集群中服务器相互检测间隔，每台服务器都会按照下面配置的时间间隔往服务器中更新自己的状态，如果某台服务器超过以下时间没有checkin，调度器就会认为该台服务器已经down掉，不会再分配任务给该台服务器
-org.quartz.jobStore.clusterCheckinInterval = 20000
-#==============================================================
-#Non-Managed Configure Datasource
-#==============================================================
-#配置连接数据库的实现类，可以参照IAM数据库配置文件中的配置
-org.quartz.dataSource.myDS.driver = com.mysql.jdbc.Driver
-#配置连接数据库连接，可以参照IAM数据库配置文件中的配置
-org.quartz.dataSource.myDS.URL = jdbc:mysql://localhost:3306/test
-#配置连接数据库用户名
-org.quartz.dataSource.myDS.user = yunxi
-#配置连接数据库密码
-org.quartz.dataSource.myDS.password = 123456
-#配置连接数据库连接池大小，一般为上面配置的线程池的2倍
-org.quartz.dataSource.myDS.maxConnections = 10
-
-```
-
 ```yml
+# 配置调度器信息
+# 配置集群时，quartz调度器的id，由于配置集群时，只有一个调度器，必须保证每个服务器该值都相同，默认为schedulerFactoryBean，如果不是使用spring，则为QuartzScheduler
+org.quartz.scheduler.instanceName = QuartzScheduler
+# 集群中每台服务器自己的id，默认为NON_CLUSTERED，AUTO代表自动生成，
+org.quartz.scheduler.instanceId = AUTO
+# 如果为AUTO，则默认使用SimpleInstanceIdGenerator生成
+org.quartz.scheduler.instanceIdGenerator.class = org.quartz.simpl.SimpleInstanceIdGenerator
+# 线程名称，默认为 “调度器名称_QuartzSchedulerThread”
+org.quartz.scheduler.threadName = QuartzSchedulerThread
 
-# 是否使用properties作为数据存储
+# 线程池配置
+# quartz线程池的实现类，默认为SimpleThreadPool，无需修改，可满足大多数需求
+org.quartz.threadPool.class = org.quartz.simpl.SimpleThreadPool
+# quartz线程池中线程数，可根据任务数量和负责度来调整，默认为10
+org.quartz.threadPool.threadCount = 25
+# quartz线程优先级，取值范围1-10，默认为5
+org.quartz.threadPool.threadPriority = 5
 
-org.quartz.jobStore.useProperties=false
 
-# 数据库中的表格命名前缀
-
-org.quartz.jobStore.tablePrefix = QRTZ_
-
-# 是否是一个集群，是不是分布式的任务
-
-org.quartz.jobStore.isClustered = true
-
-# 集群检查周期，单位毫秒。可以自定义缩短时间。 当某一个节点宕机的时候，其他节点等待多久后开始执行任务。
-
-org.quartz.jobStore.clusterCheckinInterval = 5000
-
-# 单位毫秒， 集群中的节点退出后，再次检查进入的时间间隔。
-
+# JobStore配置
+# 单位毫秒，表示如果某个任务到达执行时间，而此时线程池中没有可用线程时，任务等待的最大时间，如果等待时间超过下面配置的值，本次就不在执行，而等待下一次执行时间的到来，可根据任务量和负责程度来调整
 org.quartz.jobStore.misfireThreshold = 60000
-
-# 事务隔离级别
-
-org.quartz.jobStore.txIsolationLevelReadCommitted = true
-
-# 存储的事务管理类型
-
+# quartz存储任务相关数据的表的前缀
+org.quartz.jobStore.tablePrefix = QRTZ_
+# 是否启用集群，ture表示启用，注意：启用集群后，必须配置数据源，否则quartz调度器会初始化失败，有多个Quartz实例在用同一个数据库时，必须设置为true。
+org.quartz.jobStore.isClustered = true
+# 存储方式，如果存在数据源，默认使用LocalDataSourceJobStore，LocalDataSourceJobStore使用已经配置的dataSource作为数据源；低版本时，即使指定了JobStoreTX也没用，高版本（2.5.7后），如果配置JobStoreTX后，还需要在配置文件中指定数据源，否则启动报错。
+# 高版本推荐方案：1. 使用默认的LocalDataSourceJobStore，无需配置；2. 使用JobStoreTX，同时指定quartz的数据源。
 org.quartz.jobStore.class = org.quartz.impl.jdbcjobstore.JobStoreTX
+# 集群检查周期，单位毫秒，集群中服务器相互检测间隔，每台服务器都会按照下面配置的时间间隔往服务器中更新自己的状态，如果某台服务器超过以下时间没有checkin，调度器就会认为该台服务器已经down掉，不会再分配任务给该台服务器
+org.quartz.jobStore.clusterCheckinInterval = 20000
+# JobDataMaps是否都为String类型，若是true的话，便可不用让更复杂的对象以序列化的形式保存到BLOB列中。以防序列化可能导致的版本号问题
+org.quartz.jobStore.useProperties = false
+# 当使用JobStoreTX或CMT，JDBC连接时，是否设置setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE) 方法
+org.quartz.jobStore.txIsolationLevelSerializable=false
+# 数据源获取连接后是否设置自动提交setAutoCommit(false)方法，如果为ture,表示不设置，否则设置
+org.quartz.jobStore.dontSetAutoCommitFalse=true
+# JobStore能处理的错过触发的Trigger的最大数量。处理太多很快就会导致数据库表被锁定够长的时间，这样会妨碍别的（还未错过触发）trigger执行的性能
+org.quartz.jobStore.maxMisfiresToHandleAtATime=1
 
-# 使用的Delegate类型
 
-org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+org.quartz.jobStore.dataSource = myDS
+org.quartz.dataSource.myDS.driver = com.mysql.jdbc.Driver
+org.quartz.dataSource.myDS.URL = jdbc:mysql://${mysql.address}/etc-quartz?useUnicode=true&characterEncoding=utf8
+org.quartz.dataSource.myDS.user = ${mysql.user}
+org.quartz.dataSource.myDS.password = ${mysql.password}
+org.quartz.dataSource.myDS.provider = hikaricp
+# 数据库最大连接数（如果Scheduler很忙，比如执行的任务与线程池的数量差不多相同，那就需要配置DataSource的连接数量为线程池数量+1）
+org.quartz.dataSource.myDS.maxConnections = 30
+# dataSource用于检测connection是否failed/corrupt的SQL语句
+org.quartz.dataSource.myDS.validationQuery=select RAND()
 
-# 集群的命名，一个集群要有相同的命名。
-
-org.quartz.scheduler.instanceName = ClusterQuartz
-
-# 节点的命名，可以自定义。 AUTO代表自动生成。
-
-org.quartz.scheduler.instanceId= AUTO
-
-# rmi远程协议是否发布
-
-org.quartz.scheduler.rmi.export = false
-
-# rmi远程协议代理是否创建
-
-org.quartz.scheduler.rmi.proxy = false
-
-# 是否使用用户控制的事务环境触发执行job。
-
-org.quartz.scheduler.wrapJobExecutionInUserTransaction = false
 ```
+
+SchedulerFactoryBean 实现了 InitializingBean 接口，因此在初始化 Bean 的时候会执行 afterPropertiesSet，该方法会调用 SchedulerFactory(DirectSchedulerFactory 或者 StdSchedulerFactory，通常用 StdSchedulerFactory)创建 Scheduler，SchedulerFactory 在创建 quartzScheduler 的过程中，将会读取配置参数，初始化各个组件
+
+如果你在 spring 的配置文件中使用 SchedulerFactoryBean 配置了 datasoucrce，即使用 spring 托管的 datasource，则 spring 会强制使用这个 jobstore、LocalDataSourceJobStore
+
+使用了 Spring+Quartz 之后，发现启动日志里并没有使用 JobStoreTX, 而是使用了 LocalDataSourceJobStore，因为 Quartz 的{@link JobStoreCMT}类的子类，该类委托给一个 spring 管理的
+{@link DataSource}，而不是使用 quartz 管理的 JDBC 连接池。
+
+我们通常是通过 quartz.properties 属性配置文件(默认情况下均使用该文件)结合 StdSchedulerFactory 来使用 Quartz 的。StdSchedulerFactory 会加载属性配置文件并实例化一个 Scheduler。
+
+默认情况下，Quartz 会加载 classpath 下的”quartz.properties”文件作为配置属性，如果找不到则会使用 quartz 框架自己 jar 下 org/quartz 包底下的”quartz.properties”文件。当然你也可以指定”org.quartz.properties”属性指向你自定义的属性配置文件。或者，你也可以在调用 StdSchedulerFactory 的 getScheduler()方法之前调用 initialize(xx)初始化 factory 配置。
+
+在配置文件中你可以使用”$@”引用其他属性配置。
+
+@DisallowConcurrentExecution
+
+禁止并发执行多个相同定义的 JobDetail, 这个注解是加在 Job 类上的, 但意思并不是不能同时执行多个 Job, 而是不能并发执行同一个 Job Definition(由 JobDetail 定义), 但是可以同时执行多个不同的 JobDetail。
+
+即对于同一个 Job 任务不允许并发执行，但对于不同的 job 任务不受影响。
+
+@PersistJobDataAfterExecution
+
+保存在 JobDataMap 传递的参数。加在 Job 上,表示当正常执行完 Job 后, JobDataMap 中的数据应该被改动, 以被下一次调用时用。

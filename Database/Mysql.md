@@ -30,9 +30,9 @@ windows 系统下 mysql 安装有两种方式: msi 直接安装和 zip 解压缩
 # 设置3306端口
 port=3306
 # 设置mysql的安装目录
-basedir=E:\\software\\mysql\\mysql-8.0.11-winx64
+basedir=D:\Database\mysql-5.7.31\mysql-5.7.31
 # 设置mysql数据库的数据的存放目录
-datadir=E:\\software\\mysql\\mysql-8.0.11-winx64\\Data   # 此处同上
+datadir=D:\Database\mysql-5.7.31\mysql-5.7.31\Data
 # 允许最大连接数
 max_connections=200
 # 允许连接失败的次数。这是为了防止有人从该主机试图攻击数据库系统
@@ -61,6 +61,9 @@ sql_mode=ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERR
 default-character-set=utf8
 [client]
 default-character-set=utf8
+user=root
+password='db12#$'
+port=3306
 ```
 
 ## 2. 函数
@@ -105,7 +108,7 @@ default-character-set=utf8
 ### 2.3 日期函数
 
 ```sql
-1. now()/current_timestamp()  -- 获取当前日前+时间
+1. now()/current_timestamp()  -- 获取当前日前时间(yyyy-MM-dd HH:mm:ss)
 2. curdate()/current_date()   -- 当前日期
 3. curtime()/current_time()   -- 当前时间
 4. year()      -- 年
@@ -118,6 +121,7 @@ default-character-set=utf8
 11. str_to_date() -- 将字符串格式的日期转换为date，转换失败则为null
 12. date_format() -- 日期格式化，将日期转换成字符串
 13. datediff()    -- 两个日期相差多少天
+-- `update_time` timestamp default current_timestamp on update current_timestamp comment '更新时间‘
 ```
 
 ### 2.4 分组函数
@@ -171,8 +175,8 @@ sql，结构化查询语言，是关系型数据库当中所使用的一种数�
 ### 3.1 库
 
 ```sql
--- 展示所有数据库
-show databases
+-- 展示所有数据库/表
+show databases/tables
 -- 创建数据库，默认字符集为 utf8
 create database if not exists [<name>] [character set 字符集（gbk、utf8）]
 -- 使用数据库
@@ -185,7 +189,8 @@ select user();
 select md5("xxx");
 select password("xxx");		-- 加密字符串
 -- 查看字符编码
-show create database [<name>]
+show create database [<name>];
+show variables like '%char%';
 -- 更改库的字符集
 ALTER DATABASE [<name>] CHARACTER SET utf8;
 -- 删除库/表
@@ -199,7 +204,7 @@ drop database/table if exists [<name>]
 约束是对表中的数据进行相应的规则，以保证数据的正确和有效。约束按照添加的位置可以分为列级约束和表级约束；
 
 - 列级约束：所有约束语法上都支持，但外键约束不会生效；
-- 表级约束：除了非空、默认，其他的都支持；[constraint 约束名] 约束类型(字段名)
+- 表级约束：除了非空、默认，其他的都支持，格式：[constraint 约束名] 约束类型(字段名)
 
   |          |   添加位置   |       支持的约束类型       |   是否可以起约束名   |
   | :------: | :----------: | :------------------------: | :------------------: |
@@ -211,7 +216,7 @@ drop database/table if exists [<name>]
 3. 非空约束（NOT NULL）
 4. 默认约束（DEFAULT）
 5. 检查约束（CHECK）mysql 中不支持，可以通过枚举类型或触发器来约束， 枚举类型 enum('男','女')
-6. 外键约束（FOREIGN KEY）对于添加外键约束的表叫参照表(从表)(子表)，对于引用数据的表叫被参照表(主表)(父表)，主表的关联列必须是一个 key（一般是主键或唯一）；可以使用列级外键约束，但是不会生效；插入数据时，先插入主表，再插入从表；删除数据时，先删除从表，再删除主表。
+6. 外键约束（FOREIGN KEY）对于添加外键约束的表叫参照表(从表)(子表)，对于引用数据的表叫被参照表(主表)(父表)，主表的关联列必须是一个 key（一般是主键或唯一）；插入数据时，先插入主表，再插入从表；删除数据时，先删除从表，再删除主表。
 7. 自增长（AUTO_INCREMENT），只能添加到数值型、且是一个 key 的列，一个表中最多只能有一个；可以通过 SET auto_increment_increment=3 设置步长，也可以通过 手动插入值，设置起始值。
 8. 无符号（UNSIGNED），从 0 开始，无负数
 9. 填充 0（zerofill），表示用 0 填充
@@ -221,30 +226,11 @@ drop database/table if exists [<name>]
 |        | 保证唯一性 | 是否允许为空 | 一个表中可以有多少个 | 是否允许组合 |
 | :----: | :--------: | :----------: | :------------------: | ------------ |
 |  主键  |     √      |      ×       |     至多有 1 个      | √            |
-| 唯一键 |     √      |      √       |      可以有多个      | √，但不推荐  |
+| 唯一键 |     √      |      √       |      可以有多个      | √            |
 
 ```sql
--- 添加、删除约束
-alter table [<tableName>] modify column 字段名 字段类型 新约束;
-alter table [<tableName>] add [constraint 约束名] 约束类型(字段名) [外键的引用];
-
--- 删除主键、唯一、外键约束
-alter table [<tableName>] drop primary key;
-alter table [<tableName>] drop index field;
-alter table [<tableName>] drop foreign key fk_b_a;
-
--- 外键约束增加的四个选项
-on delete restrict on update restrict 拒绝删除修改父表当中子表引用的数据
-on delete no action on update no action 不允许删除修改父表当中子表引用的数据(默认)
-on delete cascade on update cascade 级联修改删除
-on delete set null on update set null 设置为 null
-```
-
-**表**
-
-```sql
--- 展示该数据库的所有表，show tables from xxx可以查询其他库的所有表
-show tables
+-- 可以查询其他库的所有表
+ show tables from [<databaseName>];
 -- 查看表结构
 desc [<tableName>]
 -- 删除库/表
@@ -265,14 +251,31 @@ CREATE TABLE 表2 LIKE xxx.表1
 ALTER TABLE 表1 RENAME TO 表2;
 
 -- 创建表
-create table if not exists [<tableName>] (
-	'id' bigint unsigned primary key auto_increment COMMENT '主键',
-	'field' varchar(10) not null COMMENT '姓名',
-	'no' char(18) unique COMMENT '身份证号',
-	'sex' bigint default 0 COMMENT '性别：0-未知，1-男，2-女',
-  'base_id' bigint COMMENT '主表id',
-  constraint fk_b_a foreign key(base_id) references a(id);
-);
+create table if not exists `[<tableName>]` (
+	`id` bigint(20) unsigned auto_increment COMMENT '主键id',
+	`field` varchar(10) not null COMMENT '姓名',
+	`no` char(18) not null COMMENT '身份证号',
+	`gender` bigint(1) default 0 COMMENT '性别：0-未知，1-男，2-女',
+  `base_id` bigint COMMENT '主表id',
+  primary key(`id`) using btree,
+  unique uk_no (`no`),              -- 唯一约束，可以替换成：constraint uk_no unique(`no`)
+  constraint fk_b_a foreign key(`base_id`) references a(`id`);    -- 外键约束
+) COMMENT='名称';
+
+-- 添加、删除约束
+alter table [<tableName>] modify column 字段名 字段类型 新约束;
+alter table [<tableName>] add [constraint 约束名] 约束类型(字段名) [外键的引用];
+
+-- 删除主键、唯一、外键约束
+alter table [<tableName>] drop primary key;
+alter table [<tableName>] drop index field;
+alter table [<tableName>] drop foreign key fk_b_a;
+
+-- 外键约束增加的四个选项
+on delete restrict on update restrict 拒绝删除修改父表当中子表引用的数据
+on delete no action on update no action 不允许删除修改父表当中子表引用的数据(默认)
+on delete cascade on update cascade 级联修改删除
+on delete set null on update set null 设置为 null
 ```
 
 ### 3.3 值

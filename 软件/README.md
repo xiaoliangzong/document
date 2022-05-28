@@ -1,8 +1,29 @@
-## 1. vscode
+## 1. IntelliJ IDEA
+
+**常用插件**
+
+1. Lombok（简化代码）
+2. Alibaba Java Coding Guidelines（编码规范检查）
+3. Json Viewer
+4. Eclipse Code Formatter（统一代码格式化，需要加载配置文件）
+
+**快捷键修改**
+
+1. 智能提示：改为 Alt+/
+
+**修改字体背景**
+
+1. 护眼背景：C7EDCC
+2. 字体：JetBrains Mono(14)、Consolas(15)
+
+- 配置类注解模板：Editor -> File and Code Templates
+- 警告：Wrong tag 'Date' ，需要配置：Editor -> Inspections -> java -> javadoc -> Javadoc declaration problems -> Options
+
+## 2. vscode
 
 **常用快捷键**
 
-- ctrl+shift+P 无能搜索
+- ctrl+shift+P 万能搜索
 - alt+上下键 上下移
 - shift+alt+上下键 向上下复制一行
 - shift+ctrl+k 删除一行
@@ -32,7 +53,7 @@
 
 - npm run lint --fix
 
-## 2. Sonar 代码检查工具
+## 3. Sonar 代码检查工具
 
 **docker 安装**
 
@@ -87,7 +108,7 @@
 <!-- 执行命令：mvn clean install sonar:sonar -->
 ```
 
-## 3. Nexus 私服仓库
+## 4. Nexus 私服仓库
 
 > nexus-repository-manager
 
@@ -192,7 +213,7 @@
 </activeProfiles>
 ```
 
-## 4. docsify 文档网站生成器
+## 5. docsify 文档网站生成器
 
 > 说明：该文档就是基于 docsify 搭建的，配置简单，无需编译，只需要会 markdown 语法即可，详细配置可参考项目：[github](https://github.com/xiaoliangzong/document.git)
 
