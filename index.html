@@ -16,8 +16,7 @@
     <!-- <link rel="stylesheet" href="//unpkg.com/docsify/themes/pure.css"> -->
     <!-- <link rel="stylesheet" href="//unpkg.com/docsify/themes/dolphin.css"> -->
     <!-- 侧边栏样式 -->
-    <link rel="stylesheet" href="//unpkg.com/npm/docsify-sidebar-collapse/dist/sidebar.min.css"/>
-    <link rel="stylesheet" href="static/style.min.css">
+    <link rel="stylesheet" href="//unpkg.com/docsify-sidebar-collapse/dist/sidebar.min.css"/>
 </head>
 <body>
 <div id="app"></div>
@@ -47,17 +46,28 @@
             copy: '<span style="color: gainsboro">Copyright © 2021 dangbo-document</span>',
             auth: '<span style="color: gainsboro">All rights reserved</span>',
             pre: '<hr/>',
-            style: 'text-align: right;',
+            style: 'text-align: center;',
             class: 'className',
         },
     }
 
 </script>
 
-<script src="https://cdn.bootcdn.net/ajax/libs/docsify/4.11.2/docsify.js"></script>
+<!-- 侧边栏链接跳转 -->
+<!-- <script src="//unpkg.com/docsify/lib/docsify.js"></script> -->
+<script src="static/js/docsify.js"></script>
 
 <!-- 引入搜索模块 -->
-<script src="https://cdn.bootcdn.net/ajax/libs/docsify/4.11.2/plugins/search.min.js"></script>
+<!-- <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script> -->
+<!-- <script src="https://cdn.bootcdn.net/ajax/libs/docsify/4.11.2/plugins/search.min.js"></script> -->
+<script src="static/js/serach.min.js"></script>
+
+<!--分页导航插件 -->
+<!-- <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script> -->
+<script src="static/js/docsify-pagination.min.js"></script>
+
+<!-- 侧边栏折叠 -->
+<script src="//unpkg.com/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
 
 <!-- 添加一键拷贝代码-->
 <script src="https://unpkg.com/docsify-copy-code"></script></script>
@@ -69,82 +79,91 @@
 <script src="https://unpkg.com/docsify/lib/plugins/zoom-image.min.js"></script>
 
 <!-- emoji表情支持 -->
-<script src="https://unpkg.com/npm/docsify/lib/plugins/emoji.min.js"></script>
-
-<!-- 访问量统计 -->
-<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script src="https://unpkg.com/docsify/lib/plugins/emoji.min.js"></script>
 
 <!--添加不蒜子访问统计-->
-<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<!-- <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> -->
 <!--<script async src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/js/busuanzi.pure.mini.js"></script>-->
+<script src="static/js/busuanzi.pure.mini.js"></script>
 
 <!-- mouse click -->
-<script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/click_heart.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/click_heart.js"></script> -->
+<script src="static/js/forthespada/click_heart.js"></script>
 
 <!-- 添加页脚 -->
-<script src="https://cdn.jsdelivr.net/gh/wugenqiang/NoteBook@master/plugin/docsify-footer-enh.min.js"></script>
-
-<!-- 回到顶部功能 -->
-<script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/jquery.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/jquery.goup.js"></script>
-<script type="text/javascript">
-    $(document).ready(function () {
-        $.goup({
-            trigger: 700,
-            bottomOffset: 20,
-            locationOffset: 8,
-            title: '',
-            titleAsText: true
-        });
-    });
-</script>
+<!-- <script src="https://cdn.jsdelivr.net/gh/wugenqiang/NoteBook@master/plugin/docsify-footer-enh.min.js"></script> -->
+<script src="static/js/docsify-footer-enh.min.js"></script>
 
 <!-- 添加代码高亮 -->
-<script src="https://unpkg.com/prismjs/components/prism-bash.js"></script>
+<!-- <script src="https://unpkg.com/prismjs/components/prism-bash.js"></script>
 <script src="https://unpkg.com/prismjs/components/prism-java.js"></script>
 <script src="https://unpkg.com/prismjs/components/prism-sql.js"></script>
 <script src="https://unpkg.com/prismjs/components/prism-java.js"></script>
-<script src="https://unpkg.com/prismjs/components/prism-sql.js"></script>
+<script src="https://unpkg.com/prismjs/components/prism-sql.js"></script> -->
+<script src="static/js/prism-yaml.js"></script>
+<script src="static/js/prism-bash.js"></script>
+<script src="static/js/prism-java.js"></script>
+<script src="static/js/prism-sql.js"></script>
+<script src="static/js/prism-json.js"></script>
+
 
 <!-- 回到顶部功能 -->
-<script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/jquery.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/jquery.goup.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/jquery.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/jquery.goup.js"></script> -->
+<script src="static/js/forthespada/jquery.js"></script>
+<script src="static/js/forthespada/jquery.goup.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
         $.goup({
             trigger: 700,
             bottomOffset: 20,
-            locationOffset: 8,
+            locationOffset: 120,
             title: '回到顶部',
             titleAsText: true
         });
     });
 </script>
 
+<!-- https://github.com/xiazeyu/live2d-widget-models/tree/master/packages 该项目package包中有不同的模型 -->
  <script src="https://eqcn.ajz.miesnfu.com/wp-content/plugins/wp-3d-pony/live2dw/lib/L2Dwidget.min.js"></script>
  <script>
 	  L2Dwidget.init({
 		  "model": {
-			  //jsonpath控制显示那个小萝莉模型，
-			  //(切换模型需要改动)
-			  jsonPath: "https://unpkg.com/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json",
+              // jsonpath控制显示那个小萝莉模型，切换模型需要改动
+            jsonPath: "https://unpkg.com/live2d-widget-model-epsilon2_1/assets/Epsilon2.1.model.json",
+            //  小帅哥： https://unpkg.com/live2d-widget-model-chitose@1.0.5/assets/chitose.model.json
+            //  萌娘：https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json 
+            //  小可爱（女）：https://unpkg.com/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json 
+            //  小可爱（男）：https://unpkg.com/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json
+            //  初音：https://unpkg.com/live2d-widget-model-miku@1.0.5/assets/miku.model.json 
 			  "scale": 1
 		  },
 		  "display": {
-			  "position": "right", //看板娘的表现位置
-			  "width": 80,  //小萝莉的宽度
-			  "height": 160, //小萝莉的高度
-			  "hOffset": 0,
-			  "vOffset": -20
+              "superSample": 2, 
+			  "position": "right",  // 看板娘的显示位置：左或右
+			  "width": 100,          // 小萝莉的宽度
+			  "height": 100,        // 小萝莉的高度
+			  "hOffset": -40,         // 水平偏移
+			  "vOffset": 20        // 垂直偏移
 		  },
 		  "mobile": {
-			  "show": true,
-			  "scale": 0.5
+			  "show": true,         
+			  "scale": 0.5,         
 		  },
 		  "react": {
 			  "opacityDefault": 0.9,
 			  "opacityOnHover": 0.2
-		  }
+		  },
+          "dialog": {
+            "hitokoto": true,       // 使用一言API
+            "enable": true,         // 显示人物对话框
+            "script": {
+                // "every idle 20s": "$hitokoto$",                  // 每20s，显示一言（调用一言Api返回的句子）
+                "hover .star": "星星在天上而你在我心里 (*/ω＼*)", // 触摸到class='star'对象
+                "tap body": "害羞⁄(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄",               // 触摸到身体
+                "tap face": "~~",                                // 触摸到头部
+            }
+        },
 	  });
   </script>
 
