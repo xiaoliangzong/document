@@ -163,14 +163,14 @@ WHEN 'xxxx' THEN 'xxxx'
 END FROM [tableName];
 ```
 
-## 3. 库、表、值、视图
+## 3. 基础（库、表、约束、数据类型、变量、视图）
 
-sql，结构化查询语言，是关系型数据库当中所使用的一种数据库语言；按功能不同分为四种:
+**sql** 结构化查询语言（Structured Query Language），是关系型数据库当中所使用的一种数据库语言；按功能不同分为四种:
 
-- ddl: 数据声明语言 create declare alter
-- dml: 数据处理语言 update delete insert
-- dql: 数据查询语言 show desc select from where group by having order by
-- tcl: 事务控制语言 rollback 事务回滚，commit 事务提交；查看 autocommit 模式：show variables like 'autocommit'；修改 set @@autocommit=0
+- DDL: 数据声明语言（Data Definition Language） create declare alter
+- DML: 数据操纵语言（Data Manipulation Language） update delete insert
+- DQL: 数据查询语言（Data Query Language） show desc select from where group by having order by
+- TCL: 事务控制语言（Transaction Control Language）rollback 事务回滚，commit 事务提交；修改 set @@autocommit=0
 
 ### 3.1 库
 
@@ -199,7 +199,52 @@ drop database/table if exists [<name>]
 
 ### 3.2 表
 
-**约束**
+```sql
+-- 可以查询其他库的所有表
+ show tables from [<databaseName>];
+-- 查看表结构
+desc [<tableName>]
+-- 删除库/表
+drop database/table if exists [<tableName>]
+
+-- 修改表结构，CHANGE COLUMN 字段重命名，改变数据类型，移动位置；MODIFY COLUMN 可以做CHANGE所有事，除了重命名字段。
+alter table [<tableName>] add|drop|modify|change column 列名 [列类型 约束];
+alter table [<tableName>] change column field field2;
+
+-- 将表1中的数据插入到新表2中，创建表并拷贝数据
+CREATE TABLE 表2
+SELECT * FROM xxx.表1
+
+-- 根据表1创建表2
+CREATE TABLE 表2 LIKE xxx.表1
+
+-- 将表1重命名为表2
+ALTER TABLE 表1 RENAME TO 表2;
+
+-- 创建表
+create table if not exists `[<tableName>]` (
+	`id` bigint(20) unsigned auto_increment COMMENT '主键id',
+	`field` varchar(10) not null COMMENT '姓名',
+	`no` char(18) not null COMMENT '身份证号',
+	`gender` bigint(1) default 0 COMMENT '性别：0-未知，1-男，2-女',
+  `base_id` bigint COMMENT '主表id',
+  primary key(`id`) using btree,
+  unique uk_no (`no`),              -- 唯一约束，可以替换成：constraint uk_no unique(`no`)
+  constraint fk_b_a foreign key(`base_id`) references a(`id`);    -- 外键约束
+) COMMENT='名称';
+
+-- 增
+insert into [<tableName>] (field1, field2, ...) values (value1, value2, ...);
+-- 删
+delete from [<tableName>] where [condition];
+truncate table [<tableName>]          -- 截取，可恢复
+drop table if exists [<tableName>]    -- 删除整张表
+-- 改
+update [<tableName>] set field1 = value1, field2 = value2 where condition;
+-- 查
+```
+
+### 3.3 约束
 
 约束是对表中的数据进行相应的规则，以保证数据的正确和有效。约束按照添加的位置可以分为列级约束和表级约束；
 
@@ -229,39 +274,6 @@ drop database/table if exists [<name>]
 | 唯一键 |     √      |      √       |      可以有多个      | √            |
 
 ```sql
--- 可以查询其他库的所有表
- show tables from [<databaseName>];
--- 查看表结构
-desc [<tableName>]
--- 删除库/表
-drop database/table if exists [<tableName>]
-
--- 修改表结构，CHANGE COLUMN 字段重命名，改变数据类型，移动位置；MODIFY COLUMN 可以做CHANGE所有事，除了重命名字段。
-alter table [<tableName>] add|drop|modify|change column 列名 [列类型 约束];
-alter table [<tableName>] change column field field2;
-
--- 将表1中的数据插入到新表2中
-CREATE TABLE 表2
-SELECT * FROM xxx.表1
-
--- 根据表1创建表2
-CREATE TABLE 表2 LIKE xxx.表1
-
--- 将表1重命名为表2
-ALTER TABLE 表1 RENAME TO 表2;
-
--- 创建表
-create table if not exists `[<tableName>]` (
-	`id` bigint(20) unsigned auto_increment COMMENT '主键id',
-	`field` varchar(10) not null COMMENT '姓名',
-	`no` char(18) not null COMMENT '身份证号',
-	`gender` bigint(1) default 0 COMMENT '性别：0-未知，1-男，2-女',
-  `base_id` bigint COMMENT '主表id',
-  primary key(`id`) using btree,
-  unique uk_no (`no`),              -- 唯一约束，可以替换成：constraint uk_no unique(`no`)
-  constraint fk_b_a foreign key(`base_id`) references a(`id`);    -- 外键约束
-) COMMENT='名称';
-
 -- 添加、删除约束
 alter table [<tableName>] modify column 字段名 字段类型 新约束;
 alter table [<tableName>] add [constraint 约束名] 约束类型(字段名) [外键的引用];
@@ -278,9 +290,7 @@ on delete cascade on update cascade 级联修改删除
 on delete set null on update set null 设置为 null
 ```
 
-### 3.3 值
-
-**数据类型**
+### 3.4 数据类型
 
 1. 整型：bit、tinyint、smallint、mediumint、int、bigint
 2. 浮点型：float、double
@@ -310,25 +320,57 @@ on delete set null on update set null 设置为 null
 | char(M)    | 最大字符数，可省略，默认为 1 | 固定长度的字符 | 比较耗费 | 高   |
 | varchar(M) | 最大字符数，不可以省略       | 可变长度的字符 | 比较节省 | 低   |
 
-**值**
+### 3.4 变量
+
+> mysql 的变量分为两种：系统变量和用户变量；系统变量由系统定义，而不是用户定义，属于服务器层面；用户变量是下边所说的自定义变量，分为局部变量和用户变量。
+>
+> 注意：全局变量需要添加 global 关键字，会话变量需要添加 session 关键字，如果不写，默认会话级别。
+
+**系统变量**
+
+1. **全局变量**：全局变量影响服务器整体操作。当服务器启动时，它将所有全局变量初始化为默认值。这些默认值可以在选项文件中或在命令行中指定的选项进行更改。要想更改全局变量，必须具有 SUPER 权限。全局变量作用于 server 的整个生命周期，但是不能跨重启。即重启后所有设置的全局变量均失效。要想让全局变量重启后继续生效，需要更改相应的配置文件。
+2. **会话变量**：服务器为每个连接的客户端维护一系列会话变量。在客户端连接时，使用相应全局变量的当前值对客户端的会话变量进行初始化。设置会话变量不需要特殊权限，但客户端只能更改自己的会话变量，而不能更改其它客户端的会话变量。会话变量的作用域与用户变量一样，仅限于当前连接。当当前连接断开后，其设置的所有会话变量均失效。
+
+**自定义变量**
+
+3. **局部变量**：一般用在 sql 语句块中，比如存储过程的 begin/end。其作用域仅限于该语句块，在该语句块执行完毕后，局部变量就消失了。
+4. **用户变量**：用户变量的作用域要比局部变量要广。用户变量可以作用于当前整个连接，但是当当前连接断开后，其所定义的用户变量都会消失。
 
 ```sql
--- 增
-insert into [<tableName>] (field1, field2, ...) values (value1, value2, ...);
--- 删
-delete from [<tableName>] where [condition];
-truncate table [<tableName>]          -- 截取，可恢复
-drop table if exists [<tableName>]    -- 删除整张表
--- 改
-update [<tableName>] set field1 = value1, field2 = value2 where condition;
--- 查
+-- 系统变量（全局/会话）
+show [global|session] variables like '%xxx%';   -- 查看满足条件的系统变量，如果查看所有不需要过滤即可
+select @@[global|session.]系统变量名;            -- 查询指定的变量的值，ON=1，OFF=0
+-- 赋值（两种方式）
+set global|session 系统变量名 = 值;
+set @@[global|session.]系统变量名 = 值;
 
--- 如果出现中文乱码，可以用下面命令查看数据库所有跟字符编码相关的变量的值；将字符编码的变量改为支持中文的编码
+-- 用户变量
+set @变量名 = 值;               -- 四种赋值方式
+set @变量名 := 值;
+select @变量名 := 值;
+select 字段 into @变量名 from 表;
+select @变量名;                 -- 查询
+select concat("xxx", @变量名);  -- 使用
+
+-- 局部变量，仅在定义它的begin...end块中有效，常应用在begin...end中的第一句话
+declare 变量名 类型;            -- 声明赋值，
+set @变量名 = 值;
+declare 变量名 类型 [DEFAULT 值];
+select * into 变量名 from [tableName] where xxx ='xx';
+
+
+-- 常用操作
+-- 1. 解决中文乱码
 show variables like 'character%';
-set names utf8;
+set xxx utf8;
+-- 2. 修改事务autocommit模式
+show variables like 'autocommit'；
+set global autocommit = 1
+-- 3. 修改事务隔离级别
+SET @@session.tx_isolation = 'read-uncommitted';
+-- 4. 开启sql执行的资源消耗情况统计，用于性能分析，调优
+set global profiling = 1;    -- show profiles; show profile cpu,block io for query {id};
 ```
-
-### 3.4 数据类型
 
 ### 3.5 视图
 
@@ -360,7 +402,7 @@ delete from [<viewName>] where condition;
 
 ## 4. 查询
 
-**查询列表可以是表中的字段、常量值、表达式、函数，也就是说：select 查询列表 from [tableName]**
+> select 查询列表 from [tableName]中的查询列表可以是表中的字段、常量值、表达式、函数
 
 ### 4.1 常用查询条件
 
