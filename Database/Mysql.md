@@ -175,8 +175,8 @@ END FROM [tableName];
 ### 3.1 库
 
 ```sql
--- 展示所有数据库/表
-show databases/tables
+-- 展示所有数据库/表/引擎/变量
+show databases/tables/engines/variables
 -- 创建数据库，默认字符集为 utf8
 create database if not exists [<name>] [character set 字符集（gbk、utf8）]
 -- 使用数据库
@@ -188,13 +188,6 @@ select now();
 select user();
 select md5("xxx");
 select password("xxx");		-- 加密字符串
--- 查看字符编码
-show create database [<name>];
-show variables like '%char%';
--- 更改库的字符集
-ALTER DATABASE [<name>] CHARACTER SET utf8;
--- 删除库/表
-drop database/table if exists [<name>]
 ```
 
 ### 3.2 表
@@ -362,7 +355,11 @@ select * into 变量名 from [tableName] where xxx ='xx';
 -- 常用操作
 -- 1. 解决中文乱码
 show variables like 'character%';
+show create database [<name>];                 -- 查看字符编码
 set xxx utf8;
+ALTER DATABASE [<name>] CHARACTER SET utf8;    -- 更改库的字符集
+-- 删除库/表
+drop database/table if exists [<name>]
 -- 2. 修改事务autocommit模式
 show variables like 'autocommit'；
 set global autocommit = 1

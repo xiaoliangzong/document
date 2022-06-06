@@ -19,7 +19,7 @@
 
     - [概念](Java/认证鉴权/)
     - [Security](Java/认证鉴权/Security.md)
-    - [Shrio](Java/认证鉴权/Shrio.md)
+    - [Oauth2](Java/认证鉴权/Oauth2.md)
 
   - <font color=#505d6b size=2.8px>微服务</font>
 
