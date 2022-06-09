@@ -1,6 +1,8 @@
 # Redis
 
-## 1. windows 安装
+## 1. 安装
+
+### 1.1 Windows
 
 > windows 系统的 Redis 有两个配置文件，redis.windows.conf 和 redis.windows-service.conf，设置密码、配置时，只需要在 redis.windows.conf 文件中设置
 
@@ -44,7 +46,7 @@ sc delete 服务名  # 删除服务（管理员身份运行）
 
 ```
 
-## 2. Linux 安装
+### 1.2 Linux
 
 参考：https://www.cnblogs.com/xsge/p/13841875.html
 
@@ -68,7 +70,7 @@ mkdir conf
 cp redis.conf /usr/local/redis/bin/conf/
 ```
 
-## 3. Redis 的配置文件详解
+### 1.3 配置文件详解
 
 ```sh
 #Redis默认不是以守护进程的方式运行，可以通过该配置项修改，使用yes启用守护进程
@@ -118,6 +120,33 @@ appendfilename 'appendonly.aof'
 #everysec：表示每秒同步一次（折衷，默认值）
 appendfsync everysec
 ```
+
+## 2. Spring Cache 和 Redis 区别
+
+1. Spring cache 是由 Spring Framwork 提供的一个缓存抽象层，可以接入各种缓存解决方案来进行使用，通过 Spring Cache 的集成，只需要通过一组注解来操作缓存就可以了。其主要的原理就是向 Spring Context 中注入 Cache 和 CacheManager 这两个 bean，再通过 Spring Boot 的自动装配技术，会根据项目中的配置文件自动注入合适的 Cache 和 CacheManager 实现。
+
+一般是使用一个 ConcurrentHashMap，也就是说实际上是使用 JVM 的内存来缓存对象的，这势必会造成大量的内存消耗。但好处是显然的：使用方便。和 Spring 的事务管理类似，Spring cache 的关键原理就是 Spring AOP，通过 Spring AOP，其实现了在方法调用前、调用后获取方法的入参和返回值，进而实现了缓存的逻辑。 2. Redis 作为一个缓存服务器，是内存级的缓存。它是使用单纯的内存来进行缓存。
+
+集群环境下，每台服务器的 Spring cache 是不同步的，因此 spring cache 只适合单机环境。如果使用 Redis 作为单独的缓存服务器，所有集群服务器统一访问 redis，就不会出现缓存不同步的情况。
+
+**coffeine**
+
+两个都是缓存的方式
+
+不同点：
+redis 是将数据存储到内存里
+caffeine 是将数据存储在本地应用里
+
+caffeine 和 redis 相比，没有了网络 IO 上的消耗
+
+| 比较项       | ConcurrentHashMap | LRUMap                   | Ehcache                       | Guava Cache                         | Caffeine                |
+| ------------ | ----------------- | ------------------------ | ----------------------------- | ----------------------------------- | ----------------------- |
+| 读写性能     | 很好，分段锁      | 一般，全局加锁           | 好                            | 好，需要做淘汰操作                  | 很好                    |
+| 淘汰算法     | 无                | LRU，一般                | 支持多种淘汰算法,LRU,LFU,FIFO | LRU，一般                           | W-TinyLFU, 很好         |
+| 功能丰富程度 | 功能比较简单      | 功能比较单一             | 功能很丰富                    | 功能很丰富，支持刷新和虚引用等      | 功能和 Guava Cache 类似 |
+| 工具大小     | jdk 自带类，很小  | 基于 LinkedHashMap，较小 | 很大，最新版本 1.4MB          | 是 Guava 工具类中的一个小部分，较小 | 一般，最新版本 644KB    |
+| 是否持久化   | 否                | 否                       | 是                            | 否                                  | 否                      |
+| 是否支持集群 | 否                | 否                       | 是                            | 否                                  | 否                      |
 
 ## 常见问题
 

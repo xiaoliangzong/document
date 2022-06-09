@@ -1,6 +1,6 @@
-## 前言
+## Quartz
 
-**定时的几种实现方式**
+### 1. 前言（定时执行的实现方案）
 
 1.  while 循环执行 thread 线程，线程调用 sleep 睡眠
 2.  Timer 和 TimerTask， 简单无门槛，一般也没人用
@@ -11,54 +11,111 @@
 7.  分布式任务 Elastic-Job，是一个分布式调度解决方案，由两个相互独立的子项目 Elastic-Job-Lite 和 Elastic-Job-Cloud 组成。定位为轻量级无中心化解决方案，使用 jar 包的形式提供分布式任务的协调服务。支持分布式调度协调、弹性扩容缩容、失效转移、错过执行作业重触发、并行调度、自诊。
 8.  分布式任务 Saturn，Saturn 是唯品会在 github 开源的一款分布式任务调度产品。它是基于当当 elastic-job 来开发的，其上完善了一些功能和添加了一些新的 feature。目前在 github 上开源大半年，470 个 star。Saturn 的任务可以用多种语言开发比如 python、Go、Shell、Java、Php。其在唯品会内部已经发部署 350+个节点，每天任务调度 4000 多万次。同时，管理和统计也是它的亮点。
 
-## Quartz
+### 2. API 描述说明
 
-**依赖**
+- Scheduler：调度任务的主要 API，用于与调度程序交互的主程序接口
+- ScheduleBuilder：用于构建 Scheduler，例如其简单实现类 SimpleScheduleBuilder
+- Job：被调度程序执行的任务类，也即定时任务执行的方法
+- JobDetail：使用 JobDetail 来定义定时任务的实例
+- JobBuilder：用于声明一个任务实例，也可以定义关于该任务的详情比如任务名、组名等。
+- Trigger：触发器，定义调度执行计划的组件，表明任务在什么时候会执行，即定时执行
+  - SimpleTrigger 是根据 Quartz 的一些 api 实现的简单触发行为
+  - CronTrigger 用的比较多，使用 cron 表达式进行触发
+- TriggerBuilder：触发器创建器，用于创建触发器 trigger
+
+### 3. 依赖 jar 包
 
 ```xml
+<!--spring-boot 2.x提供了starter依赖，可以直接使用-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-quartz</artifactId>
+    <version>2.6.0</version>
+</dependency>
+
+<!-- 非springboot项目 -->
 <!-- Quartz -->
 <dependency>
     <groupId>org.quartz-scheduler</groupId>
     <artifactId>quartz</artifactId>
     <version>2.3.2</version>
 </dependency>
-<!-- scheduled所属资源为spring-context-support，在Spring中对Quartz的支持，是集成在spring-context-support包中。org.springframework.scheduling.quartz-->
+<!-- scheduled所属资源为spring-context-support，在Spring中对Quartz的支持，是集成在spring-context-support包中，
+org.springframework.scheduling.quartz-->
 <dependency>
     <groupId>org.springframework</groupId>
     <artifactId>spring-context-support</artifactId>
 </dependency>
-<!-- Spring tx 坐标，quartz可以提供分布式定时任务环境。多个分布点上的Quartz任务，是通过数据库实现任务信息传递的。通过数据库中的数据，保证一个时间点上，只有一个分布环境执行定时任务。-->
+<!-- Spring tx 坐标，quartz可以提供分布式定时任务环境。多个分布点上的Quartz任务，
+是通过数据库实现任务信息传递的。通过数据库中的数据，保证一个时间点上，只有一个分布环境执行定时任务。-->
 <dependency>
     <groupId>org.springframework</groupId>
     <artifactId>spring-tx</artifactId>
 </dependency>
-
-
-<!--spring-boot 2.x提供了starter依赖，可以直接使用-->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-quartz</artifactId>
-    <version>2.3.7.RELEASE</version>
-</dependency>
 ```
 
-**描述说明**
+### 4. 配置文件
 
-- Scheduler：调度任务的主要 API
-- ScheduleBuilder：用于构建 Scheduler，例如其简单实现类 SimpleScheduleBuilder
-- Job：调度任务执行的接口，也即定时任务执行的方法
-- JobDetail：定时任务作业的实例
-- JobBuilder：关联具体的 Job，用于构建 JobDetail
-- Trigger：定义调度执行计划的组件，即定时执行
-- TriggerBuilder：构建 Trigger
+```yml
+# 配置调度器信息
+# 配置集群时，quartz调度器的id，由于配置集群时，只有一个调度器，必须保证每个服务器该值都相同，默认为schedulerFactoryBean，如果不是使用spring，则为QuartzScheduler
+org.quartz.scheduler.instanceName = QuartzScheduler
+# 集群中每台服务器自己的id，默认为NON_CLUSTERED，AUTO代表自动生成，
+org.quartz.scheduler.instanceId = AUTO
+# 如果为AUTO，则默认使用SimpleInstanceIdGenerator生成
+org.quartz.scheduler.instanceIdGenerator.class = org.quartz.simpl.SimpleInstanceIdGenerator
+# 线程名称，默认为 “调度器名称_QuartzSchedulerThread”
+org.quartz.scheduler.threadName = QuartzSchedulerThread
 
-### springboot 整合步骤
+# 线程池配置
+# quartz线程池的实现类，默认为SimpleThreadPool，无需修改，可满足大多数需求
+org.quartz.threadPool.class = org.quartz.simpl.SimpleThreadPool
+# quartz线程池中线程数，可根据任务数量和负责度来调整，默认为10
+org.quartz.threadPool.threadCount = 25
+# quartz线程优先级，取值范围1-10，默认为5
+org.quartz.threadPool.threadPriority = 5
 
+
+# JobStore配置
+# 单位毫秒，表示如果某个任务到达执行时间，而此时线程池中没有可用线程时，任务等待的最大时间，如果等待时间超过下面配置的值，本次就不在执行，而等待下一次执行时间的到来，可根据任务量和负责程度来调整
+org.quartz.jobStore.misfireThreshold = 60000
+# quartz存储任务相关数据的表的前缀
+org.quartz.jobStore.tablePrefix = QRTZ_
+# 是否启用集群，ture表示启用，注意：启用集群后，必须配置数据源，否则quartz调度器会初始化失败，有多个Quartz实例在用同一个数据库时，必须设置为true。
+org.quartz.jobStore.isClustered = true
+# 存储方式，如果存在数据源，默认使用LocalDataSourceJobStore，LocalDataSourceJobStore使用已经配置的dataSource作为数据源；低版本时，即使指定了JobStoreTX也没用，高版本（2.5.7后），如果配置JobStoreTX后，还需要在配置文件中指定数据源，否则启动报错。
+# 高版本推荐方案：1. 使用默认的LocalDataSourceJobStore，无需配置；2. 使用JobStoreTX，同时指定quartz的数据源。
+org.quartz.jobStore.class = org.quartz.impl.jdbcjobstore.JobStoreTX
+# 集群检查周期，单位毫秒，集群中服务器相互检测间隔，每台服务器都会按照下面配置的时间间隔往服务器中更新自己的状态，如果某台服务器超过以下时间没有checkin，调度器就会认为该台服务器已经down掉，不会再分配任务给该台服务器
+org.quartz.jobStore.clusterCheckinInterval = 20000
+# JobDataMaps是否都为String类型，若是true的话，便可不用让更复杂的对象以序列化的形式保存到BLOB列中。以防序列化可能导致的版本号问题
+org.quartz.jobStore.useProperties = false
+# 当使用JobStoreTX或CMT，JDBC连接时，是否设置setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE) 方法
+org.quartz.jobStore.txIsolationLevelSerializable=false
+# 数据源获取连接后是否设置自动提交setAutoCommit(false)方法，如果为ture,表示不设置，否则设置
+org.quartz.jobStore.dontSetAutoCommitFalse=true
+# JobStore能处理的错过触发的Trigger的最大数量。处理太多很快就会导致数据库表被锁定够长的时间，这样会妨碍别的（还未错过触发）trigger执行的性能
+org.quartz.jobStore.maxMisfiresToHandleAtATime=1
+
+
+org.quartz.jobStore.dataSource = myDS
+org.quartz.dataSource.myDS.driver = com.mysql.jdbc.Driver
+org.quartz.dataSource.myDS.URL = jdbc:mysql://${mysql.address}/etc-quartz?useUnicode=true&characterEncoding=utf8
+org.quartz.dataSource.myDS.user = ${mysql.user}
+org.quartz.dataSource.myDS.password = ${mysql.password}
+org.quartz.dataSource.myDS.provider = hikaricp
+# 数据库最大连接数（如果Scheduler很忙，比如执行的任务与线程池的数量差不多相同，那就需要配置DataSource的连接数量为线程池数量+1）
+org.quartz.dataSource.myDS.maxConnections = 30
+# dataSource用于检测connection是否failed/corrupt的SQL语句
+org.quartz.dataSource.myDS.validationQuery=select RAND()
+
+```
+
+### 5. springboot 整合
+
+1. 导入依赖
 2. 增加自定义任务 Job，实现 Job 接口或者继承抽象类 QuartzJobBean，重写 execute()方法
-
-3. JobDetail、Trigger、Scheduler 的获取
-
-Trigger 分为两种，SimpleTrigger 和 CronTrigger。SimpleTrigger 是根据 Quartz 的一些 api 实现的简单触发行为。CronTrigger 用的比较多，使用 cron 表达式进行触发。这里先用 SimpleTrigger 来实现。
+3. 获取 JobDetail、Trigger、Scheduler
 
 ```java
 JobDetail jobDetail = JobBuilder.newJob(SimpleJob.class)
@@ -75,15 +132,14 @@ SimpleTrigger simpleTrigger = TriggerBuilder.newTrigger()
         .startNow()
         // 10s后停止
         .endAt(new Date(System.currentTimeMillis()+10*1000))
-        .withSchedule(
-        SimpleScheduleBuilder.simpleSchedule()
+        .withSchedule(SimpleScheduleBuilder.simpleSchedule())
         // 每秒执行一次
         .withIntervalInSeconds(1)
         // 一直执行
         .repeatForever()
         ).build();
 
-spring-boot自动注入Scheduler实例，可以通过@AutoWired依赖进来。
+// spring-boot自动注入Scheduler实例，可以通过@AutoWired依赖进来。
 
 
 @Configuration
@@ -201,19 +257,6 @@ Quartz 默认使用 RAMJobStore 存储方式将任务存储在内存中，除了
 
 - 5.1 增加依赖
 
-```xml
-<dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-    <version>8.0.11</version>
-</dependency>
-
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-jdbc</artifactId>
-</dependency>
-```
-
 - 5.2 指定使用 jdbc 存储
 
 ```yaml
@@ -232,75 +275,9 @@ spring:
 6. 分布式 Quartz
 
 - 6.1 引入依赖
-
-```xml
-<dependency>
-    <groupId>org.quartz-scheduler</groupId>
-    <artifactId>quartz-jobs</artifactId>
-    <version>2.3.2</version>
-</dependency>
-```
-
 - 6.2 创建数据库和数据库表
-
 - 6.3 定义任务实现类
-
 - 6.4 实现主程序
-
-```yml
-# 配置调度器信息
-# 配置集群时，quartz调度器的id，由于配置集群时，只有一个调度器，必须保证每个服务器该值都相同，默认为schedulerFactoryBean，如果不是使用spring，则为QuartzScheduler
-org.quartz.scheduler.instanceName = QuartzScheduler
-# 集群中每台服务器自己的id，默认为NON_CLUSTERED，AUTO代表自动生成，
-org.quartz.scheduler.instanceId = AUTO
-# 如果为AUTO，则默认使用SimpleInstanceIdGenerator生成
-org.quartz.scheduler.instanceIdGenerator.class = org.quartz.simpl.SimpleInstanceIdGenerator
-# 线程名称，默认为 “调度器名称_QuartzSchedulerThread”
-org.quartz.scheduler.threadName = QuartzSchedulerThread
-
-# 线程池配置
-# quartz线程池的实现类，默认为SimpleThreadPool，无需修改，可满足大多数需求
-org.quartz.threadPool.class = org.quartz.simpl.SimpleThreadPool
-# quartz线程池中线程数，可根据任务数量和负责度来调整，默认为10
-org.quartz.threadPool.threadCount = 25
-# quartz线程优先级，取值范围1-10，默认为5
-org.quartz.threadPool.threadPriority = 5
-
-
-# JobStore配置
-# 单位毫秒，表示如果某个任务到达执行时间，而此时线程池中没有可用线程时，任务等待的最大时间，如果等待时间超过下面配置的值，本次就不在执行，而等待下一次执行时间的到来，可根据任务量和负责程度来调整
-org.quartz.jobStore.misfireThreshold = 60000
-# quartz存储任务相关数据的表的前缀
-org.quartz.jobStore.tablePrefix = QRTZ_
-# 是否启用集群，ture表示启用，注意：启用集群后，必须配置数据源，否则quartz调度器会初始化失败，有多个Quartz实例在用同一个数据库时，必须设置为true。
-org.quartz.jobStore.isClustered = true
-# 存储方式，如果存在数据源，默认使用LocalDataSourceJobStore，LocalDataSourceJobStore使用已经配置的dataSource作为数据源；低版本时，即使指定了JobStoreTX也没用，高版本（2.5.7后），如果配置JobStoreTX后，还需要在配置文件中指定数据源，否则启动报错。
-# 高版本推荐方案：1. 使用默认的LocalDataSourceJobStore，无需配置；2. 使用JobStoreTX，同时指定quartz的数据源。
-org.quartz.jobStore.class = org.quartz.impl.jdbcjobstore.JobStoreTX
-# 集群检查周期，单位毫秒，集群中服务器相互检测间隔，每台服务器都会按照下面配置的时间间隔往服务器中更新自己的状态，如果某台服务器超过以下时间没有checkin，调度器就会认为该台服务器已经down掉，不会再分配任务给该台服务器
-org.quartz.jobStore.clusterCheckinInterval = 20000
-# JobDataMaps是否都为String类型，若是true的话，便可不用让更复杂的对象以序列化的形式保存到BLOB列中。以防序列化可能导致的版本号问题
-org.quartz.jobStore.useProperties = false
-# 当使用JobStoreTX或CMT，JDBC连接时，是否设置setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE) 方法
-org.quartz.jobStore.txIsolationLevelSerializable=false
-# 数据源获取连接后是否设置自动提交setAutoCommit(false)方法，如果为ture,表示不设置，否则设置
-org.quartz.jobStore.dontSetAutoCommitFalse=true
-# JobStore能处理的错过触发的Trigger的最大数量。处理太多很快就会导致数据库表被锁定够长的时间，这样会妨碍别的（还未错过触发）trigger执行的性能
-org.quartz.jobStore.maxMisfiresToHandleAtATime=1
-
-
-org.quartz.jobStore.dataSource = myDS
-org.quartz.dataSource.myDS.driver = com.mysql.jdbc.Driver
-org.quartz.dataSource.myDS.URL = jdbc:mysql://${mysql.address}/etc-quartz?useUnicode=true&characterEncoding=utf8
-org.quartz.dataSource.myDS.user = ${mysql.user}
-org.quartz.dataSource.myDS.password = ${mysql.password}
-org.quartz.dataSource.myDS.provider = hikaricp
-# 数据库最大连接数（如果Scheduler很忙，比如执行的任务与线程池的数量差不多相同，那就需要配置DataSource的连接数量为线程池数量+1）
-org.quartz.dataSource.myDS.maxConnections = 30
-# dataSource用于检测connection是否failed/corrupt的SQL语句
-org.quartz.dataSource.myDS.validationQuery=select RAND()
-
-```
 
 SchedulerFactoryBean 实现了 InitializingBean 接口，因此在初始化 Bean 的时候会执行 afterPropertiesSet，该方法会调用 SchedulerFactory(DirectSchedulerFactory 或者 StdSchedulerFactory，通常用 StdSchedulerFactory)创建 Scheduler，SchedulerFactory 在创建 quartzScheduler 的过程中，将会读取配置参数，初始化各个组件
 
