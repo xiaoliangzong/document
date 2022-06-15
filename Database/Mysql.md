@@ -806,3 +806,33 @@ like    -- like "%xxx%" 不会使用索引，而like "xxx%"会使用索引
 3、复制旧的“ibdata1”文件到新的目录，替换掉。
 
 4、确保“ibdata1”文件不是只读属性
+
+1. 在表中建立索引，优先考虑 where，group by 使用到的字段。
+2. 尽量避免使用 select\*，返回无用字段会降低查询效率。
+3. 尽量避免使用 in 和 not in，会导致数据库引擎放弃索引进行全表扫描。如果是连续数值可以用 between 代替，如果是子查询，可以用 exists 代替。
+4. 尽量避免使用 or，
+5. 尽量避免在地段开头模糊查询，尽量在字段后面使用模糊查询。
+6. 尽量避免进行 null 值的判断，可以给字段添加默认值。
+7. 尽量避免在 where 条件中等号的左侧进行表达式函数操作，可以将表达式函数移到等号右侧。
+8. 当数据量大时，避免使用 where 1=1 的条件。
+
+## 12. Mysql8 新特性
+
+1. 查询缓存直接弃用，在 MySQL8 之前版本，可以通过系统变量 query_cache_type 来查看是否开启
+
+## 12. 常见操作
+
+### 12.1 查看被哪些客户端连接，对于空闲连接则关闭
+
+> 一个处于空闲状态的连接被服务端主动断开后，这个客户端并不会马上知道，等到客户端在发起下一个请求的时候，
+> 才会收到这样的报错：ERROR 2013 (HY000): Lost connection to MySQL server during query
+
+```sql
+show processlist;       -- 查看客户端连接
+select @@wait_timeout;  -- 查看空闲连接最大的等待时间
+kill connection [id]    -- 杀死连接
+show variables like 'max_connections';   -- 查看mysql允许最大的连接数
+-- MySQL 5.7 版本实现了 mysql_reset_connection() 函数的接口，注意这是接口函数不是命令，那么当客户端执行了一个很大的操作后，在代码里调用 mysql_reset_connection 函数来重置连接，达到释放内存的效果。
+```
+
+### 12.2
