@@ -824,35 +824,6 @@ Caused by: org.springframework.boot.autoconfigure.jdbc.DataSourceProperties$Data
 4. 修改启动类的包名，使启动类放在上一层，为了扫描同目录以及子目录下边的所有文件 (`SpringbootApplication默认扫描本包以及子包的所有实例；如果还需扫描其他包下的实例，使用@ComponentScan注解`)
 5. 默认关闭 test 单元测试
 
-```xml
-<!-- maven-compiler-plugin 是用于在编译（compile）阶段加入定制化参数，比如指定java jdk版本号，以及bootclasspath；
-而 spring-boot-maven-plugin 是用于 spring boot 项目的打包（package）阶段，两者没什么关系。 -->
-<!--  -->
-<build>
-	<plugins>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<version>3.1</version>
-			<configuration>
-				<source>${java.version}</source>
-				<target>${java.version}</target>
-                <encoding>UTF-8</encoding>
-			</configuration>
-		</plugin>
-        <!-- maven里执行测试用例的插件，不显示配置就会用默认配置。这个插件的surefire:test命令会默认绑定maven执行的test阶段。 -->
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-surefire-plugin</artifactId>
-			<version>2.19.1</version>
-			<configuration>
-				<skipTests>true</skipTests>    <!--默认关掉单元测试 -->
-			</configuration>
-		</plugin>
-	</plugins>
-</build>
-```
-
 #### 5. spring-boot-maven-plugin 插件
 
 > maven 中的 classfier 标签，在打包的使用起别名，为了生成一个普通 jar，一个可执行 jar，可执行 jar 的后缀为 xxx-exec.jar
