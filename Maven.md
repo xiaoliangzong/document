@@ -1,35 +1,89 @@
-## 常用命令
+# Maven
 
-- 打包时需使用：mvn clear package -Dmaven.test.skip=true 忽略测试进行打包，测试代码不会影响项目发布，但是会影响项目打包
+## 1. 常用命令
 
-## maven 打包配置文件
+```bash
+mvn clear package -Dmaven.test.skip=true   # 忽略测试进行打包，测试代码不会影响项目发布，但是会影响项目打包
 
-````xml
+```
+
+## 2. 生命周期
+
+Maven有三个标准的构建生命周期：
+
+- clean：项目清理的处理
+- default(或 build)：项目部署的处理
+- site：项目站点文档创建的处理
+
+其中default生命周期核心阶段由以下几个阶段组成：
+
+| 阶段 | 处理 |  描述 |
+| :----: | :--: | :--: |
+| validate | 验证项目 | 验证项目是否正确且所有必须信息是可用的|
+| compile | 执行编译 | 源代码编译在此阶段完成|
+| test | 测试 | 使用适当的单元测试框架（例如JUnit）运行测试|
+| package | 打包 | 创建jar/war包如在 pom.xml 中定义提及的包|
+| verify | 检查 | 对集成测试的结果进行检查，以保证质量达标|
+| install | 安装 | 安装打包的项目到本地仓库，以供其他项目使用|
+| deploy | 部署 | 将安装包上传至远程仓库中，以共享给其他开发人员和工程|
+
+## 3. 配置
+
+### 3.1 依赖范围、依赖传递
+
+**作用** 
+
+1. 使用 scope 来指定当前包的依赖范围和依赖的传递性。常见的可选值有：compile, provided, runtime, test, system 等。
+2. optional 是 maven 依赖 jar 时的一个选项，表示该依赖是可选的.不会被依赖传递。
+  
+**说明**
+
+- compile为默认的依赖有效范围。
+- system 和 provided 相同，不过被依赖项不会从 maven 仓库下载，而是从本地文件系统拿。需要添加 systemPath 的属性来定义路径。
+- test，表示依赖项目仅仅参与测试相关的工作，包括测试代码的编译，执行。
+
+| 作用域                             | 对主程序是否有效  | 对测试程序是否有效 |  是否参与打包部署  | 是否传递 | 举例  |
+| :----------------: | :----------: | :-------------: | :---------: | :------------------: | :----: |
+| compile | √ | √ | √ | √ | spring-core |
+| provided | √ | √ | × | × | servlet-api.jar | 
+| test  | × | √ | × | × | JUnit |
+| runtime | × | √ | √ | √ | jdbc |
+| system | √ | √ | × | √ |   |
+
+
+### 3.2 依赖原则
+
+- 路径最短者优先
+- 路径相同时先声明者优先
+
+### 3.3 配置文件
+
+```xml
 <!-- maven-compiler-plugin 是用于在编译（compile）阶段加入定制化参数，比如指定java jdk版本号，以及bootclasspath；
 而 spring-boot-maven-plugin 是用于 spring boot 项目的打包（package）阶段，两者没什么关系。 -->
 <!--  -->
 <build>
-	<plugins>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<version>3.1</version>
-			<configuration>
-				<source>${java.version}</source>
-				<target>${java.version}</target>
+ <plugins>
+  <plugin>
+   <groupId>org.apache.maven.plugins</groupId>
+   <artifactId>maven-compiler-plugin</artifactId>
+   <version>3.1</version>
+   <configuration>
+    <source>${java.version}</source>
+    <target>${java.version}</target>
                 <encoding>UTF-8</encoding>
-			</configuration>
-		</plugin>
+   </configuration>
+  </plugin>
         <!-- maven里执行测试用例的插件，不显示配置就会用默认配置。这个插件的surefire:test命令会默认绑定maven执行的test阶段。 -->
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-surefire-plugin</artifactId>
-			<version>2.19.1</version>
-			<configuration>
-				<skipTests>true</skipTests>    <!--默认关掉单元测试 -->
-			</configuration>
-		</plugin>
-	</plugins>
+  <plugin>
+   <groupId>org.apache.maven.plugins</groupId>
+   <artifactId>maven-surefire-plugin</artifactId>
+   <version>2.19.1</version>
+   <configuration>
+    <skipTests>true</skipTests>    <!--默认关掉单元测试 -->
+   </configuration>
+  </plugin>
+ </plugins>
 </build>
 
 
@@ -57,14 +111,6 @@
     </resource>
 </resources>
 ```
-
-## pom 中 scpoe 标签
-
-1. 默认值为 complie，compile 表示被依赖项目需要参与当前项目的编译，springboot 多模块相互依赖中有用到
-2. test，表示依赖项目仅仅参与测试相关的工作，包括测试代码的编译，执行。
-3. runtime，表示被依赖项目无需参与项目的编译，不过后期的测试和运行周期需要其参与，与 compile 相比，跳过了编译而已。例如 JDBC 驱动，适用运行和测试阶段
-4. provided，打包的时候可以不用包进去，别的设施会提供
-5. system，从参与度来说，和 provided 相同，不过被依赖项不会从 maven 仓库下载，而是从本地文件系统拿。需要添加 systemPath 的属性来定义路径
 
 ## 4. Nexus 私服仓库
 
@@ -181,4 +227,3 @@
     <activeProfile>jdk-1.8</activeProfile>
 </activeProfiles>
 ```
-````
