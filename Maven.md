@@ -204,8 +204,7 @@ Maven有三个标准的构建生命周期：
     <pluginRepositories>
         <!-- 插件仓库，maven的运行依赖插件，也需要从私服下载插件 -->
         <pluginRepository>
-            <!-- 插件仓库的i
-            d不允许重复，如果重复后边配置会覆盖前边 -->
+            <!-- 插件仓库的id不允许重复，如果重复后边配置会覆盖前边 -->
             <id>nexus-db</id>
             <name>Public Repositories</name>
             <url>http://192.168.100.99:8081/repository/db-maven-group/</url>
