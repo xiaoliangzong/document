@@ -1,70 +1,59 @@
-https://www.docs4dev.com/
+## 1. 概述
 
-http://springboot.fun/
-http://springcloud.fun/
-
-## Spring 概述
-
-> Spring 是一个轻量级的、非入侵式的 Java 开源框架，为了解决企业级应用开发的复杂性而创建的。
-
-**核心**
-
-1. IOC 容器：管理应用中对象的生命周期和配置。当应用 IoC，一个对象依赖的其他对象会通过被动的方式传递进来，而不是这个对象自己创建或查找依赖对象，即，不是对象从容器中查找依赖，而是容器在对象初始化时不等对象请求就主动将依赖传递给它
-   - DI 依赖注入：组件以一些预先定义好的方式接收来自容器的资源注入
-   - 控制反转（Inversion Of Control）：创建被调用的实例不是由调用者完成，而是由 Spring 容器完成并注入
-2. AOP 面向切面编程：允许程序模块化横向切割关注点，或横切典型的责任划分，如权限拦截、运行监控、日志和事务管理
-3. 异常处理:
-4. 事务管理：Spring 提供一个持续的事务管理接口，可以扩展到上至本地事务下至全局事务（JTA）
+Spring 是一个分层的轻量级开源框架，为了解决企业级应用开发的复杂性而创建的。
 
 **特点**
 
-1. 降低层与层之间的关联耦合程度，bean 的各种操作
-2. 方便解耦,简化开发 Spring 就是一个大工厂，可以将所有对象创建和依赖关系维护，交给 Spring 管理
-3. AOP 编程的支持 Spring 提供面向切面编程，可以方便的实现对程序进行权限拦截、运行监控等功能 8. 声明式事务的支持 只需要通过配置就可以完成对事务的管理，而无需手动编程
-4. 方便程序的测试 Spring 对 Junit4 支持，可以通过注解方便的测试 Spring 程序
-5. 方便集成各种优秀框架 Spring 不排斥各种优秀的开源框架，其内部提供了对各种优秀框架（如：Struts2、Hibernate、MyBatis、Quartz 等）的直接支持
-6. 降低 JavaEE API 的使用难度 Spring 对 JavaEE 开发中非常难用的一些 API（JDBC、JavaMail、远程调用等），都提供了封装，使这些 API 应用难度大大降低
+1. `方便解耦，简化开发；`IOC 容器实例化对象、管理依赖关系，降低层与层之间的关联耦合程度，bean 的各种操作。
+2. `AOP 面向切面编程；`可以实现对程序进行权限拦截、日志记录、运行监控等功能
+3. `支持声明式事务；`只需要通过配置就可以完成对事务的管理，而无需手动编程
+4. `集成测试；`Spring 对 Junit4 支持，可以通过注解方便的测试 Spring 程序
+5. `方便集成各种优秀框架；`
+6. `降低 JavaEE API 的使用难度；`Spring 对 JavaEE 开发中非常难用的一些 API 都提供了封装，使这些 API 应用难度大大降低
 
-## Spring 核心模块
+## 2. 模块结构
 
-![spring-module](../images/Spring/spring-module.png)
+Spring 框架是一个分层架构，它包含了很多模块，每个模块完成不同的功能，常用的模块如下：
 
-**Core Container**
+![spring-module](../images/Java/Spring/spring-module.png)
 
-1. Core 模块：主要包含 Spring 框架基本的核心工具类，是其他组件的基本核心，Spring 其他组件都会使用到这个包里的类
-2. Beans 模块：是所有应用都要用到的，它包含访问配置文件、创建和管理 bean 以及进行 IoC\DI 操作相关的所有类
-3. Context 模块：构建与 Core 和 Bean 模块基础之上的，提供了一种框架式的对象访问方法，Context 模块集成了 Beans 的特性，为 Spring 核心提供大量扩展，添加了对国际化、事件传播、资源加载和对 Context 的透明创建的支持
-4. Expression Language 模块：提供了一个强大的表达式语言用于在运行时查询和操纵对象
+### 2.1 Core Container
 
-**Data Access/Integration**
+- Core 模块：主要包含 Spring 框架基本的核心工具类，是其他组件的基本核心，Spring 其他组件都会使用到这个包里的类；
+- Beans 模块：是所有应用都要用到的，它包含访问配置文件、创建和管理 bean 以及进行 IoC\DI 操作相关的所有类；
+- Context 模块：构建与 Core 和 Bean 模块基础之上的，提供了一种框架式的对象访问方法，Context 模块集成了 Beans 的特性，为 Spring 核心提供大量扩展，添加了对国际化、事件传播、资源加载和对 Context 的透明创建的支持；
+- Expression Language 模块：提供了一个强大的表达式语言用于在运行时查询和操纵对象；
 
-1. JDBC 模块：提供了一个 JDBC 抽象层，它可以消除冗长的 JDBC 编码和解析数据库厂商特有的错误代码，包含了对 JDBC 数据访问进行封装的所有类
-2. ORM 模块：对象关系映射 API，提供了一个交互层，利用 ORM 封装包，可以混合使用所有 Sping 提供的特性进行 O/R 映射
-3. OXM 模块：一个对 Ibject/XML 映射实现的抽象层，Object/XML 映射实现包括 JAXB、Castor、XMLBeans、JiBX 和 XSteam
-4. Java Messaging Service(JMS) 模块：主要包含了一些制造和消费消息的特性
-5. Transaction 模块：支持编程和声明性的事务管理，这些事务类必须实现特定的接口，并且对所有的 POJO 都适用
+### 2.2 AOP
 
-**Web**
+- Aspects 模块：对 AspectJ 的集成支持
+- Instrumentation 模块：提供了 class instrumentation 支持和 classloader 实现，使得可以在特定的应用服务器上使用
 
-> Web 上下文模块建立在应用程序上下文模块之上，为基于 Web 的应用程序提供上下文。Web 模块还简化了处理多部分请求以及将请求参数绑定到域对象的工作
+### 2.3 Test
 
-1. Web 模块：提供了基础的面向 Web 的集成特性，例如多文件上传、使用 servlet listeners 初始化 IoC 容器等
-2. Web-Servlet 模块：包含 MVC 框架的实现
-3. Web-Struts 模块：提供对 Struts 的支持
-4. Web-Portlet 模块：提供用于 Portlet 环境和 Web-Servlet 模块的 MVC 的实现
+### 2.4 Data Access/Integration
 
-**AOP**
+- JDBC 模块：提供了一个 JDBC 抽象层，它可以消除冗长的 JDBC 编码和解析数据库厂商特有的错误代码，包含了对 JDBC 数据访问进行封装的所有类；
+- ORM 模块：对象关系映射 API，提供了一个交互层，利用 ORM 封装包，可以混合使用所有 Sping 提供的特性进行 O/R 映射；
+- OXM 模块：一个对 Object/XML 映射实现的抽象层，Object/XML 映射实现包括 JAXB、Castor、XMLBeans、JiBX 和 XSteam；
+- Java Messaging Service(JMS) 模块：主要包含了一些制造和消费消息的特性；
+- Transaction 模块：支持编程和声明性的事务管理，这些事务类必须实现特定的接口，并且对所有的 POJO 都适用；
 
-> AOP 模块提供了一个符合 AOP 联盟标准的面向切面编程的实现，它让你可以定义例如方法拦截器和切点，从而将逻辑代码分开，降低他们之间的耦合性。
+### 2.5 Web（MVC/Remoting）
 
-1. Aspects 模块：对 AspectJ 的集成支持
-2. Instrumentation 模块：提供了 class instrumentation 支持和 classloader 实现，使得可以在特定的应用服务器上使用
+- Web 模块：提供了基础的面向 Web 的集成特性，例如多文件上传、使用 servlet listeners 初始化 IoC 容器等；
+- Web-Servlet 模块：包含 MVC 框架的实现；
+- Web-Struts 模块：提供对 Struts 的支持；
+- Web-Portlet 模块：提供用于 Portlet 环境和 Web-Servlet 模块的 MVC 的实现；
 
-**Test**
+## 3. IOC/DI
 
-> Test 模块支持使用 JUnit 和 TestNG 对 Spring 组件进行测试
+1. IOC 控制反转（Inversion Of Control），站在调用者（对象）的角度，创建被调用的实例不是由调用者完成，而是由 IOC 容器完成并注入。简单说，就是创建对象的控制权被反转到 Spring 框架。
+2. DI 依赖注入（Dependency Injection），站在 Spring 容器的角度，指一个对象依赖的其他对象会通过被动的方式传递进来，是在容器实例化对象的时候不等对象请求就主动将它依赖的类注入给它，而不是自己创建或从容器中查找它依赖的对象。
 
-## Spring IOC
+**区别**
+
+从不同角度对同一件事物的描述。就是通过引入 IOC 容器，利用注入依赖关系的方式，实现对象之间的解耦。
 
 > BeanFactory: IOC 容器的基本实现
 
@@ -72,26 +61,38 @@ http://springcloud.fun/
     3>BeanFactory是Spring框架的基础设施,面向Spring本身;ApplicationContext面向使用Spring框架的开发者，几乎所有的应用场合都直接
     使用 ApplicationContext 而非底层的 BeanFactory
 
-5.依赖注入的方式:
-1>属性注入 通过 set()方法注入属性值 ,使用<property></property>,name 属性指定 Bean 的属性名称,value 属性或<value>子节点指定属性值
-2>构造器注入 <constructor-arg>元素里声明属性
-按照索引\类型匹配等方式指定 bean 属性名称
-Bean 的配置文件中, 可以通过 <ref> 元素或 ref 属性为 Bean 的属性或构造器参数指定对 Bean 的引用.
-集合属性:
-数组
-property 属性文件(连接数据库):
-需要配置属性后置处理器,即需要使用外部属性文件,配置 bean
-3>p 标签注入 6.从 IOC 获取 Bean 对象
-调用 applicationContext.getBean()方法 7.自动装配 8.通过注解的方式配置 bean
-在 classpath 中扫描组件
-　　组件扫描(component scanning):Spring 能够从 classpath 下自动扫描，侦测和实例化具有特定注解的组件。
-　　特定的组件包括：
-　　　　-@Component:基本注解，标识了一个受 Spring 管理的组件
-　　　　-@Responsitory：标识持久层组件
-　　　　-@Service：标识服务层(业务层)组件
-　　　　-@Controller：标识表现层组件
+### 3.1 依赖注入方式:
 
-1. 通过@CompentScan +@Controller @Service @Respository @compent ，springboot 默认扫描，无需@ComponentScan，
+```java
+
+String path = "";
+ApplicationContext context = new ClassPathXmlApplicationContext(path);
+xxxxx xx = (xxxxx) context.getBean("xxDao");
+xx.execute();
+```
+
+1. 属性注入 通过 set()方法注入属性值 ,使用<property></property>,name 属性指定 Bean 的属性名称,value 属性或<value>子节点指定属性值
+2. 构造器注入 <constructor-arg>元素里声明属性
+   按照索引\类型匹配等方式指定 bean 属性名称
+   Bean 的配置文件中, 可以通过 <ref> 元素或 ref 属性为 Bean 的属性或构造器参数指定对 Bean 的引用.
+   集合属性:
+   数组
+   property 属性文件(连接数据库):
+   需要配置属性后置处理器,即需要使用外部属性文件,配置 bean
+3. p 标签注入
+
+4. 从 IOC 获取 Bean 对象，调用 applicationContext.getBean()方法
+5. 自动装配
+6. 通过注解的方式配置 bean
+   在 classpath 中扫描组件
+   　　组件扫描(component scanning):Spring 能够从 classpath 下自动扫描，侦测和实例化具有特定注解的组件。
+   　　特定的组件包括：
+   　　　　-@Component:基本注解，标识了一个受 Spring 管理的组件
+   　　　　-@Responsitory：标识持久层组件
+   　　　　-@Service：标识服务层(业务层)组件
+   　　　　-@Controller：标识表现层组件
+
+7. 通过@CompentScan +@Controller @Service @Respository @compent ，springboot 默认扫描，无需@ComponentScan，
 
 **适合场景**：自己写的组件可以通过这种方式来进行加载到容器中。
 
@@ -103,8 +104,12 @@ property 属性文件(连接数据库):
 
 **适合场景**：导入组件的 id 为全路径，用处最多的是其他框架整合 Spring 时，使用@Import 注解导入整合类。
 
-## Spring AOP
+### 3.2 循环依赖解决方案
 
+## 4. AOP
+
+> AOP 模块提供了一个符合 AOP 联盟标准的面向切面编程的实现，它让你可以定义例如方法拦截器和切点，从而将逻辑代码分开，降低他们之间的耦合性。
+> AOP 面向切面编程：允许程序模块化横向切割关注点，或横切典型的责任划分，如权限拦截、运行监控、日志和事务管理
 > 执行顺序：around before、before、目标方法、around after、after、returning
 
 1. 环绕通知 (@Around) 方法执行前后都通知（优先级最高的通知）
