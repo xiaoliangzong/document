@@ -17,6 +17,7 @@
     <!-- <link rel="stylesheet" href="//unpkg.com/docsify/themes/dolphin.css"> -->
     <!-- 侧边栏样式 -->
     <link rel="stylesheet" href="//unpkg.com/docsify-sidebar-collapse/dist/sidebar.min.css"/>
+    <link rel="stylesheet" href="//unpkg.com/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.css"/>
 </head>
 <body>
 <div id="app"></div>
@@ -31,8 +32,8 @@
         subMaxLevel: 3, //侧边栏显示当前页面的目录(标题)
         sidebarDisplayLevel: 0,	// 设置默认折叠的层级
         auto2top: true, // 是否在切换页面后回到顶部
-        // logo: 'images/db_small.svg',
-        homepage: 'Linux/基础.md',
+        // logo: 'public/images/db_small.svg',
+        homepage: '设计模式/README.md',
         // 完整配置参数
         search: {
             paths: 'auto',
@@ -55,16 +56,16 @@
 
 <!-- 侧边栏链接跳转 -->
 <!-- <script src="//unpkg.com/docsify/lib/docsify.js"></script> -->
-<script src="static/js/docsify.js"></script>
+<script src="public/plugin/js/docsify.js"></script>
 
 <!-- 引入搜索模块 -->
 <!-- <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script> -->
 <!-- <script src="https://cdn.bootcdn.net/ajax/libs/docsify/4.11.2/plugins/search.min.js"></script> -->
-<script src="static/js/serach.min.js"></script>
+<script src="public/plugin/js/serach.min.js"></script>
 
 <!--分页导航插件 -->
 <!-- <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script> -->
-<script src="static/js/docsify-pagination.min.js"></script>
+<script src="public/plugin/js/docsify-pagination.min.js"></script>
 
 <!-- 侧边栏折叠 -->
 <script src="//unpkg.com/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
@@ -84,15 +85,15 @@
 <!--添加不蒜子访问统计-->
 <!-- <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> -->
 <!--<script async src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/js/busuanzi.pure.mini.js"></script>-->
-<script src="static/js/busuanzi.pure.mini.js"></script>
+<script src="public/plugin/js/busuanzi.pure.mini.js"></script>
 
 <!-- mouse click -->
 <!-- <script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/click_heart.js"></script> -->
-<script src="static/js/forthespada/click_heart.js"></script>
+<script src="public/plugin/js/forthespada/click_heart.js"></script>
 
 <!-- 添加页脚 -->
 <!-- <script src="https://cdn.jsdelivr.net/gh/wugenqiang/NoteBook@master/plugin/docsify-footer-enh.min.js"></script> -->
-<script src="static/js/docsify-footer-enh.min.js"></script>
+<script src="public/plugin/js/docsify-footer-enh.min.js"></script>
 
 <!-- 添加代码高亮 -->
 <!-- <script src="https://unpkg.com/prismjs/components/prism-bash.js"></script>
@@ -100,18 +101,18 @@
 <script src="https://unpkg.com/prismjs/components/prism-sql.js"></script>
 <script src="https://unpkg.com/prismjs/components/prism-java.js"></script>
 <script src="https://unpkg.com/prismjs/components/prism-sql.js"></script> -->
-<script src="static/js/prism-yaml.js"></script>
-<script src="static/js/prism-bash.js"></script>
-<script src="static/js/prism-java.js"></script>
-<script src="static/js/prism-sql.js"></script>
-<script src="static/js/prism-json.js"></script>
+<script src="public/plugin/js/prism-yaml.js"></script>
+<script src="public/plugin/js/prism-bash.js"></script>
+<script src="public/plugin/js/prism-java.js"></script>
+<script src="public/plugin/js/prism-sql.js"></script>
+<script src="public/plugin/js/prism-json.js"></script>
 
 
 <!-- 回到顶部功能 -->
 <!-- <script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/jquery.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/forthespada/forthespada.github.io@master/plugin/jquery.goup.js"></script> -->
-<script src="static/js/forthespada/jquery.js"></script>
-<script src="static/js/forthespada/jquery.goup.js"></script>
+<script src="public/plugin/js/forthespada/jquery.js"></script>
+<script src="public/plugin/js/forthespada/jquery.goup.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
         $.goup({

@@ -4,7 +4,7 @@
 
 ### 最大线程 di
 
-![Executor](../images/Java/executor.png)
+![Executor](../public/images/Java/executor.png)
 
 ## 四大函数式接口
 

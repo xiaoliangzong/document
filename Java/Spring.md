@@ -15,7 +15,7 @@ Spring 是一个分层的轻量级开源框架，为了解决企业级应用开�
 
 Spring 框架是一个分层架构，它包含了很多模块，每个模块完成不同的功能，常用的模块如下：
 
-![spring-module](../images/Java/Spring/spring-module.png)
+![spring-module](../public/images/Java/Spring/spring-module.png)
 
 ### 2.1 Core Container
 
@@ -209,7 +209,7 @@ public class ImportSee implements ImportSelector {
 
 **Resource 和 Autowire**
 
-![区别](../images/Spring/ResourceAutowird.png)
+![区别](../public/images/Spring/ResourceAutowird.png)
 
 **@AliasFor**
 
@@ -419,7 +419,7 @@ GenericJacksonRedisSerializer 和 Jackson2JsonRedisSerializer 都是以 JSON 格
 
    - `使用 Validation 验证时如果 Group 不写，默认为 Default.class（接口），如果其他字段想使用默认的验证，则需要自定义的Group继承Default接口，或者每个都写清楚`
 
-![validation](../images/SpringBoot/springboot-validation.png)
+![validation](../public/images/SpringBoot/springboot-validation.png)
 
 **快速失败 Fail Fast 模式配置**
 
@@ -725,7 +725,7 @@ public static void main(String[] args) throws java.lang.Exception {
 原理：启动 jar 时，增加配置参数（端口）
 jar -jar xxx.jar --server.port=8080
 
-![ieda配置多个启动](../images/Spring/idea.png)
+![ieda配置多个启动](../public/images/Spring/idea.png)
 
 ## 15. @JsonProperty 序列化失效
 

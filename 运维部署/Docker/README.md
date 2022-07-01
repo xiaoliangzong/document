@@ -23,7 +23,7 @@ Docker 是一个开源的应用容器引擎，让开发者可以打包他们的�
   - docker 比 jvm 有更少的抽象层
   - docker 利用的是宿主机内核，而 jvm 需要客户操作系统 os，所以说，新建一个容器的时候，docker 不需要像虚拟机一样重新加载一个操作系统的内核，避免引导，虚拟机加载 Guest OS ，是分钟级别的，而 docker 是不需要这个过程的。
 
-  ![docker-jvm](../images/Linux/docker-jvm.png)
+  ![docker-jvm](../public/images/Linux/docker-jvm.png)
 
 ## 2. 安装
 
@@ -137,7 +137,7 @@ docker run -d -P --name nginx05 -v juming:/etc/nginx:ro nginx
 
 ## 5. dockerFile
 
-![dockerFile](../images/Linux/dockerfile.png)
+![dockerFile](../public/images/Linux/dockerfile.png)
 
 - 编写 dockerFile 文件，名字可以随便 建议 Dockerfile
 - docker build 构建成为一个镜像
@@ -281,7 +281,7 @@ docker service update --force <service_name>名称
 docker stack down xxx
 ```
 
-![image-20210517182851579](../images/Linux/docker-stack.png)
+![image-20210517182851579](../public/images/Linux/docker-stack.png)
 
 **举例**
 
@@ -437,14 +437,14 @@ docker run -d -p 5001:8080 --name regisry-web --link registry -e registry_url=ht
    - 重启命令：`systemctl restart docker`
    - 命令：`ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock`
 
-![image-20210311172031335](../images/Linux/docker-idea2.png)
+![image-20210311172031335](../public/images/Linux/docker-idea2.png)
 
 2. 防火墙开启 2375 端口
 
 3. 远程测试自验：http://docker 宿主机 ip:2375/version
 4. idea 配置 docker
 
-![image-20210311172906434](../images/Linux/docker-idea.png)
+![image-20210311172906434](../public/images/Linux/docker-idea.png)
 
 ## 11. gitlab 集成 cicd
 

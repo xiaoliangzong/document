@@ -47,3 +47,5 @@ Shiro 是 Apache 下的项目，比较可靠，且不跟任何的框架或者容
 Spring Security 基于 Spring 开发，有更好的社区资源服务。
 
 如果项目中使用 Spring 框架，配合 Spring Security 做权限更加方便，而 Shiro 需要和 Spring 进行整合开发，但是 Shiro 的配置和使用比较简单，Spring Security 上手复杂
+
+Authentication Authorization

@@ -508,7 +508,7 @@ inner join left outer join right outer join 后面可以嵌套 select 语句，�
 
 ### 4.5 执行顺序
 
-![mysql逻辑架构图](../images/mysql/mysql逻辑架构图.png)
+![mysql逻辑架构图](../public/images/mysql/mysql逻辑架构图.png)
 
 每一个操作都会产生一张虚拟的表，这个虚拟的表作为一个处理的输入，只是这些虚拟的表对用户来说是透明的，但是只有最后一个虚拟的表才会被作为结果返回。
 

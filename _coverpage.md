@@ -1,4 +1,4 @@
-<img src="images/db_small.svg" alt="logo"/>
+<img src="public/images/db_small.svg" alt="logo"/>
 
 # 小小程序猿-DB
 
