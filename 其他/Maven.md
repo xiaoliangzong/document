@@ -9,10 +9,9 @@ mvn clear package -Dmaven.test.skip=true
 mvn dependency:get --settings /usr/local/fengpin-soft/maven/apache-maven-3.6.3/conf/settings.xml -DgroupId=com.fengpin -DartifactId=fp-security-starter -Dversion=1.0.0
 mvn dependency:get -DremoteRepositories=http://xxx/repository/public/ -DgroupId=com.xx -DartifactId=xx-xx -Dversion=1.0.0-SNAPSHOT
 # 指定setting
-mvn clean package --settings xxx
+mvn clean package --settings /xxx/conf/settings.xml
 # 安装时，指定本地仓库位置
-mvn clean install -Dmaven.repo.local=/home/juven/myrepo/
-
+mvn clean install -Dmaven.repo.local=/home/xxx/
 
 ```
 
@@ -67,60 +66,69 @@ Maven 有三个标准的构建生命周期：
 ### 3.3 配置文件
 
 ```xml
-
-<!--加载xml文件-->
-<resources>
-    <resource>
-        <directory>src/main/java</directory>
-        <includes>
-            <include>**/*.xml</include>
-        </includes>
-        <filtering>false</filtering>
-    </resource>
-    <resource>
-        <directory>src/main/resources</directory>
-        <includes>
-            <include>**/*.properties</include>
-            <include>**/*.yml</include>
-            <include>**/*.yaml</include>
-            <include>**/*.xml</include>
-            <include>**/*.tld</include>
-            <include>**/*.xlsx</include>
-            <include>**/*.xls</include>
-        </includes>
-        <filtering>false</filtering>
-    </resource>
-</resources>
-```
-
-### 3.4 常用插件
-
-```xml
-<!-- maven-compiler-plugin 是用于在编译（compile）阶段加入定制化参数，比如指定java jdk版本号，以及bootclasspath；
-而 spring-boot-maven-plugin 是用于 spring boot 项目的打包（package）阶段，两者没什么关系。 -->
-<!--  -->
 <build>
- <plugins>
-  <plugin>
-   <groupId>org.apache.maven.plugins</groupId>
-   <artifactId>maven-compiler-plugin</artifactId>
-   <version>3.1</version>
-   <configuration>
-    <source>${java.version}</source>
-    <target>${java.version}</target>
+    <!-- 资源配置 -->
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>     <!-- 过滤，只会将include中的配置文件打包，且替换${key}的值 -->
+            <includes>
+                <include>**/*.xml</include>
+            </includes>
+        </resource>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>false</filtering>    <!-- 不过滤，只是将所有配置文件打包到classpath下 -->
+            <includes>
+                <include>**/*.properties</include>
+                <include>**/*.yml</include>
+                <include>**/*.yaml</include>
+                <include>**/*.xml</include>
+                <include>**/*.tld</include>
+                <include>**/*.xlsx</include>
+                <include>**/*.xls</include>
+            </includes>
+        </resource>
+    </resources>
+    <!-- 插件配置 -->
+    <plugins>
+        <!-- maven-compiler-plugin 是用于在编译（compile）阶段加入定制化参数，比如指定java jdk版本号 -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.1</version>
+            <configuration>
+                <source>${java.version}</source>
+                <target>${java.version}</target>
                 <encoding>UTF-8</encoding>
-   </configuration>
-  </plugin>
-        <!-- maven里执行测试用例的插件，不显示配置就会用默认配置。这个插件的surefire:test命令会默认绑定maven执行的test阶段。 -->
-  <plugin>
-
-   <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-plugin</artifactId>
-   <version>2.19.1</version>
-   <configuration>
-    <skipTests>true</skipTests>    <!--默认关掉单元测试 -->
-   </configuration>
-  </plugin>
- </plugins>
+            </configuration>
+        </plugin>
+        <!-- maven里执行测试用例的插件，保证test测试目录可以正常跳过打包，不显示配置就会用默认配置。这个插件的surefire:test命令会默认绑定maven执行的test阶段。 -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.19.1</version>
+            <configuration>
+                <skipTests>true</skipTests>    <!-- 跳过项目运行测试用例 -->
+            </configuration>
+        </plugin>
+        <!-- spring-boot-maven-plugin 是用于 spring boot 项目的打包（package）阶段。 -->
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>2.6.4</version>
+            <configuration>
+                <fork>true</fork> <!-- 如果没有该配置，devtools不会生效 -->
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>repackage</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
 </build>
 ```
 
