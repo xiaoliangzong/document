@@ -3,7 +3,16 @@
 ## 1. 常用命令
 
 ```bash
-mvn clear package -Dmaven.test.skip=true   # 忽略测试进行打包，测试代码不会影响项目发布，但是会影响项目打包
+# 忽略测试进行打包，测试代码不会影响项目发布，但是会影响项目打包
+mvn clear package -Dmaven.test.skip=true
+# 命令行下载jar包
+mvn dependency:get --settings /usr/local/fengpin-soft/maven/apache-maven-3.6.3/conf/settings.xml -DgroupId=com.fengpin -DartifactId=fp-security-starter -Dversion=1.0.0
+mvn dependency:get -DremoteRepositories=http://xxx/repository/public/ -DgroupId=com.xx -DartifactId=xx-xx -Dversion=1.0.0-SNAPSHOT
+# 指定setting
+mvn clean package --settings xxx
+# 安装时，指定本地仓库位置
+mvn clean install -Dmaven.repo.local=/home/juven/myrepo/
+
 
 ```
 
@@ -27,14 +36,14 @@ Maven 有三个标准的构建生命周期：
 | install  |   安装   |      安装打包的项目到本地仓库，以供其他项目使用      |
 |  deploy  |   部署   | 将安装包上传至远程仓库中，以共享给其他开发人员和工程 |
 
-## 3. 配置
+## 3. pom.xml 配置说明
 
 ### 3.1 依赖范围、依赖传递
 
 **作用**
 
-1. 使用 scope 来指定当前包的依赖范围和依赖的传递性。常见的可选值有：compile, provided, runtime, test, system 等。
-2. optional 是 maven 依赖 jar 时的一个选项，表示该依赖是可选的.不会被依赖传递。
+1. 使用 scope 来指定当前包的依赖范围和依赖的传递性。常见的可选值有：compile、provided、runtime、test、system 等。
+2. optional 是 maven 依赖 jar 时的一个选项，表示该依赖是可选的，不会被依赖传递。
 
 **说明**
 
@@ -50,7 +59,7 @@ Maven 有三个标准的构建生命周期：
 | runtime  |        ×         |         √          |        √         |    √     |      jdbc       |
 |  system  |        √         |         √          |        ×         |    √     |                 |
 
-### 3.2 依赖原则
+### 3.2 依赖原则（传递依赖）
 
 - 路径最短者优先
 - 路径相同时先声明者优先
@@ -58,33 +67,6 @@ Maven 有三个标准的构建生命周期：
 ### 3.3 配置文件
 
 ```xml
-<!-- maven-compiler-plugin 是用于在编译（compile）阶段加入定制化参数，比如指定java jdk版本号，以及bootclasspath；
-而 spring-boot-maven-plugin 是用于 spring boot 项目的打包（package）阶段，两者没什么关系。 -->
-<!--  -->
-<build>
- <plugins>
-  <plugin>
-   <groupId>org.apache.maven.plugins</groupId>
-   <artifactId>maven-compiler-plugin</artifactId>
-   <version>3.1</version>
-   <configuration>
-    <source>${java.version}</source>
-    <target>${java.version}</target>
-                <encoding>UTF-8</encoding>
-   </configuration>
-  </plugin>
-        <!-- maven里执行测试用例的插件，不显示配置就会用默认配置。这个插件的surefire:test命令会默认绑定maven执行的test阶段。 -->
-  <plugin>
-   <groupId>org.apache.maven.plugins</groupId>
-   <artifactId>maven-surefire-plugin</artifactId>
-   <version>2.19.1</version>
-   <configuration>
-    <skipTests>true</skipTests>    <!--默认关掉单元测试 -->
-   </configuration>
-  </plugin>
- </plugins>
-</build>
-
 
 <!--加载xml文件-->
 <resources>
@@ -111,27 +93,193 @@ Maven 有三个标准的构建生命周期：
 </resources>
 ```
 
-## 4. Nexus 私服仓库
-
-> nexus-repository-manager
-
-**上传**
+### 3.4 常用插件
 
 ```xml
-<!-- 一般，仓库的下载和部署是在pom.xml文件中的repositories和distributionManagement元素中定义的，然而，一般类似于用户名，密码等信息不应该在pom.xml文件配置中，这些信息可以配置在setting.xml中 -->
-<!-- maven设置私服对应的信息：id、用户、密码，其中，id必须和distrubutionManagement的id相同 -->
+<!-- maven-compiler-plugin 是用于在编译（compile）阶段加入定制化参数，比如指定java jdk版本号，以及bootclasspath；
+而 spring-boot-maven-plugin 是用于 spring boot 项目的打包（package）阶段，两者没什么关系。 -->
+<!--  -->
+<build>
+ <plugins>
+  <plugin>
+   <groupId>org.apache.maven.plugins</groupId>
+   <artifactId>maven-compiler-plugin</artifactId>
+   <version>3.1</version>
+   <configuration>
+    <source>${java.version}</source>
+    <target>${java.version}</target>
+                <encoding>UTF-8</encoding>
+   </configuration>
+  </plugin>
+        <!-- maven里执行测试用例的插件，不显示配置就会用默认配置。这个插件的surefire:test命令会默认绑定maven执行的test阶段。 -->
+  <plugin>
+
+   <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-plugin</artifactId>
+   <version>2.19.1</version>
+   <configuration>
+    <skipTests>true</skipTests>    <!--默认关掉单元测试 -->
+   </configuration>
+  </plugin>
+ </plugins>
+</build>
+```
+
+## 4. 配置（Setting）
+
+maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-builder-${version}.jar 中，打开该文件，能找到超级
+POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM，所有 Maven 项目继承该配置，
+在这个 POM 中找到 repositories 标签的 url：https://repo.maven.apache.org/maven2
+
+```xml
+<!-- setting 设置 -->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+    <!-- 本地仓库路径配置，命令行参数：-Dmaven.repo.local=xxx -->
+    <localRepository>D:\apache-maven-3.6.1\repository-nexus</localRepository>
+
+
+    <!-- 远程库的服务器信息，用于需要认证的远程仓库，一般这种信息不配置在 pom.xml 中 -->
+    <!-- 上传部署 jar/pom 到私有仓库时，是需要在 pom 和 setting 中都配置的，pom 中配置 distributionManagement 标签，setting 中配置服务器认证信息，和distributionManagement配合使用。-->
+    <servers>
+        <server>
+            <id>releases</id>               <!-- id必须和pom中的distrubutionManagement的id相同 -->
+            <username>admin</username>      <!-- 用户密码 -->
+            <password>admin@nexus</password>
+        </server>
+        <server>
+            <id>snapshots</id>
+            <username>admin</username>
+            <password>admin@nexus</password>
+        </server>
+    </servers>
+
+    <!-- 仓库镜像 -->
+    <!--
+        mirrors 可以配置多个子节点，但它只会使用其中的一个节点，即默认情况下配置多个mirror的情况下，只有第一个生效；只有当前一个mirror无法连接的时候，才会去找后一个；
+        mirror 相当于一个拦截器，它会拦截maven对remote repository的相关请求，把请求里的remote repository地址，重定向到mirror里配置的地址；
+        mirror 中配置的库，默认只支持 release 库的拉取，snapshot 是不支持的。
+    -->
+    <mirrors>
+        <mirror>
+            <id>nexus</id>                <!-- id是唯一标识一个mirror -->
+            <name>nexus maven</name>      <!-- name是节点名 -->
+            <url>http://192.168.100.99:8082/repository/maven-public/</url>   <!-- url是官方的库地址 -->
+            <mirrorOf>*</mirrorOf>        <!-- mirrorOf代表一个镜像的替代位置，常用配置：* 匹配所有远程仓库，repo1,repo2 只匹配这两个仓库，*,!repo1 匹配除repo1外的所有仓库 -->
+        </mirror>
+        <mirror>
+            <id>alimaven</id>
+            <name>aliyun maven</name>
+            <url>https://maven.aliyun.com/repository/public/</url>
+            <mirrorOf>central</mirrorOf>
+        </mirror>
+    </mirrors>
+
+    <!-- profiles节点，<profiles>里配置了多个<profile>，需要使用<activeProfiles>来进行激活，激活了哪个<profile>，哪个<profile>才生效 -->
+    <profiles>
+        <!-- 全局设置 -->
+        <profile>
+            <id>jdk1.8</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <jdk>1.8</jdk>
+            </activation>
+            <properties>
+                <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                <maven.compiler.source>1.8</maven.compiler.source>
+                <maven.compiler.target>1.8</maven.compiler.target>
+                <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+            </properties>
+        </profile>
+
+        <!-- 私服仓库 jar/pom 的下载，需要在 pom 或 setting 中配置 repositories，但是为了共用，经常配置在 setting 中 -->
+	    <profile>
+            <id>nexus-profile</id>
+            <!-- 配置Maven项目中需要使用的远程仓库，可以配置多个，也可以在 pom.xml 中配置 -->
+            <repositories>
+                <repository>
+                    <id>nexus</id>	<!--仓库id，repositories可以配置多个仓库，保证id不重复-->
+                    <name>xxx-nexus-name</name>
+                    <url>http://192.168.100.99:8082/repository/maven-public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <!-- 配置Maven项目中需要使用的远程仓库 -->
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>nexus</id>
+                    <name>Public Repositories</name>
+                    <url>http://192.168.100.99:8082/repository/maven-public/</url>
+                </pluginRepository>
+                <releases>
+                    <enabled>true</enabled>
+                </releases>
+                <snapshots>
+                    <enabled>true</enabled>
+                </snapshots>
+            </pluginRepositories>
+        </profile>
+
+        <!-- 阿里云配置 -->
+        <profile>
+            <id>ali-profile</id>
+            <repositories>
+                <repository>
+                    <id>alimaven</id>
+                    <name>aliyun maven</name>
+                    <url>https://maven.aliyun.com/repository/public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>alimaven</id>
+                    <name>aliyun maven</name>
+                    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
+    <!-- 激活配置 -->
+    <!-- 根据profile定义的先后顺序来进行覆盖取值的，后面定义的会覆盖前面定义的 -->
+    <!-- 也可以使用-P参数显示的激活一个profile -->
+    <activeProfiles>
+        <activeProfile>jdk1.8</activeProfile>
+        <activeProfile>nexus-profile</activeProfile>
+        <activeProfile>ali-profile</activeProfile>
+    </activeProfiles>
+</settings>
+```
+
+## 5. Nexus 私服仓库
+
+私服搭建：nexus-repository-manager
+
+### 5.1 上传
+
+```xml
+<!-- setting中设置 -->
 <server>
-    <id>db
-    -maven-release</id>
+    <id>db-maven-release</id>
     <username>admin</username>
-    <password>ad
-    min123</password>
+    <password>admin123</password>
 </server>
 <server>
     <id>db-maven-snapshot</id>
     <username>admin</username>
-    <password>ad
-    min123</password>
+    <password>ad min123</password>
 </server>
 
 <!-- pom中增加url -->
@@ -139,11 +287,9 @@ Maven 有三个标准的构建生命周期：
     <repository>
         <id>db-maven-release</id>   <!-- id的名字可以任意取，但是在setting文件中的属性<server>的ID与这里一致 -->
         <name>libs-release</name>
-        <url>http://
-        192.168.100.99:8081/repository/db-maven-hosted/</url>
+        <url>http://192.168.100.99:8081/repository/db-maven-hosted/</url>
     </repository>
     <snapshotRepository>
-
         <id>db-maven-snapshot</id>
         <name>libs-snapshot</name>
         <url>http://
@@ -151,54 +297,31 @@ Maven 有三个标准的构建生命周期：
     </snapshotRepository>
 </distributionManagement>
 
-
-<!-- 执行maven clean deploy -->
+<!-- 执行命令 -->
+maven clean deploy
 ```
 
-**下载（只需要在 settings 中配置）**
+### 5.2 下载部署
 
 ```xml
-<!-- id和下面的mirror中的id一致，代表拉取是也需要进行身份校验；下载私服仓库镜像不需要身份验证!!! -->
-<server>
-    <id>nexus-db</id>
-    <username>admin</username>
-    <password>admin123</password>
-</server>
-
-<!-- 配置镜像 -->
-<mirror>
-    <id>nexus-db</id>
-    <name>internal nexus repository</name>
-    <mirrorOf>central</mirrorOf>
-    <url>http://192.168.100.99:8081/repository/db-maven-group/</url>
-</mirror>
-
-
-
 <!-- profiles节点，<profiles>里配置了多个<profile>，需要使用<activeProfiles>来进行激活，激活了哪个<profile>，哪个<profile>才生效 -->
 <profile>
     <!--profile的id-->
     <id>nexus-profile</id>
-
     <!-- 远程仓库列表 -->
     <repositories>
+        <repository>    <!--仓库id，repositories可以配置多个仓库，保证id不重复-->
+            <id>nexus-db</id>
+            <!--仓库地址，即nexus仓库组的地址-->
+            <url>http://192.168.100.99:8081/repository/db-maven-group/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         <repository>
-        <!--仓库id，repositories可以配置多个仓库，保证id不重复-->
-        <id>nexus-db</id>
-        <!--仓库地址，即nexus仓库组的地址-->
-        <url>http://192.168.100.99:8081/repository/db-maven-group/</url>
-        <!--是否下载releases构件-->
-        <releases>
-
-            <enabled>true</enabled>
-        </releases>
-        <!--是否下载snapshots构件-->
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-        </repository>
     </repositories>
-
     <!-- 插件仓库列表 -->
     <pluginRepositories>
         <!-- 插件仓库，maven的运行依赖插件，也需要从私服下载插件 -->
@@ -209,7 +332,6 @@ Maven 有三个标准的构建生命周期：
             <url>http://192.168.100.99:8081/repository/db-maven-group/</url>
             <layout>default</layout>
             <snapshots>
-
                 <enabled>true</enabled>
             </snapshots>
             <releases>
