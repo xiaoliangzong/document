@@ -1,27 +1,22 @@
 ## 1. IntelliJ IDEA
 
-**常用插件**
+### 1.1 常用插件
 
 1. Lombok（简化代码）
 2. Alibaba Java Coding Guidelines（编码规范检查）
 3. Json Viewer
 4. Eclipse Code Formatter（统一代码格式化，需要加载配置文件）
 
-**快捷键修改**
+### 1.2 更改配置
 
-1. 智能提示：改为 Alt+/
+1. 修改字体背景为护眼模式（C7EDCC），字体大小和样式为 JetBrains Mono(14)、Consolas(15)
+2. 快捷键智能提示改为 Alt + /
+3. 类注释模板配置：Editor -> File and Code Templates
+4. 消除类注释警告：Wrong tag 'Date' ，需要配置：Editor -> Inspections -> java -> javadoc -> Javadoc declaration problems -> Options
 
-**修改字体背景**
+## 2. Visual Studio Code
 
-1. 护眼背景：C7EDCC
-2. 字体：JetBrains Mono(14)、Consolas(15)
-
-- 配置类注解模板：Editor -> File and Code Templates
-- 警告：Wrong tag 'Date' ，需要配置：Editor -> Inspections -> java -> javadoc -> Javadoc declaration problems -> Options
-
-## 2. vscode
-
-**常用快捷键**
+### 2.1 常用快捷键
 
 - ctrl+shift+P 万能搜索
 - alt+上下键 上下移
@@ -30,28 +25,27 @@
 - ctrl+enter 下边插入一行
 - ctrl+shift+\ 跳转到匹配的括号
 
-**常用插件**
+### 2.2 常用插件
 
-- chinese
-- open in browser
+- Chinese (Simplified) (简体中文)
+- eslint 代码格式化
+- vetur 集 vue.js 代码提示，语法高亮等功能为一体的流行插件
+- prettier-Code formatter 代码格式化
 - guides 显示代码对齐辅助线
 - HTMLHint 显示 html 错误
 - vscode-icons 左侧显示图标
 - import Cost 该插件会在行尾显示导入包的大小
 - path intellisense 识别引入文件路径，提供路径提示功能
 - material icon Theme 主题插件
-- prettier-Code formatter 格式化代码 (常用)
 - carbon-now-sh 将选择代码生成图片，操作：选中图片，ctrl+shift+P，输入 carbon。
 - Turbo console log 打印日志，快捷键：ctrl+alt+l
-- browser preview vscode 中打开浏览器
+- Markdown Preview Enhanced
 - live server 开启服务，地址路径变了
 - auto rename tag 修改 html 标签，前后同步
-- vetur vue 高亮
-- eslint(常用)
 
-**解决换行问题**
+### 2.3 常见问题
 
-- npm run lint --fix
+- 解决换行问题：npm run lint --fix
 
 ## 3. Sonar 代码检查工具
 
@@ -108,9 +102,9 @@
 <!-- 执行命令：mvn clean install sonar:sonar -->
 ```
 
-## 5. docsify 文档网站生成器
+## 4. docsify 文档网站生成器
 
-> 说明：该文档就是基于 docsify 搭建的，配置简单，无需编译，只需要会 markdown 语法即可，详细配置可参考项目：[github](https://github.com/xiaoliangzong/document.git)
+说明：该文档就是基于 docsify 搭建的，配置简单，无需编译，只需要会 markdown 语法即可，详细配置可参考项目：[https://github.com/xiaoliangzong/document.git](https://github.com/xiaoliangzong/document.git)
 
 **使用步骤：**
 

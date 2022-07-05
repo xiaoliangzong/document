@@ -36,8 +36,9 @@
 
 - **计算机**
 
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">基础</span>](计算机基础/基础.md)
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">基础</span>](计算机基础/)
   - [<span style="font-weight:normal; font-size:13px; color:#364149">网络</span>](计算机基础/网络.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">Linux（CentOS）</span>](计算机基础/Linux（CentOS）.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Shell</span>](计算机基础/shell.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">bat</span>](计算机基础/bat.md)
 
