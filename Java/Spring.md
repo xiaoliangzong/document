@@ -55,89 +55,239 @@ Spring 框架是一个分层架构，它包含了很多模块，每个模块完�
 
 从不同角度对同一件事物的描述。就是通过引入 IOC 容器，利用注入依赖关系的方式，实现对象之间的解耦。
 
-### 3.1 基于 xml 方式
+**核心说明（重点）**
 
-#### 3.1.1 实例化方式
+1. BeanFactory 是 Spring IOC 容器的基本实现，是一个工厂接口，面向 Spring 本身；采用延迟加载，第一次 getBean 时才会初始化 Bean。
+2. ApplicationContext 是 BeanFactory 的子接口，面向使用 Spring 框架的开发者，几乎所有的应用场合都直接使用 ApplicationContext 而非底层的 BeanFactory；
+   当配置文件被加载，就会进行对象实例化；它的功能更强大，提供了更多的高级特性，比如国际化处理、事件传递、Bean 自动装配、各种不同应用层的 Context 实现等。
+3. ClassPathXmlApplicationContext 用于加载 classpath 下的 xml。
+4. FileSystemXmlApplicationContext 用于加载指定盘符下的 xml。
+5. 从 IOC 获取 Bean 对象，调用 applicationContext.getBean()方法。
+
+### 3.1 实例化方式
+
+1. 基于 xml 的装配，实例化方式包括构造方法、静态工厂、实例工厂三种；
+2. 基于注解
+
+|      注解      | 解释说明                                                                                                     | 使用场景                                                 |
+| :------------: | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+|     @Bean      | 表示此方法返回的对象作为一个 bean 加入到 Spring IOC 容器中                                                   | 适用于导入第三方组件的类                                 |
+| @Configuration | 声明该类为配置类，可替换 xml 配置文件，可以使用 @Component 替代，不过使用@Configuration 声明配置类更加语义化 | 常和@Bean 一起使用                                       |
+|  @Repository   | 标识持久层组件                                                                                               |                                                          |
+|    @Service    | 标识服务层/业务层组件                                                                                        |                                                          |
+|  @Controller   | 标识表现层组件                                                                                               |                                                          |
+|   @Component   | 标识组件                                                                                                     |                                                          |
+| @ComponentScan | 扫描特定注解的组件，相当于 xml 的<context:component-scan>                                                    |                                                          |
+|    @Import     | 通过快速导入的方式将实例加入到 Spring IOC 容器中，导入组件的 id 为全路径，                                   | 常用于其他框架整合 Spring 时，使用@Import 注解导入整合类 |
 
 ```xml
-<!-- 1. 默认构造 -->
-<bean id="" class=""></bean>
+<?xml version="1.0" encoding="utf-8" ?>
 
-<!-- 2. 静态工厂，常用于Spring整合其他框架（工具） -->
-<bean id="" class="工厂全限定类名" factory-method="静态方法"></bean>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       					   http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <!-- 1. 默认构造 -->
+    <bean id="" class=""></bean>
 
-<!-- 3. 实例工厂，特例 （FactoryBean接口，具有工厂生成对象能力，只能生成特定的对象，比如 ProxyFactoryBean实现类，用于生成代理对象实例） -->
-<bean id="factoryId" class="工厂全限定类名"></bean>        <!-- 创建工厂实例 -->
-<bean id="" factory-bean="factoryId" factory-method="实例工厂方法"></bean>
+    <!-- 2. 静态工厂，常用于Spring整合其他框架（工具） -->
+    <bean id="" class="工厂全限定类名" factory-method="静态方法"></bean>
 
+    <!-- 3. 实例工厂，特例 （FactoryBean接口，具有工厂生成对象能力，只能生成特定的对象，比如 ProxyFactoryBean实现类，用于生成代理对象实例） -->
+    <bean id="factoryId" class="工厂全限定类名"></bean>        <!-- 创建工厂实例 -->
+    <bean id="" factory-bean="factoryId" factory-method="实例工厂方法"></bean>
+
+    <!-- 组件扫描，扫描含有注解的类 -->
+    <context:component-scan base-package="com.xxx"></context:component-scan>
+</beans>
 ```
 
-#### 3.1.2 作用域
+**@Import 详解**
+
+1. 直接导入 class 数组
+2. 实现 ImportSelector 接口的实现类
+
+> 是 spring 导入外部配置的核心接口，在 springboot 的自动化配置和@Enablexxx（功能性注解）中起到了决定性的作用。
+> ImportSelector 接口中，selectImports()方法作用是：选择并返回需要导入的类的名称；返回一个字符串数组，当在@Configuration 标注的 Class 上使用@Import 引入了一个 ImportSelector 实现类后，会把实现类中返回的 Class 名称都定义为
+> DeferredImportSelector 接口集成 ImportSelector，延迟选择性导入，在装载 bean 时，需要等所有的@Configuration 都执行完毕后才会进行装载。
+
+3. 实现 ImportBeanSelector 接口
+
+```java
+// 方式1
+@Import({**.class,***.class})  // 导入的bean的全限定名
+public class Test{}
+
+// 方式2
+// spring 底层使用较多，像Enablexxx等都是通过这种方式实现的。
+public class ImportSee implements ImportSelector {
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        return new String[]{"com.company.module.类名"};
+    }
+}
+
+// 方式3
+// mybatis中的@MapperScan注解，就是基于这种方式实现注入Spring IOC容器的。
+```
+
+### 3.2 作用域
+
+注解 @Scope 可以控制 Spring Bean 的作用域，四种常见的作用域：
+
+|  作用域   | 解释说明                                                                      |
+| :-------: | ----------------------------------------------------------------------------- |
+| singleton | 唯一 bean 实例，Spring 中的 bean 默认都是单例的                               |
+| prototype | 每次请求都会创建一个新的 bean 实例                                            |
+|  request  | 每一次 HTTP 请求都会产生一个新的 bean，该 bean 仅当前 HTTP request 内有效     |
+|  session  | 每一次 HTTP Session 会产生一个新的 bean，该 bean 仅在当前 HTTP session 内有效 |
 
 ```xml
 <!-- 默认为单例singleton，多例时，初始化时，不会实例化bean，只有每次调用的时候才会实例化 -->
 <bean id="" class="" scope="singleton|prototype|request|session"></bean>
 ```
 
-#### 3.1.3 生命周期
+### 3.3 生命周期
+
+1. 基于 xml，Bean 标签存在 init-method 和 destroy-method 方法；
 
 ```xml
-<!-- 目标方法执行前后执行后，将进行初始化或销毁 -->
-<bean id="" class="" init-method="初始化方法名称" destory-method="销毁方法名称"></bean>
+<!-- 针对单例的Bean，初始化执行init方法，容器关闭时，销毁执行destroy方法 -->
+<bean id="" class="" init-method="初始化方法名称" destroy-method="销毁方法名称"></bean>
+
 ```
 
-### 3.2 基于注解 方式
+2.  实现接口 InitializingBean 和 DisposableBean，重写方法；
+3.  实现接口 BeanPostProcessor，并将实现类提供给 spring 容器，spring 容器将自动执行，在初始化方法前执行 before()，在初始化方法后执行 after()。对容器中所有的 bean 都生效。
+4.  基于注解@PostConstruct 和 @PreDestroy 实现；需要注意的是：@PostConstruct 和@PreDestroy 这两个注解都不是 Spring 的，是 java 的。
+    - @PostConstruct：修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被@PostConstruct 修饰的方法会在构造函数之后，init()方法之前运行。
+    - @PreDestroy：修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被@PreDestroy 修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
 
-BeanFactory: IOC 容器的基本实现
+### 3.4 属性依赖注入
 
-    2>ApplicationContext: 提供了更多的高级特性.是BeanFactory的子接口.
-    3>BeanFactory是Spring框架的基础设施,面向Spring本身;ApplicationContext面向使用Spring框架的开发者，几乎所有的应用场合都直接
-    使用 ApplicationContext 而非底层的 BeanFactory
+1. 基于 xml，可通过属性 setter 注入、构造器注入、p 标签、SpEL、集合方法实现
+2. 基于注解
 
-### 3.1 依赖注入方式:
+|      注解       | 解释说明                                                                                                                                                           | 使用场景                                                 |
+| :-------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+|     @Value      |                                                                                                                                                                    |                                                          |
+| @PropertySource | 读取指定 properties 文件                                                                                                                                           | 不常用，常用的是@ConfigurationProperties                 |
+|  @Conditional   | 条件                                                                                                                                                               | 大量应用于 Spring Boot 底层，@ConfitionalOnClass 等      |
+|   @Autowired    | 提供了更细粒度的控制，包括在何处以及如何完成自动装配。它的用法和@Required 一样，修饰 setter 方法、构造器、属性或者具有任意名称和/或多个参数的 PN 方法。            |
+|   @Qualifier    | 当有多个相同类型的 bean 却只有一个需要自动装配时，将@Qualifier 注解和@Autowire 注解结合使用以消除这种混淆，指定需要装配的确切的 bean。                             |
+|      @Lazy      | 容器一般都会在启动的时候实例化所有单实例 bean。如果想要 Spring 在启动的时候延迟加载 bean，即在调用某个 bean 的时候再去初始化，那么就使用 @Lazy 注解。              | @Lazy(value = true)，value 取值 true、false，默认为 true |
+|    Required     | 表明 bean 的属性必须在配置的时候设置，通过一个 bean 定义的显式的属性值或通过自动装配，若@Required 注解的 bean 属性未被设置，容器将抛出 BeanInitializationException |
 
-```java
+@AutoWired，类型注入；@Qualifier，名称注入  
+@Resource，名称注入  
+**Resource 和 Autowire**
 
-String path = "";
-ApplicationContext context = new ClassPathXmlApplicationContext(path);
-xxxxx xx = (xxxxx) context.getBean("xxDao");
-xx.execute();
+![区别](../public/images/Java/Spring/ResourceAutowird.png)
+
+**@AliasFor**
+
+@AliasFor 表示别名，它可以注解到自定义注解的两个属性上，表示这两个互为别名，也就是说这两个属性其实同一个含义。
+
+- 用到注解 属性上，表示两个属性互相为别名，互相为别名的属性值必须相同，若设置成不同，则会报错
+- 若自定义注解有一个属性，且该属性命名上为了体现其含义，所以有些复杂，这样调用方必须每次使用自定义注解的时候，都必须写明 属性 ，然后设置，这样会比较负责；
+- 同时若自定义注解继承了另一个注解，要想让调用方能够设置继承过来的属性值，就必须在自定义注解中重新定义一个属性，同时声明该属性是父注解某个属性的别名。注解是可以继承的，但是注解是不能继承父注解的属性的,也就是说,我在类扫描的时候,拿到的注解的属性值,依然是父注解的属性值,而不是你定义的注解的属性值，所以此时可以在子注解对应的属性上加上@AliasFor
+
+```xml
+<!--
+    1. 属性注入
+    通过set()方法注入属性值，
+    使用<property>标签，name 属性指定 Bean 的属性名称，value 属性或<value>子节点指定属性值
+-->
+<bean id="" class="com.xxx">
+    <property name="name" value="dangbo"></property>
+    <property name="age">
+        <value>18</value>
+    </property>
+    <property name="student" ref="studentId"></property>
+    <property name="student">
+        <ref bean="studentId"/>
+    </property>
+</bean>
+
+<!--
+    2. 构造器注入
+    <constructor-arg> 用于配置构造方法一个参数argument；name参数的名称，value设置普通数据，ref引用数据，一般是另一个bean id值，
+    index ：参数的索引号，从0开始 。如果只有索引，匹配到了多个构造方法时，默认使用第一个。
+    type ：确定参数类型
+-->
+<bean>
+    <constructor-arg name="" index="" type="" value=""></constructor-arg>
+</bean>
+
+<!--
+    3. p 标签注入
+    p命名空间使用前提，必须添加命名空间
+    对setter方法注入进行简化，替换<property name="属性名">，而是在<bean p:属性名="普通值"  p:属性名-ref="引用值">
+ -->
+<bean id="personId" class="com.xxx.Person"
+    p:name="dangbo" p:age="18"
+    p:student-ref="studentId">
+</bean>
+
+<!--
+    4. SpEL
+    对<property>进行统一编程，所有的内容都使用value
+	<property name="" value="#{表达式}">
+	#{123}、#{'jack'} ： 数字、字符串
+	#{beanId}	：另一个bean引用
+	#{beanId.propName}	：操作数据
+	#{beanId.toString()}	：执行方法
+	#{T(类).字段|方法}	：静态方法或字段
+ -->
+<bean id="userId" class="com.xxx.User" >
+    <property name="name" value="#{userId.name?.toUpperCase()}"></property>     <!-- ?. 如果对象不为null，将调用方法 -->
+    <property name="age" value="#{18}"></property>
+</bean>
+
+
+<!--
+    5. 集合注入
+    集合的注入都是给<property>添加子标签，数组<array>，List<list>，Set<set>，Map<map>，map存放k/v 键值对，使用<entry>描述，Properties<props>
+	普通数据<value>，引用数据<ref>
+-->
+<bean id="collDataId" class="com.xxx.CollData" >
+    <property name="arrayData">
+        <array>
+            <value>1</value>
+        </array>
+    </property>
+
+    <property name="listData">
+        <list>
+            <value>1</value>
+        </list>
+    </property>
+
+    <property name="setData">
+        <set>
+            <value>1</value>
+        </set>
+    </property>
+
+    <property name="mapData">
+        <map>
+            <entry key="1" value="1"></entry>
+            <entry>
+                <key>2</key>
+                <value>2</value>
+            </entry>
+        </map>
+    </property>
+
+    <property name="propsData">
+        <props>
+            <prop key="1">1</prop>
+        </props>
+    </property>
+</bean>
 ```
 
-1. 属性注入 通过 set()方法注入属性值 ,使用<property></property>,name 属性指定 Bean 的属性名称,value 属性或<value>子节点指定属性值
-2. 构造器注入 <constructor-arg>元素里声明属性
-   按照索引\类型匹配等方式指定 bean 属性名称
-   Bean 的配置文件中, 可以通过 <ref> 元素或 ref 属性为 Bean 的属性或构造器参数指定对 Bean 的引用.
-   集合属性:
-   数组
-   property 属性文件(连接数据库):
-   需要配置属性后置处理器,即需要使用外部属性文件,配置 bean
-3. p 标签注入
-
-4. 从 IOC 获取 Bean 对象，调用 applicationContext.getBean()方法
-5. 自动装配
-6. 通过注解的方式配置 bean
-   在 classpath 中扫描组件
-   　　组件扫描(component scanning):Spring 能够从 classpath 下自动扫描，侦测和实例化具有特定注解的组件。
-   　　特定的组件包括：
-   　　　　-@Component:基本注解，标识了一个受 Spring 管理的组件
-   　　　　-@Responsitory：标识持久层组件
-   　　　　-@Service：标识服务层(业务层)组件
-   　　　　-@Controller：标识表现层组件
-
-7. 通过@CompentScan +@Controller @Service @Respository @compent ，springboot 默认扫描，无需@ComponentScan，
-
-**适合场景**：自己写的组件可以通过这种方式来进行加载到容器中。
-
-2. 通过@Bean 的方式来导入组件
-
-**适合场景**: 适用于导入第三方组件的类
-
-3. 通过@Import 来导入组件
-
-**适合场景**：导入组件的 id 为全路径，用处最多的是其他框架整合 Spring 时，使用@Import 注解导入整合类。
-
-### 3.2 循环依赖解决方案
+### 3.5 循环依赖解决方案
 
 ## 4. AOP
 
@@ -185,131 +335,32 @@ JoinPoint-->程序执行的某个位置,就是连接点对象,可以使用该对
 
 ### AOP 实现原理
 
-## Spring 注解
-
-**@Configuration**
-
-用来标记类可以当做一个 bean 的定义，被 Spring IOC 容器使用
-
-**@Bean**
-
-表示此方法将要返回一个对象，作为一个 bean 注册进 Spring 应用上下文
-
-**@Import**
-
-`作用在类上，通过快速导入的方式将实例加入到springIOC容器中`
-
-1. 直接导入 class 数组
-2. 实现 ImportSelector 接口的实现类
-
-> 是 spring 导入外部配置的核心接口，在 springboot 的自动化配置和@Enablexxx（功能性注解）中起到了决定性的作用。
-> ImportSelector 接口中，selectImports()方法作用是：选择并返回需要导入的类的名称；返回一个字符串数组，当在@Configuration 标注的 Class 上使用@Import 引入了一个 ImportSelector 实现类后，会把实现类中返回的 Class 名称都定义为
-> DeferredImportSelector 接口集成 ImportSelector，延迟选择性导入，在装载 bean 时，需要等所有的@Configuration 都执行完毕后才会进行装载。
-
-3. 实现 ImportBeanSelector 接口
-
-```java
-// 方式1
-@Import({**.class,***.class})  // 导入的bean的全限定名
-public class Test{}
-
-// 方式2
-// spring 底层使用较多，像Enablexxx等都是通过这种方式实现的。
-public class ImportSee implements ImportSelector {
-    @Override
-    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-        return new String[]{"com.company.module.类名"};
-    }
-}
-
-// 方式3
-// mybatis中的@MapperScan注解，就是基于这种方式实现注入Spring IOC容器的。
-```
-
-**Scope**
-
-生命 Spring Bean 的作用域，四种常见的作用域：
-
-| 作用域    | 解释说明                                                                      |
-| --------- | ----------------------------------------------------------------------------- |
-| singleton | 唯一 bean 实例，Spring 中的 bean 默认都是单例的                               |
-| prototype | 每次请求都会创建一个新的 bean 实例                                            |
-| request   | 每一次 HTTP 请求都会产生一个新的 bean，该 bean 仅当前 HTTP request 内有效     |
-| session   | 每一次 Http Session 会产生一个新的 bean，该 bean 仅在当前 HTTP session 内有效 |
-
-**Configuration**
-
-一般用来声明配置类，可以使用 @Component 注解替代，不过使用@Configuration 注解声明配置类更加语义化。
-
-**PropertySource**
-
-读取指定 properties 文件，不常用，常用的是@ConfigurationProperties
-
-**Conditional**
-
-**ControllerAdvice**
-
-注解定义全局异常处理类
-
-**ExceptionHandler**
-
-注解声明异常处理方法
-
-**@Autowired**
-
-提供了更细粒度的控制，包括在何处以及如何完成自动装配。它的用法和@Required 一样，修饰 setter 方法、构造器、属性或者具有任意名称和/或多个参数的 PN 方法。
-
-**Qualifier**
-
-当有多个相同类型的 bean 却只有一个需要自动装配时，将@Qualifier 注解和@Autowire 注解结合使用以消除这种混淆，指定需要装配的确切的 bean。
-
-**Lazy**
-
-容器一般都会在启动的时候实例化所有单实例 bean。如果想要 Spring 在启动的时候延迟加载 bean，即在调用某个 bean 的时候再去初始化，那么就使用 @Lazy 注解。
-@Lazy(value = true)，value 取值 true、false，默认为 true
-
-**Required**
-
-表明 bean 的属性必须在配置的时候设置，通过一个 bean 定义的显式的属性值或通过自动装配，若@Required 注解的 bean 属性未被设置，容器将抛出 BeanInitializationException
-
-**Resource 和 Autowire**
-
-![区别](../public/images/Java/Spring/ResourceAutowird.png)
-
-**@AliasFor**
-
-@AliasFor 表示别名，它可以注解到自定义注解的两个属性上，表示这两个互为别名，也就是说这两个属性其实同一个含义。
-
-- 用到注解 属性上，表示两个属性互相为别名，互相为别名的属性值必须相同，若设置成不同，则会报错
-- 若自定义注解有一个属性，且该属性命名上为了体现其含义，所以有些复杂，这样调用方必须每次使用自定义注解的时候，都必须写明 属性 ，然后设置，这样会比较负责；
-- 同时若自定义注解继承了另一个注解，要想让调用方能够设置继承过来的属性值，就必须在自定义注解中重新定义一个属性，同时声明该属性是父注解某个属性的别名。注解是可以继承的，但是注解是不能继承父注解的属性的,也就是说,我在类扫描的时候,拿到的注解的属性值,依然是父注解的属性值,而不是你定义的注解的属性值，所以此时可以在子注解对应的属性上加上@AliasFor
-
 **@AspectJ**
 
-57. 什么是引入?
-    引入允许我们在已存在的类中增加新的方法和属性。
-58. 什么是目标对象?
-    被一个或者多个切面所通知的对象。它通常是一个代理对象。也指被通知（advised）对象。
-59. 什么是代理?
-    代理是通知目标对象后创建的对象。从客户端的角度看，代理对象和目标对象是一样的。
-60. 有几种不同类型的自动代理？
-    BeanNameAutoProxyCreator
-    DefaultAdvisorAutoProxyCreator
-    Metadata autoproxying
-61. 什么是织入。什么是织入应用的不同点？
-    织入是将切面和到其他应用类型或对象连接或创建一个被通知对象的过程。
-    织入可以在编译时，加载时，或运行时完成。
+## 5. 全局异常处理
 
-**@PostConstruct 和@PreDestroy**
+1. ControllerAdvice，注解定义全局异常处理类
+2. ExceptionHandler，注解声明异常处理方法
 
-1. @PostConstruct：修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被@PostConstruct 修饰的方法会在构造函数之后，init()方法之前运行。
-2. @PreDestroy：修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被@PreDestroy 修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
+3. 什么是引入?
+   引入允许我们在已存在的类中增加新的方法和属性。
+4. 什么是目标对象?
+   被一个或者多个切面所通知的对象。它通常是一个代理对象。也指被通知（advised）对象。
+5. 什么是代理?
+   代理是通知目标对象后创建的对象。从客户端的角度看，代理对象和目标对象是一样的。
+6. 有几种不同类型的自动代理？
+   BeanNameAutoProxyCreator
+   DefaultAdvisorAutoProxyCreator
+   Metadata autoproxying
+7. 什么是织入。什么是织入应用的不同点？
+   织入是将切面和到其他应用类型或对象连接或创建一个被通知对象的过程。
+   织入可以在编译时，加载时，或运行时完成。
 
 **Transactional**
 
 @Transactional(rollbackFor = Exception.class)
 
-## Spring 事务
+## 6. Spring 事务
 
 > 事务管理是应用系统开发中必不可少的一部分，Spring 为事务管理提供了丰富的功能支持。Spring 事务管理分为编程式和声明式两种方式。在实际使用中常用声明式事务
 
@@ -777,9 +828,11 @@ public static void main(String[] args) throws java.lang.Exception {
 原理：启动 jar 时，增加配置参数（端口）
 jar -jar xxx.jar --server.port=8080
 
-![ieda配置多个启动](../public/images/Spring/idea.png)
+![ieda配置多个启动](../public/images/Java/Spring/idea.png)
 
 ## 15. @JsonProperty 序列化失效
 
 - POST 接口请求方式为 application/json 方式，@JsonProperty 序列化能够生效；
 - GET 请求方式，参数拼接在 URL 后面，此时参数对象中的 @JsonProperty 不会生效。
+
+@JsonUnwrapped 对象扁平化
