@@ -1,13 +1,12 @@
 # Message Queue
 
-MQ (message Queue) 消息队列，本质是个队列，FIFO 先入先出，只不过是在队列中存放的内容是 message 而已，还是一种跨进程的通信机制，用于上下游传递信息。在互联网架构中，MQ 是一种非常常
-见的上下游的消息通信服务。使用了 MQ 之后，消息发送上游只需要依赖 MQ，不用依赖其他服务。
+MQ (message Queue) 消息队列，是将消息 message 存放到队列中（队列：先进先出 FIFO 的数据结构 ），它是一种跨进程的通信机制，用于上下游的消息传递，从而达到上下游解耦，消息发送上游只需要依赖 MQ，不需要依赖其他下游服务。
 
-**优点**
+在系统架构设计中，经常会使用 MQ，常见的使用场景有流量削峰、异步、解耦等。
 
-- **应用解耦**：多个系统间的通信
-- **流量削峰**：每秒中由上万个请求写入 MQ 中，然后消费者慢慢去消费，不会使系统因为并发请求数量大，导致崩溃
-- **异步处理**：用户调用一个接口的时候，可能该接口调用了别的方法。例如：用户注册的时候，后台可能需要调用：查询数据库，插入数据库，发送邮件，发送用户指南等等...但是用户可能并不需要后台将所有的任务执行完毕，那么此时在插入数据库后将其他任务加入 mq 队列，用户就能很快得到注册成功的响应而去做一些别的事情。mq 的机制又能保证最终的一致性，所以使用起来很安全很稳定。
+- **应用解耦**：多个系统间的通信；
+- **流量削峰**：每秒中由上万个请求写入 MQ 中，然后消费者慢慢去消费，不会使系统因为并发请求数量大，导致崩溃；
+- **异步处理**
 
 **缺点**
 
@@ -19,19 +18,7 @@ MQ (message Queue) 消息队列，本质是个队列，FIFO 先入先出，只�
 
 A 系统处理完了发送消息给 mq 后直接返回成功，用户会认为这个请求成功，但是其他系统消费消息时，系统出现问题，导致数据丢失，最后就会发生数据不一致等问题
 
-**分类**
-
-| 特性                     | ActiveMQ                                                                                                                                                                                                                                                 | RabbitMQ                                                                                                                                                                                             | RocketMQ                                                                                                                                                                                                                            | Kafka                                                                                                                                                                                                                                                           |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 单机吞吐量               | 万级                                                                                                                                                                                                                                                     | 万级                                                                                                                                                                                                 | 10 万级，RocketMQ 也是可以支撑高吞吐的一种 MQ                                                                                                                                                                                       | 10 万级，这是 kafaka 最大的优点，就是吞吐量高，一般配合大数据类的系统来进行实时数据计算，日志采集等场景                                                                                                                                                         |
-| 时效性                   | ms 级                                                                                                                                                                                                                                                    | 微秒级，延迟最低                                                                                                                                                                                     | ms 级                                                                                                                                                                                                                               | 延迟在 ms 级内                                                                                                                                                                                                                                                  |
-| 可用性                   | 高，基于主从架构实现的高可用性                                                                                                                                                                                                                           | 高，基于主从架构实现的高可用性                                                                                                                                                                       | 非常高，分布式架构                                                                                                                                                                                                                  | 非常高，kafka 是分布式的，一个数据多个副本，少数机器宕机，不会丢失数据，不会导致不可用                                                                                                                                                                          |
-| 消息可靠性               | 有较低的概率丢失数据                                                                                                                                                                                                                                     |                                                                                                                                                                                                      | 经过参数优化配置，可以做到 0 丢失                                                                                                                                                                                                   | 经过参数优化配置，可以做到 0 丢失                                                                                                                                                                                                                               |
-| topic 数量对吞吐量的影响 |                                                                                                                                                                                                                                                          |                                                                                                                                                                                                      | 支持 10 亿级别的消息堆积，不会因为堆积导致性能下降                                                                                                                                                                                  |                                                                                                                                                                                                                                                                 |
-| 功能支持                 | MQ 领域的功能极其完备                                                                                                                                                                                                                                    | 基于 erlang 开发，所以并发能力很强，性能极其好，延时很低                                                                                                                                             | MQ 功能较为完善，还是分布式的，扩展性好                                                                                                                                                                                             | 功能较为简单，主要支持简单的 MQ 功能，在大数据领域的实时计算以及日志采集被大规模使用，是事实上的标准                                                                                                                                                            |
-| 优劣势总结               | 非常成熟，功能强大，以前在业内大量的公司以及项目中都有应用，偶尔会有较低概率丢失消息，但是现在社区以及国内应用都越来越少，官方社区现在对 ActiveMQ 5.x 维护越来越少，几个月才发布一个版本而且确实主要是基于解耦和异步来用的，较少在大规模吞吐的场景中使用 | erlang 语言开发，性能极其好，延时很低；吞吐量到万级，MQ 功能比较完备而且开源提供的管理界面非常棒，用起来很好用,社区活跃度高，更新频率相当高。RabbitMQ 吞吐量会低一些，这是因为他做的实现机制比较重。 | 出自阿里巴巴的开源产品，用 java 语言实现，接口简单易用，被阿里广泛应用在订单，交易，充值，流计算，消息推送，日志流处理等场景，可以做到大规模吞吐，性能也非常好，分布式扩展也很方便，社区维护还可以，还可以支撑大规模的 topic 数量。 | kafka 的特点其实很明显，就是仅仅提供较少的核心功能，但是提供超高的吞吐量，ms 级的延迟，极高的可用性以及可靠性，而且分布式可以任意扩展同时 kafka 最好是支撑较少的 topic 数量即可，保证其超高吞吐量，目前已经被 LinkedIn，Uber, Twitter, Netflix 等大公司所采纳。 |
-
-**MQ 的选择**
+##### MQ 的选择
 
 1. Kafka
 
@@ -43,4 +30,233 @@ Kafka 主要特点是基于 Pull 的模式来处理消息消费，追求高吞�
 
 3. RabbitMQ
 
-结合 erlang 语言本身的并发优势，性能好时效性微秒级，社区活跃度也比较高，管理界面用起来十分方便，如果你的数据量没有那么大，中小型公司优先选择功能比较完备的 RabbitMQ。
+结合 erlang 语言本身的并发优势，性能好，时效性微秒级，社区活跃度也比较高，管理界面用起来十分方便，如果你的数据量没有那么大，中小型公司优先选择功能比较完备的 RabbitMQ。
+
+| 特性                     | ActiveMQ                                                                                                                                                                                 | RabbitMQ                                                                                                                                                                           | RocketMQ                                                                                                                                                                                                                            | Kafka                                                                                                                                                                                                                                                         |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 单机吞吐量               | 万级                                                                                                                                                                                     | 万级                                                                                                                                                                               | 10 万级                                                                                                                                                                                                                             | 10 万级景                                                                                                                                                                                                                                                     |
+| 时效性                   | ms 级                                                                                                                                                                                    | 微秒级，延迟最低                                                                                                                                                                   | ms 级                                                                                                                                                                                                                               | 延迟在 ms 级内                                                                                                                                                                                                                                                |
+| 可用性                   | 高，基于主从架构实现的高可用性                                                                                                                                                           | 高，基于主从架构实现的高可用性                                                                                                                                                     | 非常高，分布式架构                                                                                                                                                                                                                  | 非常高，kafka 是分布式的，一个数据多个副本，少数机器宕机，不会丢失数据，不会导致不可用                                                                                                                                                                        |
+| 消息可靠性               | 有较低的概率丢失数据                                                                                                                                                                     | 基本不丢                                                                                                                                                                           | 经过参数优化配置，可以做到 0 丢失                                                                                                                                                                                                   | 经过参数优化配置，可以做到 0 丢失                                                                                                                                                                                                                             |
+| topic 数量对吞吐量的影响 |                                                                                                                                                                                          |                                                                                                                                                                                    | 支持 10 亿级别的消息堆积，不会因为堆积导致性能下降，如果达到几百/几千的级别，吞吐量会有较小幅度的下降，这事 RocketMQ 的一大优势，在同等机器侠，可以支持大量的 topic                                                                 | topic 从几十到几百个的时候，吞吐量会大幅度下降，在同等机下，Kafka 尽量保证 topic 数量不要过多，如果要支撑大规模的 topic，需要增加更多的机器资源                                                                                                               |
+| 功能支持                 | MQ 领域的功能极其完备                                                                                                                                                                    | 基于 erlang 开发，并发能力很强，性能极其好，延时很低                                                                                                                               | MQ 功能较为完善，还是分布式的，扩展性好                                                                                                                                                                                             | 功能较为简单，主要支持简单的 MQ 功能，在大数据领域的实时计算、日志采集被大规模使用                                                                                                                                                                            |
+| 优劣势总结               | 偶尔会有较低概率丢失消息，现在社区活跃度低，国内应用都越来越少；官方社区现在对 ActiveMQ 5.x 维护越来越少，几个月才发布一个版本，主要是基于解耦和异步来用的，较少在大规模吞吐的场景中使用 | 性能极其好，延时很低；吞吐量到万级，MQ 功能比较完备而且开源提供的管理界面非常棒，用起来很好用，社区活跃度高，更新频率相当高。RabbitMQ 吞吐量会低一些，这是因为他做的实现机制比较重 | 出自阿里巴巴的开源产品，用 java 语言实现，接口简单易用，被阿里广泛应用在订单，交易，充值，流计算，消息推送，日志流处理等场景，可以做到大规模吞吐，性能也非常好，分布式扩展也很方便，社区维护还可以，还可以支撑大规模的 topic 数量。 | kafka 的特点其实很明显，就是仅仅提供较少的核心功能，但是提供超高的吞吐量，ms 级的延迟，极高的可用性以及可靠性，而且分布式可以任意扩展同时 kafka 最好是支撑较少的 topic 数量即可，保证其超高吞吐量，目前已经被 LinkedIn，Uber, Twitter, Netflix 等大公司所采纳 |
+
+##### 通信模型
+
+**点对点模式 queue**
+
+消息生产者发送到 queue 中，然后消息消费者从 queue 中取出并消费信息，一条消息被消费以后，queue 中就没有了，不存在重复消费的问题
+
+**发布/订阅 topic**
+
+消息生产者（发布）将消息发布到 topic 中，同时有多个消息消费者（订阅）消费该消息。和点对点方式不同，发布到 topic 的消息会被所有的订阅者消费（类似于关注了微信公众号的人都能收到推送的文章）。
+
+补充：发布订阅模式下，当发布者消息量很大时，显然单个订阅者的处理能力是不足的。实际上现实场景中多个订阅者节点组成一个订阅组负载均衡消费 topic 消息即分组订阅，这样订阅者很容易实现消费能力线扩展。可以看成是一个 topic 下有多个 Queue，每个 Queue 是点对点的方式，Queue 之间是发布订阅方式。
+
+##### SpringBoot 中使用注解的方式创建队列和交换机
+
+## 创建交换机
+
+交换机的声明比较简单，通过 ExchangeBuilder 创建一个路由交换机
+
+```java
+public static final  String EXCHANGE_DIRECT = "exchange.direct";
+
+/**
+* 申明交换机
+*/
+@Bean(EXCHANGE_DIRECT)
+public Exchange EXCHANGE_DIRECT() {
+    // 申明路由交换机，durable:在rabbitmq重启后，交换机还在
+    return ExchangeBuilder.directExchange(EXCHANGE_DIRECT).durable(true).build();
+}
+```
+
+## 创建队列
+
+队列的话，我们直接使用 new Queue() 传入队列名称即可
+
+```java
+public static final  String MOGU_BLOG = "mogu.blog";
+public static final  String MOGU_EMAIL = "mogu.email";
+public static final  String MOGU_SMS = "mogu.sms";
+
+/**
+* 申明Blog队列
+* @return
+*/
+@Bean(MOGU_BLOG)
+public Queue MOGU_BLOG() {
+    return new Queue(MOGU_BLOG);
+}
+
+/**
+* 申明Email队列
+* @return
+*/
+@Bean(MOGU_EMAIL)
+public Queue MOGU_EMAIL() {
+    return new Queue(MOGU_EMAIL);
+}
+
+/**
+* 申明SMS队列
+* @return
+*/
+@Bean(MOGU_SMS)
+public Queue MOGU_SMS() {
+    return new Queue(MOGU_SMS);
+}
+```
+
+## 绑定交换机和队列
+
+在我们创建完交换机和队列后，我们就需要将其绑定起来，在这里需要使用`@Qualifie` 从 Spring 容器中加载前面创建的 Bean，也就是队列和交换机，然后通过 `BindingBuilder.bind(queue).to(exchange)` 进行绑定，同时我们还需要配置 RoutingKey，也就是路由
+
+```java
+public static final  String ROUTING_KEY_BLOG = "mogu.blog";
+public static final  String ROUTING_KEY_EMAIL = "mogu.email";
+public static final  String ROUTING_KEY_SMS = "mogu.sms";
+
+/**
+* mogu.blog 队列绑定交换机，指定routingKey
+* @param queue
+* @param exchange
+* @return
+*/
+@Bean
+public Binding BINDING_QUEUE_INFORM_BLOG(@Qualifier(MOGU_BLOG) Queue queue, @Qualifier(EXCHANGE_DIRECT) Exchange exchange) {
+    return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_BLOG).noargs();
+}
+
+/**
+* mogu.mail 队列绑定交换机，指定routingKey
+* @param queue
+* @param exchange
+* @return
+*/
+@Bean
+public Binding BINDING_QUEUE_INFORM_EMAIL(@Qualifier(MOGU_EMAIL) Queue queue, @Qualifier(EXCHANGE_DIRECT) Exchange exchange) {
+    return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_EMAIL).noargs();
+}
+
+/**
+* mogu.sms 队列绑定交换机，指定routingKey
+* @param queue
+* @param exchange
+* @return
+*/
+@Bean
+public Binding BINDING_QUEUE_INFORM_SMS(@Qualifier(MOGU_SMS) Queue queue, @Qualifier(EXCHANGE_DIRECT) Exchange exchange) {
+    return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_BLOG).noargs();
+}
+
+
+```
+
+## 完整代码
+
+```java
+package com.moxi.mogublog.sms.config;
+
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * RabbitMQ配置文件
+ */
+@Configuration
+public class RabbitMqConfig {
+
+    public static final  String MOGU_BLOG = "mogu.blog";
+    public static final  String MOGU_EMAIL = "mogu.email";
+    public static final  String MOGU_SMS = "mogu.sms";
+    public static final  String EXCHANGE_DIRECT = "exchange.direct";
+
+    public static final  String ROUTING_KEY_BLOG = "mogu.blog";
+    public static final  String ROUTING_KEY_EMAIL = "mogu.email";
+    public static final  String ROUTING_KEY_SMS = "mogu.sms";
+
+
+    /**
+     * 申明交换机
+     */
+    @Bean(EXCHANGE_DIRECT)
+    public Exchange EXCHANGE_DIRECT() {
+        // 申明路由交换机，durable:在rabbitmq重启后，交换机还在
+        return ExchangeBuilder.directExchange(EXCHANGE_DIRECT).durable(true).build();
+    }
+
+    /**
+     * 申明Blog队列
+     * @return
+     */
+    @Bean(MOGU_BLOG)
+    public Queue MOGU_BLOG() {
+        return new Queue(MOGU_BLOG);
+    }
+
+    /**
+     * 申明Email队列
+     * @return
+     */
+    @Bean(MOGU_EMAIL)
+    public Queue MOGU_EMAIL() {
+        return new Queue(MOGU_EMAIL);
+    }
+
+    /**
+     * 申明SMS队列
+     * @return
+     */
+    @Bean(MOGU_SMS)
+    public Queue MOGU_SMS() {
+        return new Queue(MOGU_SMS);
+    }
+
+    /**
+     * mogu.blog 队列绑定交换机，指定routingKey
+     * @param queue
+     * @param exchange
+     * @return
+     */
+    @Bean
+    public Binding BINDING_QUEUE_INFORM_BLOG(@Qualifier(MOGU_BLOG) Queue queue, @Qualifier(EXCHANGE_DIRECT) Exchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_BLOG).noargs();
+    }
+
+    /**
+     * mogu.mail 队列绑定交换机，指定routingKey
+     * @param queue
+     * @param exchange
+     * @return
+     */
+    @Bean
+    public Binding BINDING_QUEUE_INFORM_EMAIL(@Qualifier(MOGU_EMAIL) Queue queue, @Qualifier(EXCHANGE_DIRECT) Exchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_EMAIL).noargs();
+    }
+
+    /**
+     * mogu.sms 队列绑定交换机，指定routingKey
+     * @param queue
+     * @param exchange
+     * @return
+     */
+    @Bean
+    public Binding BINDING_QUEUE_INFORM_SMS(@Qualifier(MOGU_SMS) Queue queue, @Qualifier(EXCHANGE_DIRECT) Exchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_BLOG).noargs();
+    }
+
+
+    @Bean
+    public MessageConverter messageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+}
+```
