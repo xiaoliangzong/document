@@ -460,6 +460,34 @@ TransactionDefinition.PROPAGATION_NEVER：以非事务方式运行，如果当�
 避免 Spring 的 AOP 的自调用问题
 在 Spring 的 AOP 代理下，只有目标方法由外部调用，目标方法才由 Spring 生成的代理对象来管理，这会造成自调用问题。若同一类中的其他没有@Transactional 注解的方法内部调用有@Transactional 注解的方法，有@Transactional 注解的方法的事务被忽略，不会发生回滚。
 
+注意，同一个类中，事务嵌套以最外层的方法为准，嵌套的事务失效；不同类中嵌套的事务才会生效；
+
+### 事务的传播方式
+
+| 事务传播方式              | 说明                                                                                               |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| PROPAGATION_REQUIRED      | 如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。这是默认的传播方式     |
+| PROPAGATION_SUPPORTS      | 支持当前事务，如果当前没有事务，就以非事务方式执行                                                 |
+| PROPAGATION_MANDATORY     | 使用当前的事务，如果当前没有事务，就抛出异常                                                       |
+| PROPAGATION_REQUIRES_NEW  | 新建事务，如果当前存在事务，把当前事务挂起                                                         |
+| PROPAGATION_NOT_SUPPORTED | 以非事务方式执行操作，如果当前存在事务，就把当前事务挂起                                           |
+| PROPAGATION_NEVER         | 以非事务方式执行，如果当前存在事务，则抛出异常                                                     |
+| PROPAGATION_NESTED        | 如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与 PROPAGATION_REQUIRED 类似的操作。 |
+
+### 事务常见问题汇总
+
+1.  org.springframework.transaction.UnexpectedRollbackException: Transaction rolled back because it has been marked as rollback-only
+
+不可预知的回滚异常，因为事务已经被标记为只能回滚状态；
+
+方法 a 中调用方法 b，且 a 和 b 使用同一个事务，方法 b 出现异常，将当前事务标志为回滚，但由于在方法 a 中做了异常处理，程序没有终止而是继续执行，当执行完后，事务 commit 时，检查状态，发现需要事务回滚，所以才会出现不可预知的回滚异常（事务被标记为回滚）。
+
+解决：
+
+- 方法 a 和方法 b 在逻辑上不应该属于同一事务，则将嵌套方法 b 的事务传播属性修改为：PROPAGATION_REQUIRES_NEW，这样执行方法 b 时，会创建一个新事务，不会影响方法 a 中的事务；
+- 方法 a 和方法 b 属于同一事务，则将异常处理去掉，或者 catch 里边在抛出异常，也可以 catch 里边手动回滚；
+- 方法 a 和方法 b 属于同一事务，但方法 b 失败与否不能影响方法 a 的事务提交，且仍然在方法 a 中异常处理方法 b，则将嵌套方法 b 的事务传播属性修改为：PROPAGATION_NESTED，表示方法 B 是一个子事务，有一个 savepoint，失败时会回滚到保存点，不影响方法 a，方法 a 的提交和回滚可以控制 b，a 与 b 都是一个事务，只是 b 是一个子事务
+
 ## Spring 序列化
 
 > 在 java 中，一切皆对象，所有对象的状态信息转为存储或传输的形式，都需要序列化，通常建议：程序创建的每个 JavaBean 类都实现 Serializeable 接口。

@@ -49,9 +49,9 @@
 
 - **运维部署**
 
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">开发工具</font>](运维部署/开发工具/)
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">开发工具</font>](运维部署/tools.md/)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Nginx</font>](运维部署/Nginx.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Docker</font>](运维部署/docker.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">Docker</font>](运维部署/Docker.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">K8S</font>](运维部署/K8S/)
 
 - [<span style="font-weight:normal; font-size:15px; color:#364149">**设计模式**</span>](设计模式/)
