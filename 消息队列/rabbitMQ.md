@@ -3,12 +3,11 @@
 ## 1. 安装
 
 **Windows**
-如果以前安装过，则需要卸载 rabbitmq 和 erlang，erlang 必须卸载，否则会导致安装失败。
+如果以前安装过，则需要卸载 rabbitmq 和 erlang，erlang 必须卸载或者清空注册表，否则会导致安装失败。
 
 ```shell
-# 1.安装语言 erlang
+# 1.安装语言 erlang，exe文件直接安装。
 # 2. 安装 mq
-
    - 解压，配置环境变量；
    - rabbitmq-service intall                             # 安装服务，可以在管理->服务列表查看；
    - rabbitmq-plugins.bat enable rabbitmq_management     # 开启可视化插件；
@@ -20,7 +19,8 @@
 
 # 3. 添加用户
    - rabbitmqctl add_user admin fengpin@123              # 新增一个用户
-   - rabbitmqctl set_user_tags admin administrator       # 给用户添加角色，超级管理员(administrator)，监控者(monitoring)，策略制定者(policymaker)，普通管理者(management)
+   # 给用户添加角色，超级管理员(administrator)，监控者(monitoring)，策略制定者(policymaker)，普通管理者(management)
+   - rabbitmqctl set_user_tags admin administrator
    - rabbitmqctl set_permissions -p / User ".*" ".*" ".*"     # 授权，-p  VHostPath  User  ConfP  WriteP  ReadP
    - rabbitmqctl change_password guest xxx               # 更改 guest 密码
    - rabbitmqctl delete_user guset                       # 删除 guest 用户
@@ -32,19 +32,147 @@
 
 **Linux**
 
+```shell
+# 1. 安装 erlang
+   a) 下载安装包，安装路径：http://erlang.org/download/otp_src_20.1.tar.gz
+   b) 解压缩安装包 tar -xzvf otp_src_20.1.tar.gz
+   c) 删除安装包
+   d) 安装 GCC 编译器 yum install -y gcc-c++
+   e) 安装 curses yum -y install ncurses-devel
+   f) 安装 openssl yum install openssl-devel
+   g) 安装 ODBC Library yum install unixODBC-devel
+   h) 进入目录 cd otp_src_20.1.tar.gz
+   i) 配置安装路径编译代码 ./configure --prefix=/home/tt/opt/erlang（安装路径）
+   j) 执行编译结果 make && make install
+   k) 进入安装路径 cd /home/tt/opt/erlang/bin
+   l) 验证安装 ./erl
+   m) 出现以下信息，安装成功：
+   n) 退出 halt().
+   o) 配置环境变量 vi /etc/profile
+   p) 增加环境变量 export PATH=$PATH: /home/tt/opt/erlang/bin
+   q) 使环境变量生效 source /etc/profile
+# 2. RabbitMQ 安装配置
+   a) 下载安装包 wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.1/rabbitmq-server-generic-unix-3.6.1.tar.xz
+   b) 解压
+   xz -d rabbitmq-server-generic-unix-3.6.1.tar.xz
+   tar -xvf rabbitmq-server-generic-unix-3.6.1.tar
+   c) 删除安装包
+   d) 配置环境变量 vi /etc/profile
+   e) 增加环境变量 export PATH=$PATH:/home/tt/download/rabbitmq*server-3.6.1/sbin
+   f) 启动服务 rabbitmq-server
+   g) 另起终端，启动插件 rabbitmq-plugins enable rabbitmq_management
+   h) 登陆管理页面，登陆 http://localhost:15672/，账号密码均为 guest，Guest 用户仅限 localhost 访问，外网访问需要新建权限用户
+   i) 新建用户 rabbitmqctl add_user tt tt
+   j) 赋予管理员角色 rabbitmqctl set_user_tags tt administrator
+   k) 赋予权限 rabbitmqctl set_permissions tt '.*' '.\_' '.\*'
+```
+
 **Docker**
 
-## 2. RabbitMQ 消息模型
+```shell
+# 1. 拉取镜像
+docker pull rabbitmq:3.10.6
+# 2. 运行，-e 设置参数
+docker run -it --name rabbit -p 15672:15672 -p 5672:5672 -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=Dangbo@123 rabbitmq:3.10.6
+# 3. 开启可视化插件
+docker exec -it [containerId] /bin/bash      # 进入容器
+rabbitmq-plugins enable rabbitmq_management
+
+# 4. 解决问题，点击Channel时提示 Stats in management UI are disabled on this node
+docker exec -it [containerId] /bin/bash      # 进入容器
+cd /etc/rabbitmq/conf.d
+# 修改 management_agent.disable_metrics_collector = false
+echo management_agent.disable_metrics_collector = false > management_agent.disable_metrics_collector.conf
+exit                                         # 退出容器
+docker restart [containerId]                 # 重启
+```
+
+## 2. 核心组件
+
+RabbitMQ 的 Java 客户端使用 com.rabbitmq.client 作为顶级包。
+
+- Connection：代表 AMQP 0-9-1 连接；通过 ConnectionFactory 构建 Connection 实例，Connection（连接）用于开启通道；
+- Channel：代表 AMQP 0-9-1 通道，提供了大多数操作协议方法，承载生成者、消费者、队列的交互；
+- Exchange：交换机，接受生产者生产的消息；
+- Queue：队列；
+- Binding：绑定交换机和队列；
+- RoutingKey：路由键，每一条消息的具体绑定关系表达式；
+- Consumer：消息的消费者，DefaultConsumer 消费者通用的基类；
+
+RabbitTemplate 发送方式
+
+- send()，不会对消息进行转换，传递进去是什么消息，就会往 RabbitMQ Server 中发送什么消息；
+- convertAndSend()，会将传递进去的消息进行转换，并将转换过后的消息发送到 RabbitMQ Server 中；输出时没有顺序，交换机会马上把所有的信息都交给所有的消费者，消费者再自行处理，不会因为消费者处理慢而阻塞线程。
+- convertSendAndReceive()，使用此方法，只有确定消费者接收到消息，才会发送下一条信息，每条消息之间会有间隔时间
+
+api 方式
+rabbitmq 提供的 api 1、 直接调用 api 方式，直观、繁琐、功能完善。
+2、 流程为创建链接、通道、配置相关参数、生产者推消息、消费者处理消息。
+3、 第一次建立通道时，声明相关参数。
+4、 消费者在声明 channel 时，不涉及 queue 之外的配置参数。
+5、 默认自动应答（平均分发）。
+springBoot 集成的 api 1、 注解方式，简洁、控制不完全。
+2、 在@RabbitListener 注解时，声明生产者相关的 channel 参数，项目启动时扫描注解，创建相关通道。
+3、 实际使用时，消费者也不涉及 queue 之外的配置参数，即不受注解内参数影响。
+4、 生产者相关代码不涉及建立连接、通道配置相关内容。
+5、 默认手动应答（公平分发，隐式）。
+
+消费过程：
+1、 流量控制：限制服务端分发给同一个消费者未处理消息的数量；
+2、 获取消息方式：主动轮询、订阅；
+3、 消息分发机制：
+a) 自动应答、轮询分发：
+服务端轮流分发给各个客户端，易于水平拓展；
+b) 手动应答、公平分发：
+客户端执行完消息后，手动应答服务端本条消息执行完成。能根据各消费者实际能力分发消息；
+
+生产过程：
+1、 路由、队列持久化： 服务关闭后，队列、路由是否保留；
+2、 消息持久化：服务关闭后，队列中消息是否保留；
+3、 自动删除：最后一个消费者链接断开后，是否自动删除队列；
+4、 绑定关系表达式：通配符\*表示单个词，#表示多个词；
+
+**额外配置**
+
+1、x-priority: basic.consume 方法参数(int)。用于设定 consumer 的优先级，数字越大，优先级越高，默认是 0，可以设置负数。
+2、alternate-exchange: exchange.declare 方法参数(str，AE 的名称)。当一个消息不能被 route 的时候，如果 exchange 设定了 AE，则消息会被投递到 AE。如果存在 AE 链，则会按此继续投递，直到消息被 route 或 AE 链结束或遇到已经尝试 route 过消息的 AE。
+3、x-message-ttl: queue.declare 方法参数(毫秒，非负整数)，用于限定 queue 上消息的生存时间，可配合 DLX。
+消息可通过设置 expiration 控制自己的过期时间。queue 设定的 ttl 和消息自己的 ttl 由两者的小值生效。
+4、x-expires:queue.declare 方法参数(毫秒，正整数)，用于限定 queue 自身的生存时间。
+5、x-dead-letter-exchange: queue.declare 方法参数(str，DLX 的名称)。
+6、x-dead-letter-routing-key: queue.declare 方法参数(str，DLX 的 route)。不设定则使用 message 自身的 route。
+7、x-max-length: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息总数。
+8、x-max-length-bytes: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息的 body 总字节数。
+两种限制可同时设置，最先到达的限制条件将被生效。
+9、x-max-priority: queue.declare 方法参数(int)。rabbitmq3.5.0 版本后支持优先队列。由于优先队列是一种特殊的持久化方式，使得优先队列只能通过 arguments 的方式声明，且声明后不可改变其支持的 priorities。
+对每一个优先队列的每一个优先级在内存、磁盘都有单独的开销；及额外的 CPU 开销，特别是在 consume 的时候。
+通过在 message 的 basic.properties 中指明 priority(unsigned byte, 0-255)，较大的数对应较高的优先级。若未指明 message 的 priority 则 priority 默认为 0。
+若 message 的 priority 大于 queue 的 maximum priority 则 priority 被认为是 maximum priority。
+对于优先队列，有如下注意事项：
+由于默认情况下 consumer 的预取消息，消息可能会立即被投递给 consumer，而导致优先级关系不能被处理。因而需要在 ack 模式下设定 basic.qos 的 prefetch_count,限制消息的投递。
+如果优先队列设置了 message-ttl，则由于 server 的 ttl 清理是从 head 方向检测处理的，低优先级的过期消息可能会一直存在而无法被清理，且会被统计(如 ready 的消息数，但不会被 deliver)。
+如果优先队列设置了 max-length，则由于 server 从 head 方向 drop 消息以使限制生效，使得高优先级的消息被 drop 掉，而预留位置给低优先级的消息，可能和使用优先队列的初衷背离。
+10、user-id：channel.basicPublish 中指定的 BasicProperties 字段。用于验证 publisher。其值应与建立 connection 的 user 名称一致。
+若需要伪造验证，user-id 可使用 impersonator tag,但不能使用 administrator tag。
+federation 从 upstream 收到消息时会丢弃 user-id，除非在 upstream 设置 trust-user-id 属性。
+11、authentication_failure_close: broker capability. 用于 client 区分鉴权错误还是网络错误，在 AMQP091 中要求鉴权失败则 broker 关闭连接，以至于 client 无法区分于实际的网络连接错误。
+当开启这个设置时，broker 在鉴权失败后向客户端发送 connection.close 的命令并附带 ACCESS_REFUSED 的原因标识。
+
+## 3. RabbitMQ 消息模型
 
 RabbitMQ 提供了 6 种消息模型，但是第 6 种其实是 RPC，并不是 MQ，因此不予学习。那么也就剩下 5 种。但是其实 3、4、5 这三种都属于订阅模型，只不过进行路由的方式不同。
 
-## 2.1 基本模型
+## 3.1 基本模型
 
 顾名思义，你可以把它理解为所有模式的雏形，最简单的消息模式，使用的是默认交换机。
 
-## 2.2 work 模型
+![Hello World](../public/images/Rabbitmq-helloworld.png)
+
+## 3.2 work 模型
 
 多个消费者绑定到一个队列，共同消费队列中的消息。队列中的消息一旦消费，就会消失，因此任务是不会被重复执行的，使用的也是默认交换机。
+
+![Work Queues](../public/images/Rabbitmq-work.png)
 
 `注意：`
 
@@ -58,40 +186,27 @@ channel.basicQos(1);
 channel.basicAck(envelope.getDeliveryTag(), false);
 ```
 
-## 2.3 发布订阅模型（Fanout）
+## 3.3 发布订阅模型（Fanout）
 
 交换机和列队直接绑定，不需要指定 routingkey，所以他的消息传输速度是发布订阅模式中最快的。
 
-## 2.4 发布订阅模型（Direct）
+![Publish/Subscribe](../public/images/Rabbitmq-publishsubscribe.png)
+![Fanout](../public/images/Rabbitmq-Fanout.png)
 
-与 fanout 模式相比，direct 模式需要 RoutingKey 将队列和交换机绑定
+## 3.4 发布订阅模型（Direct）
 
-## 2.4 发布订阅模型（Topic）
+与 fanout 模式相比，direct 模式需要 RoutingKey 将队列和交换机绑定。
 
-与之前的两种模式相比，区别在于：它可以通过 RoutingKey，将交换机和队列机进行模糊匹配绑定
+![Direct](../public/images/Rabbitmq-Direct.png)
+
+## 3.4 发布订阅模型（Topic）
+
+与之前的两种模式相比，区别在于：它可以通过 RoutingKey，将交换机和队列机进行模糊匹配绑定，满足较复杂的生产消息存放到队列的匹配过程。
 
 - \*，有且只匹配一个词
 - #，匹配一个或多个词
 
-## 3. API
-
-RabbitMQ Java 客户端使用 com.rabbitmq.client 作为它的顶级包。关键的类和接口有：
-
-- Channel: 代表 AMQP 0-9-1 通道，并提供了大多数操作（协议方法）。
-- Connection: 代表 AMQP 0-9-1 连接
-- ConnectionFactory: 构建 Connection 实例
-- Consumer: 代表消息的消费者
-- DefaultConsumer: 消费者通用的基类
-- BasicProperties: 消息的属性（元信息）
-- BasicProperties.Builder: BasicProperties 的构建器
-
-通过 Channel（通道）的接口可以对协议进行操作。Connection（连接）用于开启通道，注册连接的生命周期内的处理事件，并且关闭不再需要的连接。ConnectionFactory 用于实例化 Connection 对象，并且可以通过 ConnectionFactory 来进行诸如 vhost、username 等属性的设置。
-
-RabbitTemplate 发送方式
-
-- send()，不会对消息进行转换，传递进去是什么消息，就会往 RabbitMQ Server 中发送什么消息；
-- convertAndSend()，会将传递进去的消息进行转换，并将转换过后的消息发送到 RabbitMQ Server 中；输出时没有顺序，交换机会马上把所有的信息都交给所有的消费者，消费者再自行处理，不会因为消费者处理慢而阻塞线程。
-- convertSendAndReceive()，使用此方法，只有确定消费者接收到消息，才会发送下一条信息，每条消息之间会有间隔时间
+![Topic](../public/images/Rabbitmq-Topic.png)
 
 ## 4. 消息确认机制 confirm
 
@@ -109,5 +224,5 @@ RabbitTemplate 发送方式
 
 1. 生产者丢失消息，producer 将数据发送到 rabbitmq 的时候，可能因为网络问题导致数据在半路给搞丢了
    - 使用事务（性能差），使用通道 channel 的方法设置事务；
-   - 发送回执确认（推荐），confirm 模式
+   - 发送回执确认（推荐），confirm 模式，
    -
