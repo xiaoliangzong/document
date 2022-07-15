@@ -17,7 +17,7 @@
   - [<span style="font-weight:normal; font-size:13px; color:#364149">认证鉴权</span>](Java/认证鉴权/)
 
     - [Security](Java/认证鉴权/Security.md)
-    - [OAuth2](Java/认证鉴权/Security.md)
+    - [OAuth2](Java/认证鉴权/OAuth2.md)
 
   - [<span style="font-weight:normal; font-size:13px; color:#364149">微服务</span>](Java/微服务/)
 
