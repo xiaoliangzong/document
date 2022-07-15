@@ -123,25 +123,37 @@ RabbitMQ 提供了 7 种消息模型。第 6 种是 RPC 拉取方式，基本不
 
 ### 3.1 Simple 模型
 
-顾名思义，可以把它理解为所有模式的雏形，最简单的消息模式，使用的是默认交换机。
+最简单的消息模式，使用的是默认交换机。
 
 <img name="Hello World" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-helloworld.png" witdh= "60%" height="150px">
 
 ### 3.2 Work 模型
 
-多个消费者绑定到一个队列，共同消费队列中的消息。队列中的消息一旦消费，就会消失，因此任务是不会被重复执行的，使用的也是默认交换机。
+多个消费者绑定到一个队列，共同消费队列中的消息；队列中的消息一旦消费，就会消失，每个消费者获取到的消息唯一，使用的也是默认交换机。
 
-![Work Queues](https://xiaoliangzong.github.io/document/public/images/Rabbitmq-work.png)
+<img name="Work Queues" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-work.png" witdh= "60%" height="150px">
 
-`注意：`
+<div style="color:red">
 
-`因为队列中的数据，默认会平均分发给每个消费者，但是如果有的消费者处理能力很差，就会导致有些消息分发给低能消费者，低能消费者不能及时处理，导致消息处理很慢。`
+可能出现的两个问题：
+
+1. 队列中的数据，默认会平均分发给每个消费者，也就是将所有消息以轮询的方法交给消费者消费；如果有的消费者处理能力很差，就会导致有些消息分发给低能消费者，低能消费者不能及时处理，导致消息处理很慢；
+2. MQ 默认使用自动确认机制，只要消费者从队列中获取了消息，无论是否消费成功，都认为消息已经被消费，队列会把该消息数据删掉；如果消费者消费时遇到异常时（比如宕机、重启等），消息就会丢失。
+
+在实际使用过程中，通过同一时刻 MQ 只会发一条消息给消费者来解决第一个问题，从而达到能者多劳的效果，处理消息能力强的消费者获取更多的消息；通过手动确认的方式来保证数据的不丢失。
+
+手动确认机制：消费者从队列获取消息后，MQ 服务器会将该消息标记为不可用（Unacked），等待消费者反馈。如果一直没有反馈，则一直未不可用状态，该消息不会被删除也不能被消费，当出现 Unacked 的消息时，只需要断开连接或重启 RabbitMQ，被标记 Unacked 状态的消息就会重新变为 Ready 状态。</div>
 
 ```java
-// 每次都从队列里拿一个消息进行消费，消费完成再从队列里获取另一个消息进行消费，这行代码就是实现能者多劳的效果。如果不写的话队列就会一股脑的把消息平均分配给所有消费者，那么就不能实现能者多劳的效果
+/*
+   每次都从队列里拿一个消息进行消费，消费完成再从队列里获取另一个消息进行消费，这行代码就是实现能者多劳的效果。
+   如果不写的话队列就会一股脑的把消息平均分配给所有消费者，那么就不能实现能者多劳的效果
+*/
 channel.basicQos(1);
-// 手动确认，防止消息还没有消费完成，mq把消息自动删除
-// 参数：确认队列中哪个具体消息、是否开启多个消息同时确认
+/*
+   手动确认，防止消息还没有消费完成，mq把消息自动删除
+   参数：确认队列中哪个具体消息、是否开启多个消息同时确认
+*/
 channel.basicAck(envelope.getDeliveryTag(), false);
 ```
 
@@ -149,23 +161,36 @@ channel.basicAck(envelope.getDeliveryTag(), false);
 
 交换机和列队直接绑定，不需要指定 routingkey，所以他的消息传输速度是发布订阅模式中最快的。
 
-![Publish/Subscribe](../public/images/Rabbitmq-publishsubscribe.png)
-![Fanout](../public/images/Rabbitmq-Fanout.png)
+<img name="Publish/Subscribe" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-publishsubscribe.png" witdh= "60%" height="150px">
+
+<img name="Fanout" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-Fanout.png" witdh= "60%" height="150px">
 
 ### 3.4 发布订阅模型（Direct）
 
 与 fanout 模式相比，direct 模式需要 RoutingKey 将队列和交换机绑定。
 
-![Direct](../public/images/Rabbitmq-Direct.png)
+<img name="Direct" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-routing.png" witdh= "60%" height="150px">
 
-### 3.4 发布订阅模型（Topic）
+<img name="Direct" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-Direct.png" witdh= "60%" height="150px">
+
+### 3.5 发布订阅模型（Topic）
 
 与之前的两种模式相比，区别在于：它可以通过 RoutingKey，将交换机和队列机进行模糊匹配绑定，满足较复杂的生产消息存放到队列的匹配过程。
 
 - \*，有且只匹配一个词
 - #，匹配一个或多个词
 
-![Topic](../public/images/Rabbitmq-Topic.png)
+<img name="Topic" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-topics.png" witdh= "60%" height="150px">
+
+<img name="Topic" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-Topic.png" witdh= "60%" height="150px">
+
+### 3.6 RPC 模型
+
+基本不用
+
+<img name="Topic" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-rpc.png" witdh= "60%" height="150px">
+
+### 3.7 Publisher Confirms 模型
 
 ## 4. 简单 Demo
 
