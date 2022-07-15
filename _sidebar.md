@@ -44,6 +44,7 @@
 
 - **消息队列**
 
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">MQ</span>](消息队列/)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">RabbitMQ</span>](消息队列/RabbitMQ.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Kafka</span>](消息队列/Kafka.md)
 
