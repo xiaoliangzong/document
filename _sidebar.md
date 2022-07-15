@@ -57,6 +57,7 @@
 
 - **设计模式**
 
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">前言</span>](设计模式/)
   - [<span style="font-weight:normal; font-size:13px; color:#364149">创建型</span>](设计模式/创建型.md)
   - [<span style="font-weight:normal; font-size:13px; color:#364149">结构型</span>](设计模式/结构型.md)
   - [<span style="font-weight:normal; font-size:13px; color:#364149">行为型</span>](设计模式/行为型.md)
