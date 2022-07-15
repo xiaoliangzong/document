@@ -1,3 +1,3 @@
-# OAuth2
+# public/images/
 
 ## ....
