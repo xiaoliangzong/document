@@ -44,12 +44,12 @@
 
 - [<span style="font-weight:normal; font-size:15px; color:#364149">**消息队列**</span>](消息队列/)
 
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Rabbit</font>](消息队列/RabbitMQ.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">RabbitMQ</font>](消息队列/RabbitMQ.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Kafka</font>](消息队列/Kafka.md)
 
 - **运维部署**
 
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">开发工具</font>](运维部署/tools.md/)
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">开发工具</font>](运维部署/tools.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Nginx</font>](运维部署/Nginx.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Docker</font>](运维部署/Docker.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">K8S</font>](运维部署/K8S/)
