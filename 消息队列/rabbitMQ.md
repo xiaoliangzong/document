@@ -1,4 +1,4 @@
-# RabbitMQ
+﻿# RabbitMQ
 
 ## 1. 安装
 
