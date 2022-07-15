@@ -42,7 +42,7 @@
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Shell</span>](计算机基础/shell.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">bat</span>](计算机基础/bat.md)
 
-- [<span style="font-weight:normal; font-size:15px; color:#364149">**消息队列**</span>](消息队列/)
+- **消息队列**
 
   - [<span style="font-weight:normal; font-size:15px; color:#364149">RabbitMQ</span>](消息队列/RabbitMQ.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Kafka</span>](消息队列/Kafka.md)
@@ -54,7 +54,7 @@
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Docker</span>](运维部署/Docker.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">K8S</span>](运维部署/K8S/)
 
-- [<span style="font-weight:normal; font-size:15px; color:#364149">**设计模式**</span>](设计模式/)
+- **设计模式**
 
   - [<span style="font-weight:normal; font-size:13px; color:#364149">创建型</span>](设计模式/创建型.md)
   - [<span style="font-weight:normal; font-size:13px; color:#364149">结构型</span>](设计模式/结构型.md)
