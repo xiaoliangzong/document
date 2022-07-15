@@ -125,13 +125,13 @@ RabbitMQ 提供了 7 种消息模型。第 6 种是 RPC 拉取方式，基本不
 
 顾名思义，可以把它理解为所有模式的雏形，最简单的消息模式，使用的是默认交换机。
 
-<img name="Hello World" src="../public/images/Rabbitmq-helloworld.png" witdh= "60%" height="150px">
+<img name="Hello World" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-helloworld.png" witdh= "60%" height="150px">
 
 ### 3.2 Work 模型
 
 多个消费者绑定到一个队列，共同消费队列中的消息。队列中的消息一旦消费，就会消失，因此任务是不会被重复执行的，使用的也是默认交换机。
 
-![Work Queues](../public/images/Rabbitmq-work.png)
+![Work Queues](https://xiaoliangzong.github.io/document/public/images/Rabbitmq-work.png)
 
 `注意：`
 
