@@ -87,6 +87,7 @@ docker run -it --name=xxx -p xx:xx <images>
 	# -p 指定端口      格式： -p ip:主机端口:容器端口
 	# -P 随机分配端口
   # -e 环境配置，比如mysql设置密码 -e MYSQL_ROOT_PASSWORD=123456
+  # --restart  重启策略，重启是由Docker守护进程完成的；no默认策略，容器退出时不重启容器、on-failure容器非正常退出时才会重启、on-failure:3 容器非正常退出时最多重启三次、always容器退出时总是重启、unless-stopped容器退出时总是重启，但不考虑Docker守护进程启动时就已经停止了的容器
 exit 			      	# 直接容器停止并退出
 Ctrl + P + Q      # 容器不停止退出
 docker ps 		  	# 列出所有运行的容器，-a 列出停止的容器，-n 显示最近创建的容器(包括所有状态)

@@ -34,37 +34,29 @@
 
 ```shell
 # 1. 安装 erlang
-   a) 下载安装包，安装路径：http://erlang.org/download/otp_src_20.1.tar.gz
-   b) 解压缩安装包 tar -xzvf otp_src_20.1.tar.gz
-   c) 删除安装包
-   d) 安装 GCC 编译器 yum install -y gcc-c++
-   e) 安装 curses yum -y install ncurses-devel
-   f) 安装 openssl yum install openssl-devel
-   g) 安装 ODBC Library yum install unixODBC-devel
-   h) 进入目录 cd otp_src_20.1.tar.gz
-   i) 配置安装路径编译代码 ./configure --prefix=/home/tt/opt/erlang（安装路径）
-   j) 执行编译结果 make && make install
-   k) 进入安装路径 cd /home/tt/opt/erlang/bin
-   l) 验证安装 ./erl
-   m) 出现以下信息，安装成功：
-   n) 退出 halt().
-   o) 配置环境变量 vi /etc/profile
-   p) 增加环境变量 export PATH=$PATH: /home/tt/opt/erlang/bin
-   q) 使环境变量生效 source /etc/profile
+   - 下载解压缩安装包 tar -xzvf otp_src_20.1.tar.gz
+   - 删除安装包
+   - 安装 GCC 编译器 yum install -y gcc-c++
+   - 安装 curses yum -y install ncurses-devel
+   - 安装 openssl yum install openssl-devel
+   - 安装 ODBC Library yum install unixODBC-devel
+   - 进入目录 cd otp_src_20.1.tar.gz
+   - 配置安装路径编译代码 ./configure --prefix=/usr/local/erlang（安装路径）
+   - 执行编译结果 make && make install
+   - 进入安装路径 cd /usr/local/erlang/bin，验证安装 ./erl
+   - 配置环境变量 vi /etc/profile，增加环境变量 export PATH=$PATH: /usr/local/erlang/bin
+   - 使环境变量生效 source /etc/profile
 # 2. RabbitMQ 安装配置
-   a) 下载安装包 wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.1/rabbitmq-server-generic-unix-3.6.1.tar.xz
-   b) 解压
-   xz -d rabbitmq-server-generic-unix-3.6.1.tar.xz
-   tar -xvf rabbitmq-server-generic-unix-3.6.1.tar
-   c) 删除安装包
-   d) 配置环境变量 vi /etc/profile
-   e) 增加环境变量 export PATH=$PATH:/home/tt/download/rabbitmq*server-3.6.1/sbin
-   f) 启动服务 rabbitmq-server
-   g) 另起终端，启动插件 rabbitmq-plugins enable rabbitmq_management
-   h) 登陆管理页面，登陆 http://localhost:15672/，账号密码均为 guest，Guest 用户仅限 localhost 访问，外网访问需要新建权限用户
-   i) 新建用户 rabbitmqctl add_user tt tt
-   j) 赋予管理员角色 rabbitmqctl set_user_tags tt administrator
-   k) 赋予权限 rabbitmqctl set_permissions tt '.*' '.\_' '.\*'
+   - 下载安装包 wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.1/rabbitmq-server-generic-unix-3.6.1.tar.xz
+   - 解压 xz -d rabbitmq-server-generic-unix-3.6.1.tar.xz   tar -xvf rabbitmq-server-generic-unix-3.6.1.tar
+   - 删除安装包
+   - 配置环境变量 vi /etc/profile，增加环境变量 export PATH=$PATH:/usr/local/rabbitmq*server-3.6.1/sbin
+   - 启动服务 rabbitmq-server
+   - 另起终端，启动插件 rabbitmq-plugins enable rabbitmq_management
+   - 登陆管理页面，登陆 http://localhost:15672/，账号密码均为 guest，Guest 用户仅限 localhost 访问，外网访问需要新建权限用户
+   - 新建用户 rabbitmqctl add_user admin Dangbo@123
+   - 赋予管理员角色 rabbitmqctl set_user_tags admin administrator
+   - 赋予权限 rabbitmqctl set_permissions admin '.*' '.\_' '.\*'
 ```
 
 **Docker**
@@ -73,7 +65,7 @@
 # 1. 拉取镜像
 docker pull rabbitmq:3.10.6
 # 2. 运行，-e 设置参数
-docker run -it --name rabbit -p 15672:15672 -p 5672:5672 -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=Dangbo@123 rabbitmq:3.10.6
+docker run -it --name rabbit -p 15672:15672 -p 5672:5672 --restart unless-stopped -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=Dangbo@123 rabbitmq:3.10.6
 # 3. 开启可视化插件
 docker exec -it [containerId] /bin/bash      # 进入容器
 rabbitmq-plugins enable rabbitmq_management
@@ -98,6 +90,84 @@ RabbitMQ 的 Java 客户端使用 com.rabbitmq.client 作为顶级包。
 - Binding：绑定交换机和队列；
 - RoutingKey：路由键，每一条消息的具体绑定关系表达式；
 - Consumer：消息的消费者，DefaultConsumer 消费者通用的基类；
+
+**额外配置**
+
+1、x-priority: basic.consume 方法参数(int)。用于设定 consumer 的优先级，数字越大，优先级越高，默认是 0，可以设置负数。
+2、alternate-exchange: exchange.declare 方法参数(str，AE 的名称)。当一个消息不能被 route 的时候，如果 exchange 设定了 AE，则消息会被投递到 AE。如果存在 AE 链，则会按此继续投递，直到消息被 route 或 AE 链结束或遇到已经尝试 route 过消息的 AE。
+3、x-message-ttl: queue.declare 方法参数(毫秒，非负整数)，用于限定 queue 上消息的生存时间，可配合 DLX。
+消息可通过设置 expiration 控制自己的过期时间。queue 设定的 ttl 和消息自己的 ttl 由两者的小值生效。
+4、x-expires:queue.declare 方法参数(毫秒，正整数)，用于限定 queue 自身的生存时间。
+5、x-dead-letter-exchange: queue.declare 方法参数(str，DLX 的名称)。
+6、x-dead-letter-routing-key: queue.declare 方法参数(str，DLX 的 route)。不设定则使用 message 自身的 route。
+7、x-max-length: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息总数。
+8、x-max-length-bytes: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息的 body 总字节数。
+两种限制可同时设置，最先到达的限制条件将被生效。
+9、x-max-priority: queue.declare 方法参数(int)。rabbitmq3.5.0 版本后支持优先队列。由于优先队列是一种特殊的持久化方式，使得优先队列只能通过 arguments 的方式声明，且声明后不可改变其支持的 priorities。
+对每一个优先队列的每一个优先级在内存、磁盘都有单独的开销；及额外的 CPU 开销，特别是在 consume 的时候。
+通过在 message 的 basic.properties 中指明 priority(unsigned byte, 0-255)，较大的数对应较高的优先级。若未指明 message 的 priority 则 priority 默认为 0。
+若 message 的 priority 大于 queue 的 maximum priority 则 priority 被认为是 maximum priority。
+对于优先队列，有如下注意事项：
+由于默认情况下 consumer 的预取消息，消息可能会立即被投递给 consumer，而导致优先级关系不能被处理。因而需要在 ack 模式下设定 basic.qos 的 prefetch_count,限制消息的投递。
+如果优先队列设置了 message-ttl，则由于 server 的 ttl 清理是从 head 方向检测处理的，低优先级的过期消息可能会一直存在而无法被清理，且会被统计(如 ready 的消息数，但不会被 deliver)。
+如果优先队列设置了 max-length，则由于 server 从 head 方向 drop 消息以使限制生效，使得高优先级的消息被 drop 掉，而预留位置给低优先级的消息，可能和使用优先队列的初衷背离。
+10、user-id：channel.basicPublish 中指定的 BasicProperties 字段。用于验证 publisher。其值应与建立 connection 的 user 名称一致。
+若需要伪造验证，user-id 可使用 impersonator tag,但不能使用 administrator tag。
+federation 从 upstream 收到消息时会丢弃 user-id，除非在 upstream 设置 trust-user-id 属性。
+11、authentication_failure_close: broker capability. 用于 client 区分鉴权错误还是网络错误，在 AMQP091 中要求鉴权失败则 broker 关闭连接，以至于 client 无法区分于实际的网络连接错误。
+当开启这个设置时，broker 在鉴权失败后向客户端发送 connection.close 的命令并附带 ACCESS_REFUSED 的原因标识。
+
+## 3. RabbitMQ 消息模型
+
+RabbitMQ 提供了 7 种消息模型。第 6 种是 RPC 拉取方式，基本不用，因此不予学习；第 7 种是新出的发布者确认模式；3、4、5 这三种都属于订阅模型，只不过进行路由的方式不同。
+
+### 3.1 Simple 模型
+
+顾名思义，可以把它理解为所有模式的雏形，最简单的消息模式，使用的是默认交换机。
+
+<img name="Hello World" src="../public/images/Rabbitmq-helloworld.png" witdh= "60%" height="150px">
+
+### 3.2 Work 模型
+
+多个消费者绑定到一个队列，共同消费队列中的消息。队列中的消息一旦消费，就会消失，因此任务是不会被重复执行的，使用的也是默认交换机。
+
+![Work Queues](../public/images/Rabbitmq-work.png)
+
+`注意：`
+
+`因为队列中的数据，默认会平均分发给每个消费者，但是如果有的消费者处理能力很差，就会导致有些消息分发给低能消费者，低能消费者不能及时处理，导致消息处理很慢。`
+
+```java
+// 每次都从队列里拿一个消息进行消费，消费完成再从队列里获取另一个消息进行消费，这行代码就是实现能者多劳的效果。如果不写的话队列就会一股脑的把消息平均分配给所有消费者，那么就不能实现能者多劳的效果
+channel.basicQos(1);
+// 手动确认，防止消息还没有消费完成，mq把消息自动删除
+// 参数：确认队列中哪个具体消息、是否开启多个消息同时确认
+channel.basicAck(envelope.getDeliveryTag(), false);
+```
+
+### 3.3 发布订阅模型（Fanout）
+
+交换机和列队直接绑定，不需要指定 routingkey，所以他的消息传输速度是发布订阅模式中最快的。
+
+![Publish/Subscribe](../public/images/Rabbitmq-publishsubscribe.png)
+![Fanout](../public/images/Rabbitmq-Fanout.png)
+
+### 3.4 发布订阅模型（Direct）
+
+与 fanout 模式相比，direct 模式需要 RoutingKey 将队列和交换机绑定。
+
+![Direct](../public/images/Rabbitmq-Direct.png)
+
+### 3.4 发布订阅模型（Topic）
+
+与之前的两种模式相比，区别在于：它可以通过 RoutingKey，将交换机和队列机进行模糊匹配绑定，满足较复杂的生产消息存放到队列的匹配过程。
+
+- \*，有且只匹配一个词
+- #，匹配一个或多个词
+
+![Topic](../public/images/Rabbitmq-Topic.png)
+
+## 4. 简单 Demo
 
 RabbitTemplate 发送方式
 
@@ -131,82 +201,6 @@ b) 手动应答、公平分发：
 2、 消息持久化：服务关闭后，队列中消息是否保留；
 3、 自动删除：最后一个消费者链接断开后，是否自动删除队列；
 4、 绑定关系表达式：通配符\*表示单个词，#表示多个词；
-
-**额外配置**
-
-1、x-priority: basic.consume 方法参数(int)。用于设定 consumer 的优先级，数字越大，优先级越高，默认是 0，可以设置负数。
-2、alternate-exchange: exchange.declare 方法参数(str，AE 的名称)。当一个消息不能被 route 的时候，如果 exchange 设定了 AE，则消息会被投递到 AE。如果存在 AE 链，则会按此继续投递，直到消息被 route 或 AE 链结束或遇到已经尝试 route 过消息的 AE。
-3、x-message-ttl: queue.declare 方法参数(毫秒，非负整数)，用于限定 queue 上消息的生存时间，可配合 DLX。
-消息可通过设置 expiration 控制自己的过期时间。queue 设定的 ttl 和消息自己的 ttl 由两者的小值生效。
-4、x-expires:queue.declare 方法参数(毫秒，正整数)，用于限定 queue 自身的生存时间。
-5、x-dead-letter-exchange: queue.declare 方法参数(str，DLX 的名称)。
-6、x-dead-letter-routing-key: queue.declare 方法参数(str，DLX 的 route)。不设定则使用 message 自身的 route。
-7、x-max-length: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息总数。
-8、x-max-length-bytes: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息的 body 总字节数。
-两种限制可同时设置，最先到达的限制条件将被生效。
-9、x-max-priority: queue.declare 方法参数(int)。rabbitmq3.5.0 版本后支持优先队列。由于优先队列是一种特殊的持久化方式，使得优先队列只能通过 arguments 的方式声明，且声明后不可改变其支持的 priorities。
-对每一个优先队列的每一个优先级在内存、磁盘都有单独的开销；及额外的 CPU 开销，特别是在 consume 的时候。
-通过在 message 的 basic.properties 中指明 priority(unsigned byte, 0-255)，较大的数对应较高的优先级。若未指明 message 的 priority 则 priority 默认为 0。
-若 message 的 priority 大于 queue 的 maximum priority 则 priority 被认为是 maximum priority。
-对于优先队列，有如下注意事项：
-由于默认情况下 consumer 的预取消息，消息可能会立即被投递给 consumer，而导致优先级关系不能被处理。因而需要在 ack 模式下设定 basic.qos 的 prefetch_count,限制消息的投递。
-如果优先队列设置了 message-ttl，则由于 server 的 ttl 清理是从 head 方向检测处理的，低优先级的过期消息可能会一直存在而无法被清理，且会被统计(如 ready 的消息数，但不会被 deliver)。
-如果优先队列设置了 max-length，则由于 server 从 head 方向 drop 消息以使限制生效，使得高优先级的消息被 drop 掉，而预留位置给低优先级的消息，可能和使用优先队列的初衷背离。
-10、user-id：channel.basicPublish 中指定的 BasicProperties 字段。用于验证 publisher。其值应与建立 connection 的 user 名称一致。
-若需要伪造验证，user-id 可使用 impersonator tag,但不能使用 administrator tag。
-federation 从 upstream 收到消息时会丢弃 user-id，除非在 upstream 设置 trust-user-id 属性。
-11、authentication_failure_close: broker capability. 用于 client 区分鉴权错误还是网络错误，在 AMQP091 中要求鉴权失败则 broker 关闭连接，以至于 client 无法区分于实际的网络连接错误。
-当开启这个设置时，broker 在鉴权失败后向客户端发送 connection.close 的命令并附带 ACCESS_REFUSED 的原因标识。
-
-## 3. RabbitMQ 消息模型
-
-RabbitMQ 提供了 6 种消息模型，但是第 6 种其实是 RPC，并不是 MQ，因此不予学习。那么也就剩下 5 种。但是其实 3、4、5 这三种都属于订阅模型，只不过进行路由的方式不同。
-
-## 3.1 基本模型
-
-顾名思义，你可以把它理解为所有模式的雏形，最简单的消息模式，使用的是默认交换机。
-
-![Hello World](../public/images/Rabbitmq-helloworld.png)
-
-## 3.2 work 模型
-
-多个消费者绑定到一个队列，共同消费队列中的消息。队列中的消息一旦消费，就会消失，因此任务是不会被重复执行的，使用的也是默认交换机。
-
-![Work Queues](../public/images/Rabbitmq-work.png)
-
-`注意：`
-
-`因为队列中的数据，默认会平均分发给每个消费者，但是如果有的消费者处理能力很差，就会导致有些消息分发给低能消费者，低能消费者不能及时处理，导致消息处理很慢。`
-
-```java
-// 每次都从队列里拿一个消息进行消费，消费完成再从队列里获取另一个消息进行消费，这行代码就是实现能者多劳的效果。如果不写的话队列就会一股脑的把消息平均分配给所有消费者，那么就不能实现能者多劳的效果
-channel.basicQos(1);
-// 手动确认，防止消息还没有消费完成，mq把消息自动删除
-// 参数：确认队列中哪个具体消息、是否开启多个消息同时确认
-channel.basicAck(envelope.getDeliveryTag(), false);
-```
-
-## 3.3 发布订阅模型（Fanout）
-
-交换机和列队直接绑定，不需要指定 routingkey，所以他的消息传输速度是发布订阅模式中最快的。
-
-![Publish/Subscribe](../public/images/Rabbitmq-publishsubscribe.png)
-![Fanout](../public/images/Rabbitmq-Fanout.png)
-
-## 3.4 发布订阅模型（Direct）
-
-与 fanout 模式相比，direct 模式需要 RoutingKey 将队列和交换机绑定。
-
-![Direct](../public/images/Rabbitmq-Direct.png)
-
-## 3.4 发布订阅模型（Topic）
-
-与之前的两种模式相比，区别在于：它可以通过 RoutingKey，将交换机和队列机进行模糊匹配绑定，满足较复杂的生产消息存放到队列的匹配过程。
-
-- \*，有且只匹配一个词
-- #，匹配一个或多个词
-
-![Topic](../public/images/Rabbitmq-Topic.png)
 
 ## 4. 消息确认机制 confirm
 
