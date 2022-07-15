@@ -93,29 +93,29 @@ RabbitMQ 的 Java 客户端使用 com.rabbitmq.client 作为顶级包。
 
 **额外配置**
 
-1、x-priority: basic.consume 方法参数(int)。用于设定 consumer 的优先级，数字越大，优先级越高，默认是 0，可以设置负数。
-2、alternate-exchange: exchange.declare 方法参数(str，AE 的名称)。当一个消息不能被 route 的时候，如果 exchange 设定了 AE，则消息会被投递到 AE。如果存在 AE 链，则会按此继续投递，直到消息被 route 或 AE 链结束或遇到已经尝试 route 过消息的 AE。
-3、x-message-ttl: queue.declare 方法参数(毫秒，非负整数)，用于限定 queue 上消息的生存时间，可配合 DLX。
-消息可通过设置 expiration 控制自己的过期时间。queue 设定的 ttl 和消息自己的 ttl 由两者的小值生效。
-4、x-expires:queue.declare 方法参数(毫秒，正整数)，用于限定 queue 自身的生存时间。
-5、x-dead-letter-exchange: queue.declare 方法参数(str，DLX 的名称)。
-6、x-dead-letter-routing-key: queue.declare 方法参数(str，DLX 的 route)。不设定则使用 message 自身的 route。
-7、x-max-length: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息总数。
-8、x-max-length-bytes: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息的 body 总字节数。
-两种限制可同时设置，最先到达的限制条件将被生效。
-9、x-max-priority: queue.declare 方法参数(int)。rabbitmq3.5.0 版本后支持优先队列。由于优先队列是一种特殊的持久化方式，使得优先队列只能通过 arguments 的方式声明，且声明后不可改变其支持的 priorities。
-对每一个优先队列的每一个优先级在内存、磁盘都有单独的开销；及额外的 CPU 开销，特别是在 consume 的时候。
-通过在 message 的 basic.properties 中指明 priority(unsigned byte, 0-255)，较大的数对应较高的优先级。若未指明 message 的 priority 则 priority 默认为 0。
-若 message 的 priority 大于 queue 的 maximum priority 则 priority 被认为是 maximum priority。
-对于优先队列，有如下注意事项：
-由于默认情况下 consumer 的预取消息，消息可能会立即被投递给 consumer，而导致优先级关系不能被处理。因而需要在 ack 模式下设定 basic.qos 的 prefetch_count,限制消息的投递。
-如果优先队列设置了 message-ttl，则由于 server 的 ttl 清理是从 head 方向检测处理的，低优先级的过期消息可能会一直存在而无法被清理，且会被统计(如 ready 的消息数，但不会被 deliver)。
-如果优先队列设置了 max-length，则由于 server 从 head 方向 drop 消息以使限制生效，使得高优先级的消息被 drop 掉，而预留位置给低优先级的消息，可能和使用优先队列的初衷背离。
-10、user-id：channel.basicPublish 中指定的 BasicProperties 字段。用于验证 publisher。其值应与建立 connection 的 user 名称一致。
-若需要伪造验证，user-id 可使用 impersonator tag,但不能使用 administrator tag。
-federation 从 upstream 收到消息时会丢弃 user-id，除非在 upstream 设置 trust-user-id 属性。
-11、authentication_failure_close: broker capability. 用于 client 区分鉴权错误还是网络错误，在 AMQP091 中要求鉴权失败则 broker 关闭连接，以至于 client 无法区分于实际的网络连接错误。
-当开启这个设置时，broker 在鉴权失败后向客户端发送 connection.close 的命令并附带 ACCESS_REFUSED 的原因标识。
+1. x-priority: basic.consume 方法参数(int)。用于设定 consumer 的优先级，数字越大，优先级越高，默认是 0，可以设置负数。
+2. alternate-exchange: exchange.declare 方法参数(str，AE 的名称)。当一个消息不能被 route 的时候，如果 exchange 设定了 AE，则消息会被投递到 AE。如果存在 AE 链，则会按此继续投递，直到消息被 route 或 AE 链结束或遇到已经尝试 route 过消息的 AE。
+3. x-message-ttl: queue.declare 方法参数(毫秒，非负整数)，用于限定 queue 上消息的生存时间，可配合 DLX。
+   消息可通过设置 expiration 控制自己的过期时间。queue 设定的 ttl 和消息自己的 ttl 由两者的小值生效。
+4. x-expires:queue.declare 方法参数(毫秒，正整数)，用于限定 queue 自身的生存时间。
+5. x-dead-letter-exchange: queue.declare 方法参数(str，DLX 的名称)。
+6. x-dead-letter-routing-key: queue.declare 方法参数(str，DLX 的 route)。不设定则使用 message 自身的 route。
+7. x-max-length: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息总数。
+8. x-max-length-bytes: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息的 body 总字节数。
+   两种限制可同时设置，最先到达的限制条件将被生效。
+9. x-max-priority: queue.declare 方法参数(int)。rabbitmq3.5.0 版本后支持优先队列。由于优先队列是一种特殊的持久化方式，使得优先队列只能通过 arguments 的方式声明，且声明后不可改变其支持的 priorities。
+   对每一个优先队列的每一个优先级在内存、磁盘都有单独的开销；及额外的 CPU 开销，特别是在 consume 的时候。
+   通过在 message 的 basic.properties 中指明 priority(unsigned byte, 0-255)，较大的数对应较高的优先级。若未指明 message 的 priority 则 priority 默认为 0。
+   若 message 的 priority 大于 queue 的 maximum priority 则 priority 被认为是 maximum priority。
+   对于优先队列，有如下注意事项：
+   由于默认情况下 consumer 的预取消息，消息可能会立即被投递给 consumer，而导致优先级关系不能被处理。因而需要在 ack 模式下设定 basic.qos 的 prefetch_count,限制消息的投递。
+   如果优先队列设置了 message-ttl，则由于 server 的 ttl 清理是从 head 方向检测处理的，低优先级的过期消息可能会一直存在而无法被清理，且会被统计(如 ready 的消息数，但不会被 deliver)。
+   如果优先队列设置了 max-length，则由于 server 从 head 方向 drop 消息以使限制生效，使得高优先级的消息被 drop 掉，而预留位置给低优先级的消息，可能和使用优先队列的初衷背离。
+10. user-id：channel.basicPublish 中指定的 BasicProperties 字段。用于验证 publisher。其值应与建立 connection 的 user 名称一致。
+    若需要伪造验证，user-id 可使用 impersonator tag,但不能使用 administrator tag。
+    federation 从 upstream 收到消息时会丢弃 user-id，除非在 upstream 设置 trust-user-id 属性。
+11. authentication_failure_close: broker capability. 用于 client 区分鉴权错误还是网络错误，在 AMQP091 中要求鉴权失败则 broker 关闭连接，以至于 client 无法区分于实际的网络连接错误。
+    当开启这个设置时，broker 在鉴权失败后向客户端发送 connection.close 的命令并附带 ACCESS_REFUSED 的原因标识。
 
 ## 3. RabbitMQ 消息模型
 
