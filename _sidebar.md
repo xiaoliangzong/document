@@ -17,17 +17,12 @@
   - [<span style="font-weight:normal; font-size:13px; color:#364149">认证鉴权</span>](Java/认证鉴权/)
 
     - [Security](Java/认证鉴权/Security.md)
-    - [OAuth2](Java/认证鉴权/OAuth2.md)
+    - [OAuth2](Java/认证鉴权/Security.md)
 
   - [<span style="font-weight:normal; font-size:13px; color:#364149">微服务</span>](Java/微服务/)
 
     - [SpringCloud Netflix](Java/微服务/SpringCloudNetflix.md)
     - [SpringCloud Alibaba](Java/微服务/SpringCloudAlibaba.md)
-
-- [<span style="font-weight:normal; font-size:15px; color:#364149">**消息队列**</span>](消息队列/)
-
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Rabbit</font>](消息队列/RabbitMQ.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Kafka</font>](消息队列/Kafka.md)
 
 - **Database**
 
@@ -46,6 +41,11 @@
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Linux（CentOS）</span>](计算机基础/Linux（CentOS）.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">Shell</span>](计算机基础/shell.md)
   - [<span style="font-weight:normal; font-size:15px; color:#364149">bat</span>](计算机基础/bat.md)
+
+- [<span style="font-weight:normal; font-size:15px; color:#364149">**消息队列**</span>](消息队列/)
+
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">Rabbit</font>](消息队列/RabbitMQ.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">Kafka</font>](消息队列/Kafka.md)
 
 - **运维部署**
 
