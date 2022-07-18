@@ -91,32 +91,6 @@ RabbitMQ 的 Java 客户端使用 com.rabbitmq.client 作为顶级包。
 - RoutingKey：路由键，每一条消息的具体绑定关系表达式；
 - Consumer：消息的消费者，DefaultConsumer 消费者通用的基类；
 
-**额外配置**
-
-1. x-priority: basic.consume 方法参数(int)。用于设定 consumer 的优先级，数字越大，优先级越高，默认是 0，可以设置负数。
-2. alternate-exchange: exchange.declare 方法参数(str，AE 的名称)。当一个消息不能被 route 的时候，如果 exchange 设定了 AE，则消息会被投递到 AE。如果存在 AE 链，则会按此继续投递，直到消息被 route 或 AE 链结束或遇到已经尝试 route 过消息的 AE。
-3. x-message-ttl: queue.declare 方法参数(毫秒，非负整数)，用于限定 queue 上消息的生存时间，可配合 DLX。
-   消息可通过设置 expiration 控制自己的过期时间。queue 设定的 ttl 和消息自己的 ttl 由两者的小值生效。
-4. x-expires:queue.declare 方法参数(毫秒，正整数)，用于限定 queue 自身的生存时间。
-5. x-dead-letter-exchange: queue.declare 方法参数(str，DLX 的名称)。
-6. x-dead-letter-routing-key: queue.declare 方法参数(str，DLX 的 route)。不设定则使用 message 自身的 route。
-7. x-max-length: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息总数。
-8. x-max-length-bytes: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息的 body 总字节数。
-   两种限制可同时设置，最先到达的限制条件将被生效。
-9. x-max-priority: queue.declare 方法参数(int)。rabbitmq3.5.0 版本后支持优先队列。由于优先队列是一种特殊的持久化方式，使得优先队列只能通过 arguments 的方式声明，且声明后不可改变其支持的 priorities。
-   对每一个优先队列的每一个优先级在内存、磁盘都有单独的开销；及额外的 CPU 开销，特别是在 consume 的时候。
-   通过在 message 的 basic.properties 中指明 priority(unsigned byte, 0-255)，较大的数对应较高的优先级。若未指明 message 的 priority 则 priority 默认为 0。
-   若 message 的 priority 大于 queue 的 maximum priority 则 priority 被认为是 maximum priority。
-   对于优先队列，有如下注意事项：
-   由于默认情况下 consumer 的预取消息，消息可能会立即被投递给 consumer，而导致优先级关系不能被处理。因而需要在 ack 模式下设定 basic.qos 的 prefetch_count,限制消息的投递。
-   如果优先队列设置了 message-ttl，则由于 server 的 ttl 清理是从 head 方向检测处理的，低优先级的过期消息可能会一直存在而无法被清理，且会被统计(如 ready 的消息数，但不会被 deliver)。
-   如果优先队列设置了 max-length，则由于 server 从 head 方向 drop 消息以使限制生效，使得高优先级的消息被 drop 掉，而预留位置给低优先级的消息，可能和使用优先队列的初衷背离。
-10. user-id：channel.basicPublish 中指定的 BasicProperties 字段。用于验证 publisher。其值应与建立 connection 的 user 名称一致。
-    若需要伪造验证，user-id 可使用 impersonator tag,但不能使用 administrator tag。
-    federation 从 upstream 收到消息时会丢弃 user-id，除非在 upstream 设置 trust-user-id 属性。
-11. authentication_failure_close: broker capability. 用于 client 区分鉴权错误还是网络错误，在 AMQP091 中要求鉴权失败则 broker 关闭连接，以至于 client 无法区分于实际的网络连接错误。
-    当开启这个设置时，broker 在鉴权失败后向客户端发送 connection.close 的命令并附带 ACCESS_REFUSED 的原因标识。
-
 ## 3. RabbitMQ 消息模型
 
 RabbitMQ 提供了 7 种消息模型。第 6 种是 RPC 拉取方式，基本不用，因此不予学习；第 7 种是新出的发布者确认模式；3、4、5 这三种都属于订阅模型，只不过进行路由的方式不同。
@@ -192,7 +166,149 @@ channel.basicAck(envelope.getDeliveryTag(), false);
 
 ### 3.7 Publisher Confirms 模型
 
-## 4. 简单 Demo
+## 4. 消息可靠性保障策略
+
+1. 生产者开启消息确认机制（confirm、return 机制）
+2. 消息队列数据持久化
+3. 消费者手动 ack
+4. 生产者消息记录+定期补偿机制
+5. 服务幂等处理
+6. 消息挤压处理等
+
+```yml
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: Dangbo@123
+    # 虚拟主机
+    virtual-host: /
+    # 开启confirm机制，默认为none，correlated表示使用CorrelationData将确认与发送的消息关联起来；simple不常用
+    publisher-confirm-type: correlated
+    # 开启return机制，默认为false
+    publisher-returns: true
+    listener:
+      # 监听类型
+      type: simple
+      simple:
+        # 开启手动ack确认消息
+        acknowledge-mode: manual
+        retry:
+          enabled: true # 开启重试机制
+          max-attempts: 3 # 最大重试传递次数
+          initial-interval: 5000 # 第一次和第二次尝试传递消息的间隔时间，单位毫秒
+          max-interval: 300000 # 最大重试时间间隔，单位毫秒
+          multiplier: 3 # 应用前一次重试间隔的乘法器，默认为1
+        # 重试次数超过上面的设置之后是否丢弃（消费者listener抛出异常，是否重回队列，默认true， false为不重回队列（结合死信交换机））
+        default-requeue-rejected: true
+    # 模板配置
+    template:
+      # 设置为true后，消费者在消息没有被路由到合适队列情况下会被return监听，而不会自动删除
+      mandatory: true
+```
+
+**confirm**
+
+confirm 机制，只保证消息到达 exchange，并不保证消息可以路由到 queue。生产者投递消息之后，如果 Broker 收到消息，则会给生产者一个应答，生产者能接收应答，用来确定这条消息是否正常的发送到 Broker，这种机制是消息可靠性投递的核心保障。
+
+生产者将信道设置成 confirm（确认）模式，一旦信道进入 confirm 模式，所有在该信道上面发布的消息都会被指派一个唯一的 ID（从 1 开始），一旦消息被投递到所有匹配的队列之后，RabbitMQ 就会发送一个确认（Basic.Ack）给生产者（包含消息的唯一 ID），这就使得生产者知晓消息已经正确到达了目的地了。如果消息和队列是可持久化的，那么确认消息会在消息写入磁盘之后发出。RabbitMQ 回传给生产者的确认消息中的 deliveryTag 包含了确认消息的序号，此外 RabbitMQ 也可以设置 channel.basicAck 方法中的 multiple 参数，表示到这个序号之前的所有消息都已经得到了处理，注意辨别这里的确认和消费时候的确认之间的异同。
+
+使用 confirm 机制时，发送消息时最好把 CorrelationData 加上，因为如果出错了，使用 CorrelationData 可以更快的定位到错误信息
+开启 confirm 模式 channel.confirmSelect();
+
+**return**
+
+return 机制，只有成功到达了交换机且未到达队列才会触发回调函数，在消息发送之后异步监听到 mq 的回调，也就是会执行 ReturnCallBack。
+
+mandatory 和 immediate 是 AMQP 协议中 basic.publish 方法中的两个标识位，
+它们都有当消息传递过程中不可达目的地时将消息返回给生产者的功能。
+
+mandatory
+当标志位 true：若交换机无法找到消息对应的队列，将会调用 basic.return 将消息返回给生产者。
+当标志位 false：消息直接被丢弃
+
+immediate（参数已不被支持）
+标志位为 true：交换机将消息路由到队列，但是队列上没有消费者，调用 basic.return 将消息返回给生产者
+标志位为 false：消息被丢弃
+
+```java
+// 配置 return 消息机制
+private final RabbitTemplate.ReturnCallback returnCallback = new RabbitTemplate.ReturnCallback() {
+    /**
+         *  return 的回调方法（找不到路由才会触发）
+         * @param message 消息的相关信息
+         * @param i 错误状态码
+         * @param s 错误状态码对应的文本信息
+         * @param s1 交换机的名字
+         * @param s2 路由的key
+         */
+    @Override
+    public void returnedMessage(Message message, int i, String s, String s1, String s2) {
+        System.out.println(message);
+        System.out.println(new String(message.getBody()));
+        System.out.println(i);
+        System.out.println(s);
+        System.out.println(s1);
+        System.out.println(s2);
+    }
+};
+
+// 配置 confirm 机制
+private final RabbitTemplate.ConfirmCallback confirmCallback = new RabbitTemplate.ConfirmCallback() {
+    /**
+         * @param correlationData 消息相关的数据，一般用于获取 唯一标识 id
+         * @param b true 消息确认成功，false 失败
+         * @param s 确认失败的原因
+         */
+    @Override
+    public void confirm(CorrelationData correlationData, boolean b, String s) {
+        if (b) {
+            System.out.println("confirm 消息确认成功..." + correlationData.getId());
+        } else {
+            System.out.println("confirm 消息确认失败..." + correlationData.getId() + " cause: " + s);
+        }
+    }
+};
+```
+
+## 6. TTL 队列、死信队列
+
+TTL 队列、死信队列和普通队列的用法是一致的，这里只说明其创建方式
+
+在 RabbitMQ 中，Socket descriptors 是 File descriptors 的子集，它们也是一对此消彼长的关系。然而，它们的默认配额并不大，File descriptors 默认值为“1024”，而 Socket descriptors 的默认值也只有“829”，同时，File descriptors 所能打开的最大文件数也受限于操作系统的配额。因此，如果要调整 File descriptors 文件句柄数，就需要同时调整操作系统和 RabbitMQ 参数。
+
+@RabbitListener 是用来绑定队列的，该接收者绑定了 OneByOne 这个队列，
+
+下面的@RabbitHandler 注解是用来表示该方法是接收者接收消息的方法。
+
+## 4. 常用配置
+
+1. x-priority: basic.consume 方法参数(int)。用于设定 consumer 的优先级，数字越大，优先级越高，默认是 0，可以设置负数。
+2. alternate-exchange: exchange.declare 方法参数(str，AE 的名称)。当一个消息不能被 route 的时候，如果 exchange 设定了 AE，则消息会被投递到 AE。如果存在 AE 链，则会按此继续投递，直到消息被 route 或 AE 链结束或遇到已经尝试 route 过消息的 AE。
+3. x-message-ttl: queue.declare 方法参数(毫秒，非负整数)，用于限定 queue 上消息的生存时间，可配合 DLX。
+   消息可通过设置 expiration 控制自己的过期时间。queue 设定的 ttl 和消息自己的 ttl 由两者的小值生效。
+4. x-expires:queue.declare 方法参数(毫秒，正整数)，用于限定 queue 自身的生存时间。
+5. x-dead-letter-exchange: queue.declare 方法参数(str，DLX 的名称)。
+6. x-dead-letter-routing-key: queue.declare 方法参数(str，DLX 的 route)。不设定则使用 message 自身的 route。
+7. x-max-length: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息总数。
+8. x-max-length-bytes: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息的 body 总字节数。
+   两种限制可同时设置，最先到达的限制条件将被生效。
+9. x-max-priority: queue.declare 方法参数(int)。rabbitmq3.5.0 版本后支持优先队列。由于优先队列是一种特殊的持久化方式，使得优先队列只能通过 arguments 的方式声明，且声明后不可改变其支持的 priorities。
+   对每一个优先队列的每一个优先级在内存、磁盘都有单独的开销；及额外的 CPU 开销，特别是在 consume 的时候。
+   通过在 message 的 basic.properties 中指明 priority(unsigned byte, 0-255)，较大的数对应较高的优先级。若未指明 message 的 priority 则 priority 默认为 0。
+   若 message 的 priority 大于 queue 的 maximum priority 则 priority 被认为是 maximum priority。
+   对于优先队列，有如下注意事项：
+   由于默认情况下 consumer 的预取消息，消息可能会立即被投递给 consumer，而导致优先级关系不能被处理。因而需要在 ack 模式下设定 basic.qos 的 prefetch_count,限制消息的投递。
+   如果优先队列设置了 message-ttl，则由于 server 的 ttl 清理是从 head 方向检测处理的，低优先级的过期消息可能会一直存在而无法被清理，且会被统计(如 ready 的消息数，但不会被 deliver)。
+   如果优先队列设置了 max-length，则由于 server 从 head 方向 drop 消息以使限制生效，使得高优先级的消息被 drop 掉，而预留位置给低优先级的消息，可能和使用优先队列的初衷背离。
+10. user-id：channel.basicPublish 中指定的 BasicProperties 字段。用于验证 publisher。其值应与建立 connection 的 user 名称一致。
+    若需要伪造验证，user-id 可使用 impersonator tag,但不能使用 administrator tag。
+    federation 从 upstream 收到消息时会丢弃 user-id，除非在 upstream 设置 trust-user-id 属性。
+11. authentication_failure_close: broker capability. 用于 client 区分鉴权错误还是网络错误，在 AMQP091 中要求鉴权失败则 broker 关闭连接，以至于 client 无法区分于实际的网络连接错误。
+    当开启这个设置时，broker 在鉴权失败后向客户端发送 connection.close 的命令并附带 ACCESS_REFUSED 的原因标识。
+
+## 5. 简单 Demo
 
 RabbitTemplate 发送方式
 
@@ -226,22 +342,3 @@ b) 手动应答、公平分发：
 2、 消息持久化：服务关闭后，队列中消息是否保留；
 3、 自动删除：最后一个消费者链接断开后，是否自动删除队列；
 4、 绑定关系表达式：通配符\*表示单个词，#表示多个词；
-
-## 4. 消息确认机制 confirm
-
-## 5. return 机制
-
-## 6. TTL 队列、死信队列
-
-在 RabbitMQ 中，Socket descriptors 是 File descriptors 的子集，它们也是一对此消彼长的关系。然而，它们的默认配额并不大，File descriptors 默认值为“1024”，而 Socket descriptors 的默认值也只有“829”，同时，File descriptors 所能打开的最大文件数也受限于操作系统的配额。因此，如果要调整 File descriptors 文件句柄数，就需要同时调整操作系统和 RabbitMQ 参数。
-
-@RabbitListener 是用来绑定队列的，该接收者绑定了 OneByOne 这个队列，
-
-下面的@RabbitHandler 注解是用来表示该方法是接收者接收消息的方法。
-
-## 7. 消息丢失及解决方案
-
-1. 生产者丢失消息，producer 将数据发送到 rabbitmq 的时候，可能因为网络问题导致数据在半路给搞丢了
-   - 使用事务（性能差），使用通道 channel 的方法设置事务；
-   - 发送回执确认（推荐），confirm 模式，
-   -
