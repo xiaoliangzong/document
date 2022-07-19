@@ -13,6 +13,9 @@
 2. 快捷键智能提示改为 Alt + /
 3. 类注释模板配置：Editor -> File and Code Templates
 4. 消除类注释警告：Wrong tag 'Date' ，需要配置：Editor -> Inspections -> java -> javadoc -> Javadoc declaration problems -> Options
+5. Xms 为 IDEA 初时的内存大小，提高 Java 程序的启动速度。
+6. Xmx 为 IDEA 最大内存数，提高该值，可以减少内存 Garage 收集的频率，提高程序性能。
+7. -XX:ReservedCodeCacheSize=512m 保留代码占用的内存容量。
 
 ## 2. Visual Studio Code
 

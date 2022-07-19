@@ -1,8 +1,10 @@
 ﻿# RabbitMQ
 
+[RabbitMQ 设计文档](../public/package/Rabbitmq%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3.docx)
+
 ## 1. 安装
 
-**Windows**
+**Windows**  
 如果以前安装过，则需要卸载 rabbitmq 和 erlang，erlang 必须卸载或者清空注册表，否则会导致安装失败。
 
 ```shell
@@ -89,7 +91,6 @@ RabbitMQ 的 Java 客户端使用 com.rabbitmq.client 作为顶级包。
 - Queue：队列；
 - Binding：绑定交换机和队列；
 - RoutingKey：路由键，每一条消息的具体绑定关系表达式；
-- Consumer：消息的消费者，DefaultConsumer 消费者通用的基类；
 
 ## 3. RabbitMQ 消息模型
 
@@ -120,6 +121,7 @@ RabbitMQ 提供了 7 种消息模型。第 6 种是 RPC 拉取方式，基本不
 
 ```java
 /*
+   该值定义通道上允许的未确认消息的最大数量，一旦数量达到配置的数量，RabbitMQ 将停止在通道上传递更多消息，除非至少有一个未处理的消息被确认。
    每次都从队列里拿一个消息进行消费，消费完成再从队列里获取另一个消息进行消费，这行代码就是实现能者多劳的效果。
    如果不写的话队列就会一股脑的把消息平均分配给所有消费者，那么就不能实现能者多劳的效果
 */
@@ -169,7 +171,7 @@ channel.basicAck(envelope.getDeliveryTag(), false);
 ## 4. 消息可靠性保障策略
 
 1. 生产者开启消息确认机制（confirm、return 机制）
-2. 消息队列数据持久化
+2. 消息队列、数据持久化
 3. 消费者手动 ack
 4. 生产者消息记录+定期补偿机制
 5. 服务幂等处理
@@ -181,7 +183,7 @@ spring:
     host: localhost
     port: 5672
     username: admin
-    password: Dangbo@123
+    password: Fengpin@123
     # 虚拟主机
     virtual-host: /
     # 开启confirm机制，默认为none，correlated表示使用CorrelationData将确认与发送的消息关联起来；simple不常用
@@ -204,141 +206,163 @@ spring:
         default-requeue-rejected: true
     # 模板配置
     template:
-      # 设置为true后，消费者在消息没有被路由到合适队列情况下会被return监听，而不会自动删除
+      # 设置交换机处理失败消息的模式，true表示消息由交换机到达不了队列时，会将消息重新返回给生产者，如果不设置这个指令，则交换机向队列推送消息失败后，不会触发 setReturnCallback
       mandatory: true
 ```
 
-**confirm**
+### 4.1 confirm
 
 confirm 机制，只保证消息到达 exchange，并不保证消息可以路由到 queue。生产者投递消息之后，如果 Broker 收到消息，则会给生产者一个应答，生产者能接收应答，用来确定这条消息是否正常的发送到 Broker，这种机制是消息可靠性投递的核心保障。
 
-生产者将信道设置成 confirm（确认）模式，一旦信道进入 confirm 模式，所有在该信道上面发布的消息都会被指派一个唯一的 ID（从 1 开始），一旦消息被投递到所有匹配的队列之后，RabbitMQ 就会发送一个确认（Basic.Ack）给生产者（包含消息的唯一 ID），这就使得生产者知晓消息已经正确到达了目的地了。如果消息和队列是可持久化的，那么确认消息会在消息写入磁盘之后发出。RabbitMQ 回传给生产者的确认消息中的 deliveryTag 包含了确认消息的序号，此外 RabbitMQ 也可以设置 channel.basicAck 方法中的 multiple 参数，表示到这个序号之前的所有消息都已经得到了处理，注意辨别这里的确认和消费时候的确认之间的异同。
-
 使用 confirm 机制时，发送消息时最好把 CorrelationData 加上，因为如果出错了，使用 CorrelationData 可以更快的定位到错误信息
-开启 confirm 模式 channel.confirmSelect();
-
-**return**
-
-return 机制，只有成功到达了交换机且未到达队列才会触发回调函数，在消息发送之后异步监听到 mq 的回调，也就是会执行 ReturnCallBack。
-
-mandatory 和 immediate 是 AMQP 协议中 basic.publish 方法中的两个标识位，
-它们都有当消息传递过程中不可达目的地时将消息返回给生产者的功能。
-
-mandatory
-当标志位 true：若交换机无法找到消息对应的队列，将会调用 basic.return 将消息返回给生产者。
-当标志位 false：消息直接被丢弃
-
-immediate（参数已不被支持）
-标志位为 true：交换机将消息路由到队列，但是队列上没有消费者，调用 basic.return 将消息返回给生产者
-标志位为 false：消息被丢弃
 
 ```java
-// 配置 return 消息机制
-private final RabbitTemplate.ReturnCallback returnCallback = new RabbitTemplate.ReturnCallback() {
-    /**
-         *  return 的回调方法（找不到路由才会触发）
-         * @param message 消息的相关信息
-         * @param i 错误状态码
-         * @param s 错误状态码对应的文本信息
-         * @param s1 交换机的名字
-         * @param s2 路由的key
-         */
-    @Override
-    public void returnedMessage(Message message, int i, String s, String s1, String s2) {
-        System.out.println(message);
-        System.out.println(new String(message.getBody()));
-        System.out.println(i);
-        System.out.println(s);
-        System.out.println(s1);
-        System.out.println(s2);
-    }
-};
 
 // 配置 confirm 机制
 private final RabbitTemplate.ConfirmCallback confirmCallback = new RabbitTemplate.ConfirmCallback() {
+
     /**
-         * @param correlationData 消息相关的数据，一般用于获取 唯一标识 id
-         * @param b true 消息确认成功，false 失败
-         * @param s 确认失败的原因
-         */
+     * 消息生产者发送消息至交换机时触发，用于判断交换机是否成功收到消息
+     *
+     * @param correlationData correlation data for the callback. 相关配置信息，一般用于获取唯一标识 id
+     * @param ack             true for ack, false for nack 判断交换机是否成功收到消息
+     * @param cause           An optional cause, for nack, when available, otherwise null. 失败原因
+     */
     @Override
-    public void confirm(CorrelationData correlationData, boolean b, String s) {
-        if (b) {
-            System.out.println("confirm 消息确认成功..." + correlationData.getId());
-        } else {
-            System.out.println("confirm 消息确认失败..." + correlationData.getId() + " cause: " + s);
+    public void confirm(CorrelationData correlationData, boolean ack, String cause) {
+        log.info("confirm ack: {}, cause: {}, correlationData: {}", ack, cause, correlationData);
+        if (!ack) {
+            // 交换机没有接收到消息
+            log.error("confirm ack false, cause: {}", cause);
+            // TODO 失败时，需要做的操作！！！
         }
     }
 };
 ```
 
-## 6. TTL 队列、死信队列
+### 4.2 return
 
-TTL 队列、死信队列和普通队列的用法是一致的，这里只说明其创建方式
+return 机制，只有成功到达了交换机且未到达队列才会触发回调函数。
 
-在 RabbitMQ 中，Socket descriptors 是 File descriptors 的子集，它们也是一对此消彼长的关系。然而，它们的默认配额并不大，File descriptors 默认值为“1024”，而 Socket descriptors 的默认值也只有“829”，同时，File descriptors 所能打开的最大文件数也受限于操作系统的配额。因此，如果要调整 File descriptors 文件句柄数，就需要同时调整操作系统和 RabbitMQ 参数。
+```java
+// 配置 return 消息机制
+private final RabbitTemplate.ReturnCallback returnCallback = new RabbitTemplate.ReturnsCallback() {
+    /**
+     * 交换机并未将数据丢入指定的队列中时，触发
+     * channel.basicPublish(exchange_name, next.getKey(), true, properties, next.getValue().getBytes());
+     * 参数三：true  表示如果消息无法正常投递，则return给生产者 ；false 表示直接丢弃
+     *
+     * @param returned the returned message and metadata.
+     */
+    @Override
+    public void returnedMessage(ReturnedMessage returned) {
+        // 消息对象
+        Message message = returned.getMessage();
+        // 错误码
+        int replyCode = returned.getReplyCode();
+        // 错误信息
+        String replyText = returned.getReplyText();
+        // 交换机
+        String exchange = returned.getExchange();
+        // 路由键
+        String routingKey = returned.getRoutingKey();
+        log.error("returnedMessage, exchange: {}, routingKey: {}", exchange, routingKey);
+        log.error("returnedMessage, replyCode: {}, replayText: {}", replyCode, replyText);
+    }
+};
 
-@RabbitListener 是用来绑定队列的，该接收者绑定了 OneByOne 这个队列，
+```
 
-下面的@RabbitHandler 注解是用来表示该方法是接收者接收消息的方法。
+### 4.3 持久化
 
-## 4. 常用配置
+RabbitMQ 的持久化有交换机、队列、消息的持久化。用于防止服务器宕机重启之后数据的丢失，其中交换机和队列的持久化都是设置 durable 参数为 true，消息的持久化是设置 Properties 为 MessageProperties.PERSITANT_TEXT_PLAIN，消息的持久化基于队列的持久化。持久化不是 100%完全保证消息的可靠性。
+
+1. 交换机 exchange 持久化，RabbitMQ 服务重启之后，交换机不会消失，默认是不持久化的；
+2. 队列 Queue 持久化，和交换机类似；
+3. 消息持久化，是指当消息从交换机发送到队列之后，被消费者消费之前，服务器突然宕机重启，消息仍然存在。消息持久化的前提是队列持久化，假如队列不是持久化，那么消息的持久化毫无意义。其中 MessageProperties.PERSISTENT_TEXT_PLAIN 是设置持久化的参数，原 API 中 deliveryMode 是设置消息持久化的参数，等于 1 不设置持久化，等于 2 设置持久化。PERSISTENT_TEXT_PLAIN 是实例化的一个 deliveryMode=2 的对象，便于编程。
+
+### 4.4 消费者手动应答
+
+@RabbitListener
+
+1. @RabbitListener 注解是指定某方法作为消息消费的方法，例如监听某 Queue 里面的消息，接受的参数需要和发送者的类型一致；
+2. @RabbitListener 可以标注在类上面，需配合 @RabbitHandler 注解一起使用，标识当有收到消息的时候，就交给@RabbitHandler 的方法处理。
+
+```java
+
+
+```
+
+## 6. TTL 队列
+
+TTL 队列（Time To Live），也叫过期队列，是指声明队列时指定了过期时间 ttl，消息存入队列开始计算，只要超过配置的时间，消息就会自动删除。
+
+```java
+@Bean
+public Queue ttlQueue(){
+   Map<String, Object> args = new HashMap<>();
+   args.put("x-message-ttl", 5000);  // 单位毫秒
+   return new Queue("ttl.queue", true, false, false, args);
+}
+```
+
+如果只给某个消息设置过期时间，而不是给队列设置，可以通过 MessagePostProcessor 对象的属性赋值
+
+如果两种都设置了，以小的 ttl 为准。这两种都可以设置过期时间，但设置消息过期消失就没有了，而 ttl 队列可以增加通用处理逻辑，比如将其存放到私信队列。
+
+```java
+//发送消息
+final String uuid = UUID.randomUUID().toString();     // 唯一标识，用于confirm消息确认失败时的快速定位
+// 设置消息的参数：比如过期时间、编码等
+ MessagePostProcessor messagePostProcessor = message -> {
+      message.getMessageProperties().setExpiration("20000");
+      return message;
+};
+amqpTemplate.convertAndSend(RabbitConfig.EXCHANGE_DIRECT, RabbitConfig.ROUNTING_KEY_PUBLISH, msg, messagePostProcessor, new CorrelationData(uuid));
+```
+
+<span style="color:red">消息设置过期时间，等到消息投递给消费者的时候，才会判断是否过期，这种方法感觉不太对，如果没有消费者呢？？？</span>  
+queue 的全局 ttl，消息过期立刻就会被删掉；如果是发送消息时设置的 ttl，过期之后并不会立刻删掉，这时候消息是否过期是需要投递给消费者的时候判断的。
+
+原因：queue 的全局 ttl，队列的有效期都一样，先入队列的队列头部，头部也是最早过期的消息，rabbitmq 会有一个定时任务从队列的头部开始扫描是否有过期消息即可。而每条设置不同的 ttl，只有遍历整个队列才可以筛选出来过期的消息，这样的效率实在是太低，而且如果消息量大了根本不可行，所以 rabbitmq 在等到消息投递给消费者的时候判断当前消息是否过期，虽然删除的不及时但是不影响功能。
+
+## 7. 死信队列
+
+DLX（Dead-Letter-Exchange），也可以称为死信交换机，当一条消息在队列中变成死信（Dead Message），它能够被重新发送到另一个 Exchange 中，则这个 Exchange 就是 DLX，绑定 DLX 的队列称为死信队列 。
+
+DLX 可以在任何队列上被指定，实际上就是设置一个属性 x-dead-letter-exchange，当队列中存在死信时，mq 会自动将该消息重新发送到设置的 DXL 上，进而被路由到死信队列。死信队列的消费者监听消息做补偿处理。常见的使用场景就是延迟关单，比如下单 15 分钟没有支付订单关闭。
+
+消息变成死信，可能原因是：
+
+- 消息被拒绝（basic.reject/basic.nack,&&requeue=false（不重新回队列））
+- 消息过期
+- 队列达到最大长度（mex-length）
+
+message -> exchange -> queue（有消息变成死信） -> 死信消息重新发布到绑定的 DLX 上 -> queue
+
+## 8. 常用配置
 
 1. x-priority: basic.consume 方法参数(int)。用于设定 consumer 的优先级，数字越大，优先级越高，默认是 0，可以设置负数。
 2. alternate-exchange: exchange.declare 方法参数(str，AE 的名称)。当一个消息不能被 route 的时候，如果 exchange 设定了 AE，则消息会被投递到 AE。如果存在 AE 链，则会按此继续投递，直到消息被 route 或 AE 链结束或遇到已经尝试 route 过消息的 AE。
 3. x-message-ttl: queue.declare 方法参数(毫秒，非负整数)，用于限定 queue 上消息的生存时间，可配合 DLX。
-   消息可通过设置 expiration 控制自己的过期时间。queue 设定的 ttl 和消息自己的 ttl 由两者的小值生效。
 4. x-expires:queue.declare 方法参数(毫秒，正整数)，用于限定 queue 自身的生存时间。
 5. x-dead-letter-exchange: queue.declare 方法参数(str，DLX 的名称)。
 6. x-dead-letter-routing-key: queue.declare 方法参数(str，DLX 的 route)。不设定则使用 message 自身的 route。
 7. x-max-length: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息总数。
-8. x-max-length-bytes: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息的 body 总字节数。
-   两种限制可同时设置，最先到达的限制条件将被生效。
+8. x-max-length-bytes: queue.declare 方法参数(非负整数)。用于限制 queue 的最大 ready 消息的 body 总字节数。两种限制可同时设置，最先到达的限制条件将被生效。
 9. x-max-priority: queue.declare 方法参数(int)。rabbitmq3.5.0 版本后支持优先队列。由于优先队列是一种特殊的持久化方式，使得优先队列只能通过 arguments 的方式声明，且声明后不可改变其支持的 priorities。
-   对每一个优先队列的每一个优先级在内存、磁盘都有单独的开销；及额外的 CPU 开销，特别是在 consume 的时候。
-   通过在 message 的 basic.properties 中指明 priority(unsigned byte, 0-255)，较大的数对应较高的优先级。若未指明 message 的 priority 则 priority 默认为 0。
-   若 message 的 priority 大于 queue 的 maximum priority 则 priority 被认为是 maximum priority。
+
+   对每一个优先队列的每一个优先级在内存、磁盘都有单独的开销；及额外的 CPU 开销，特别是在 consume 的时候。  
+   通过在 message 的 basic.properties 中指明 priority(unsigned byte, 0-255)，较大的数对应较高的优先级。若未指明 message 的 priority 则 priority 默认为 0。  
+   若 message 的 priority 大于 queue 的 maximum priority 则 priority 被认为是 maximum priority。  
    对于优先队列，有如下注意事项：
-   由于默认情况下 consumer 的预取消息，消息可能会立即被投递给 consumer，而导致优先级关系不能被处理。因而需要在 ack 模式下设定 basic.qos 的 prefetch_count,限制消息的投递。
-   如果优先队列设置了 message-ttl，则由于 server 的 ttl 清理是从 head 方向检测处理的，低优先级的过期消息可能会一直存在而无法被清理，且会被统计(如 ready 的消息数，但不会被 deliver)。
-   如果优先队列设置了 max-length，则由于 server 从 head 方向 drop 消息以使限制生效，使得高优先级的消息被 drop 掉，而预留位置给低优先级的消息，可能和使用优先队列的初衷背离。
-10. user-id：channel.basicPublish 中指定的 BasicProperties 字段。用于验证 publisher。其值应与建立 connection 的 user 名称一致。
-    若需要伪造验证，user-id 可使用 impersonator tag,但不能使用 administrator tag。
+
+   - 由于默认情况下 consumer 的预取消息，消息可能会立即被投递给 consumer，而导致优先级关系不能被处理。因而需要在 ack 模式下设定 basic.qos 的 prefetch_count,限制消息的投递。
+   - 如果优先队列设置了 message-ttl，则由于 server 的 ttl 清理是从 head 方向检测处理的，低优先级的过期消息可能会一直存在而无法被清理，且会被统计(如 ready 的消息数，但不会被 deliver)。
+   - 如果优先队列设置了 max-length，则由于 server 从 head 方向 drop 消息以使限制生效，使得高优先级的消息被 drop 掉，而预留位置给低优先级的消息，可能和使用优先队列的初衷背离。
+
+10. user-id：channel.basicPublish 中指定的 BasicProperties 字段。用于验证 publisher。其值应与建立 connection 的 user 名称一致。  
+    若需要伪造验证，user-id 可使用 impersonator tag,但不能使用 administrator tag。  
     federation 从 upstream 收到消息时会丢弃 user-id，除非在 upstream 设置 trust-user-id 属性。
-11. authentication_failure_close: broker capability. 用于 client 区分鉴权错误还是网络错误，在 AMQP091 中要求鉴权失败则 broker 关闭连接，以至于 client 无法区分于实际的网络连接错误。
+11. authentication_failure_close: broker capability. 用于 client 区分鉴权错误还是网络错误，在 AMQP091 中要求鉴权失败则 broker 关闭连接，以至于 client 无法区分于实际的网络连接错误。  
     当开启这个设置时，broker 在鉴权失败后向客户端发送 connection.close 的命令并附带 ACCESS_REFUSED 的原因标识。
-
-## 5. 简单 Demo
-
-RabbitTemplate 发送方式
-
-- send()，不会对消息进行转换，传递进去是什么消息，就会往 RabbitMQ Server 中发送什么消息；
-- convertAndSend()，会将传递进去的消息进行转换，并将转换过后的消息发送到 RabbitMQ Server 中；输出时没有顺序，交换机会马上把所有的信息都交给所有的消费者，消费者再自行处理，不会因为消费者处理慢而阻塞线程。
-- convertSendAndReceive()，使用此方法，只有确定消费者接收到消息，才会发送下一条信息，每条消息之间会有间隔时间
-
-api 方式
-rabbitmq 提供的 api 1、 直接调用 api 方式，直观、繁琐、功能完善。
-2、 流程为创建链接、通道、配置相关参数、生产者推消息、消费者处理消息。
-3、 第一次建立通道时，声明相关参数。
-4、 消费者在声明 channel 时，不涉及 queue 之外的配置参数。
-5、 默认自动应答（平均分发）。
-springBoot 集成的 api 1、 注解方式，简洁、控制不完全。
-2、 在@RabbitListener 注解时，声明生产者相关的 channel 参数，项目启动时扫描注解，创建相关通道。
-3、 实际使用时，消费者也不涉及 queue 之外的配置参数，即不受注解内参数影响。
-4、 生产者相关代码不涉及建立连接、通道配置相关内容。
-5、 默认手动应答（公平分发，隐式）。
-
-消费过程：
-1、 流量控制：限制服务端分发给同一个消费者未处理消息的数量；
-2、 获取消息方式：主动轮询、订阅；
-3、 消息分发机制：
-a) 自动应答、轮询分发：
-服务端轮流分发给各个客户端，易于水平拓展；
-b) 手动应答、公平分发：
-客户端执行完消息后，手动应答服务端本条消息执行完成。能根据各消费者实际能力分发消息；
-
-生产过程：
-1、 路由、队列持久化： 服务关闭后，队列、路由是否保留；
-2、 消息持久化：服务关闭后，队列中消息是否保留；
-3、 自动删除：最后一个消费者链接断开后，是否自动删除队列；
-4、 绑定关系表达式：通配符\*表示单个词，#表示多个词；

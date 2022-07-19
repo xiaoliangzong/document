@@ -225,13 +225,13 @@ docker-compose version
 
 ```shell
 # 执行命令，是针对项目工程而言的，必须在对应的目录下执行
-docker-compose build [options] [SERVICE...]				# 构建或重新构建服务，–force-rm删除构建过程中的临时容器
 docker-compose config [SERVICE]                   # 验证Compose文件格式是否正确
-docker-compost up -d [options] [SERVICE...]	      # 部署一个Compose应用，默认读取 docker-compose.yaml/yml 文件，-f 指定其他文件名，-d 应用在后台启动
+docker-compose build [options] [SERVICE...]				# 基于docker-compose.yml文件构建或重新构建服务，而不是运行，--no-cache当构建镜像时，不使用缓存
+docker-compost up -d [options] [SERVICE...]	      # 创建并运行容器，也就是部署一个Compose应用，如果之前已经构建了镜像，则它只会运行它。默认读取 docker-compose.yaml/yml 文件，-f 指定其他文件名，-d 应用在后台启动
+docker-compose up -d --build .                    # 上两条命令的集合体，构建并运行，如果docker-compose文件修改，则需要先构建，在运行
 
 docker-compose ls                                 # 列出所有项目
 docker-compose ps	[SERVICE...]				            # 列出项目中目前的所有容器
-
 
 docker-compose stop [options] [SERVICE...]        # 停止Compose应用相关的服务容器，如果不加参数和服务名，则停止所有的服务容器
 docker-compose start [options] [SERVICE...]  			# 启动已经存在的服务容器
@@ -424,12 +424,36 @@ docker pull hyper/docker-registry-web
 docker run -d -p 5001:8080 --name regisry-web --link registry -e registry_url=http://registry:5000/v2 -e registry_name=localhost:5000 hyper/docker-registry-web:latest
 ```
 
-**horbar**
+**harbor**
 
-- [安装 docker-compose](#7-docker-compose)
-- 官网下载 harbor
-- ./install.sh
-- 开机自启动 docker-compose start
+harbor 是使用 docker-compose 部署的，因此必须安装 docker-compose。[安装 docker-compose](#7-docker-compose)
+
+```shell
+# 1. 官网下载并解压
+# 2. 如果需要修改配置文件中的内容，比如用户密码，端口等，可以在 Harbor.yml 中修改
+# 3. ./install.sh，Harbor 服务就会根据当期目录下的 docker-compose.yml 开始下载依赖的镜像，检测并按照顺序依次启动各个服务
+# 4. 开机自启动
+
+① vim /usr/lib/systemd/system/harbor.service
+② 增加内容
+[Unit]
+Description=Harbor
+After=docker.service systemd-networkd.service systemd-resolved.service
+Requires=docker.service
+Documentation=http://github.com/vmware/harbor
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5
+# docker-compose 和 harbor 的安装位置
+ExecStart=/usr/local/bin/docker-compose -f  /usr/local/harbor/docker-compose.yml up
+ExecStop=/usr/local/bin/docker-compose -f /usr/local/harbor/docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target
+③ systemctl enable harbor
+```
 
 ## 10. IDEA 集成 Docker 的远程访问
 
