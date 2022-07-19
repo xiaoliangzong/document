@@ -186,10 +186,6 @@ spring:
     password: Fengpin@123
     # 虚拟主机
     virtual-host: /
-    # 开启confirm机制，默认为none，correlated表示使用CorrelationData将确认与发送的消息关联起来；simple不常用
-    publisher-confirm-type: correlated
-    # 开启return机制，默认为false
-    publisher-returns: true
     listener:
       # 监听类型
       type: simple
@@ -204,9 +200,16 @@ spring:
           multiplier: 3 # 应用前一次重试间隔的乘法器，默认为1
         # 重试次数超过上面的设置之后是否丢弃（消费者listener抛出异常，是否重回队列，默认true， false为不重回队列（结合死信交换机））
         default-requeue-rejected: true
-    # 模板配置
+    # 开启confirm机制，默认为none，correlated表示使用CorrelationData将确认与发送的消息关联起来；simple不常用
+    publisher-confirm-type: correlated
+    # 开启return机制，默认为false，也可以通过 rabbitTemplate.setMandatory(true); 或spring.rabbitmq.template.mandatory=true 配置
+    publisher-returns: true
     template:
-      # 设置交换机处理失败消息的模式，true表示消息由交换机到达不了队列时，会将消息重新返回给生产者，如果不设置这个指令，则交换机向队列推送消息失败后，不会触发 setReturnCallback
+      # Mandatory为true时，消息通过交换器无法匹配到队列会返回给生产者并触发MessageReturn，为false时，匹配不到会直接被丢弃
+      # spring.rabbitmq.template.mandatory属性的优先级高于spring.rabbitmq.publisher-returns的优先级
+      # spring.rabbitmq.template.mandatory属性可能会返回三种值null、false、true，如果不配置则为null
+      # spring.rabbitmq.template.mandatory结果为true、false时会忽略掉spring.rabbitmq.publisher-returns属性的值
+      # spring.rabbitmq.template.mandatory结果为null（即不配置）时结果由spring.rabbitmq.publisher-returns确定
       mandatory: true
 ```
 
