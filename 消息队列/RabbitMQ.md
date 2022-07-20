@@ -108,30 +108,14 @@ RabbitMQ 提供了 7 种消息模型。第 6 种是 RPC 拉取方式，基本不
 
 <img name="Work Queues" src="https://xiaoliangzong.github.io/document/public/images/Rabbitmq-work.png" witdh= "60%" height="150px">
 
-<div style="color:red">
-
 可能出现的两个问题：
 
 1. 队列中的数据，默认会平均分发给每个消费者，也就是将所有消息以轮询的方法交给消费者消费；如果有的消费者处理能力很差，就会导致有些消息分发给低能消费者，低能消费者不能及时处理，导致消息处理很慢；
 2. MQ 默认使用自动确认机制，只要消费者从队列中获取了消息，无论是否消费成功，都认为消息已经被消费，队列会把该消息数据删掉；如果消费者消费时遇到异常时（比如宕机、重启等），消息就会丢失。
 
-在实际使用过程中，通过同一时刻 MQ 只会发一条消息给消费者来解决第一个问题，从而达到能者多劳的效果，处理消息能力强的消费者获取更多的消息；通过手动确认的方式来保证数据的不丢失。
+<div style="color:red">
 
-手动确认机制：消费者从队列获取消息后，MQ 服务器会将该消息标记为不可用（Unacked），等待消费者反馈。如果一直没有反馈，则一直未不可用状态，该消息不会被删除也不能被消费，当出现 Unacked 的消息时，只需要断开连接或重启 RabbitMQ，被标记 Unacked 状态的消息就会重新变为 Ready 状态。</div>
-
-```java
-/*
-   该值定义通道上允许的未确认消息的最大数量，一旦数量达到配置的数量，RabbitMQ 将停止在通道上传递更多消息，除非至少有一个未处理的消息被确认。
-   每次都从队列里拿一个消息进行消费，消费完成再从队列里获取另一个消息进行消费，这行代码就是实现能者多劳的效果。
-   如果不写的话队列就会一股脑的把消息平均分配给所有消费者，那么就不能实现能者多劳的效果
-*/
-channel.basicQos(1);
-/*
-   手动确认，防止消息还没有消费完成，mq把消息自动删除
-   参数：确认队列中哪个具体消息、是否开启多个消息同时确认
-*/
-channel.basicAck(envelope.getDeliveryTag(), false);
-```
+在实际使用过程中，通过同一时刻 MQ 只会发一条消息给消费者来解决第一个问题，从而达到能者多劳的效果，处理消息能力强的消费者获取更多的消息；通过手动确认的方式来解决第二个问题，保证数据的不丢失。[详细在后边章节 消费者手动应答会讲](#_44-消费者手动应答)</div>
 
 ### 3.3 发布订阅模型（Fanout）
 
@@ -186,20 +170,6 @@ spring:
     password: Fengpin@123
     # 虚拟主机
     virtual-host: /
-    listener:
-      # 监听类型
-      type: simple
-      simple:
-        # 开启手动ack确认消息
-        acknowledge-mode: manual
-        retry:
-          enabled: true # 开启重试机制
-          max-attempts: 3 # 最大重试传递次数
-          initial-interval: 5000 # 第一次和第二次尝试传递消息的间隔时间，单位毫秒
-          max-interval: 300000 # 最大重试时间间隔，单位毫秒
-          multiplier: 3 # 应用前一次重试间隔的乘法器，默认为1
-        # 重试次数超过上面的设置之后是否丢弃（消费者listener抛出异常，是否重回队列，默认true， false为不重回队列（结合死信交换机））
-        default-requeue-rejected: true
     # 开启confirm机制，默认为none，correlated表示使用CorrelationData将确认与发送的消息关联起来；simple不常用
     publisher-confirm-type: correlated
     # 开启return机制，默认为false，也可以通过 rabbitTemplate.setMandatory(true); 或spring.rabbitmq.template.mandatory=true 配置
@@ -211,6 +181,23 @@ spring:
       # spring.rabbitmq.template.mandatory结果为true、false时会忽略掉spring.rabbitmq.publisher-returns属性的值
       # spring.rabbitmq.template.mandatory结果为null（即不配置）时结果由spring.rabbitmq.publisher-returns确定
       mandatory: true
+    listener:
+      # 监听类型
+      type: simple
+      simple:
+        acknowledge-mode: manual # 开启手动ack确认消息
+        # 说明：如果一个消费者配置prefetch=10，concurrency=2，则开启2个线程去消费消息，每个线程都会抓取10个线程到内存中（注意不是两个线程去共享内存中抓取的消息）。
+        concurrency: 1 # 消费端监听器调用程序线程的最小个数（即每个@RabbitListener开启几个线程去处理数据），该参数也可以通过设置注解的属性完成
+        max-concurrency: 10 # 消费者的监听最大个数
+        prefetch: 10 # 每个消费者最多可处理的nack消息数量，默认值以前是1，这可能会导致高效使用者的利用率不足。从spring-amqp 2.0版开始，默认的prefetch值是250，这将使消费者在大多数常见场景中保持忙碌，从而提高吞吐量。
+        retry:
+          enabled: false # 开启重试机制
+          max-attempts: 3 # 最大重试传递次数
+          initial-interval: 5000 # 第一次和第二次尝试传递消息的间隔时间，单位毫秒
+          max-interval: 300000 # 最大重试时间间隔，单位毫秒
+          multiplier: 3 # 应用前一次重试间隔的乘法器，默认为1
+        # 重试次数超过上面的设置之后是否丢弃（消费者listener抛出异常，是否重回队列，默认true， false为不重回队列（结合死信交换机））
+        default-requeue-rejected: true
 ```
 
 ### 4.1 confirm
@@ -286,15 +273,79 @@ RabbitMQ 的持久化有交换机、队列、消息的持久化。用于防止�
 
 ### 4.4 消费者手动应答
 
-@RabbitListener
+手动确认机制：防止消息在消费中出现异常情况，mq 把消息自动删除；消费者从队列获取消息后，MQ 服务器会将该消息标记为不可用（Unacked），等待消费者反馈。如果一直没有反馈，则一直为不可用状态，该消息不会被删除也不能被消费，当出现 Unacked 的消息时，只需要断开连接或重启 RabbitMQ，被标记 Unacked 状态的消息就会重新变为 Ready 状态。
+
+```java
+/*
+   底层实现的方式
+   该值定义通道上允许的未确认消息的最大数量，一旦数量达到配置的数量，RabbitMQ 将停止在通道上传递更多消息，除非至少有一个未处理的消息被确认。
+   每次都从队列里拿一个消息进行消费，消费完成再从队列里获取另一个消息进行消费，这行代码就是实现能者多劳的效果。如果不写的话队列就会一股脑的把消息平均分配给所有消费者，那么就不能实现能者多劳的效果
+*/
+channel.basicQos(1);
+
+// SpringBoot中通过配置yaml可以实现公平分发
+
+//    @RabbitListener(queues = "test.queue", concurrency = "1", exclusive = true)      // 配置exclusive参数，表示消费者是否具有对队列的独占访问权限。如果为true，则容器的并发性concurrency必须为1
+@RabbitListener(queues = "test.queue", concurrency = "1")
+public void receiver(Channel channel, Object obj, Message message) throws IOException {
+   log.info("Message start processing, message: {}", obj);
+   try {
+      // TODO 调用业务
+      Thread.sleep(5000);
+//            int a = 1/0;
+      channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+   } catch (Exception e) {
+      Boolean redelivered = message.getMessageProperties().getRedelivered();
+      if (redelivered) {
+            // 消息已重复处理失败，拒绝再次接收
+            log.error("The message has failed to be duplicated");
+            channel.basicReject(message.getMessageProperties().getDeliveryTag(), false);
+      } else {
+            // 消费该消息失败，即将再次返回队列处理
+            log.error("An unexpected error occurred in message processing");
+            channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+      }
+   }
+}
+
+
+// 手动确认机制包括 basicAck、basicNack、basicReject、basicRecover
+/*
+   肯定确认
+   参数1 - deliveryTag对应的消息，用来确认队列中哪个具体消息；
+   参数2 - 表示是否应用于多消息，即是否开启多个消息同时确认；
+      多消息的解释：因为发送过程是异步的，因此存在多个消息未处理的场景；
+      比如现在有多条消息去调用这个nack方法，他的执行有个先后顺序，就是调用nack时，之前所有没有ack的消息都会被标记为nack，多条消息同时调用，
+      则调用的这个语句执行前如果还有未执行回复确认的消息就会被回复nack，后续的消息回复nack可能只作用于当条消息。
+*/
+channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+
+/*
+   参数1 - deliveryTag对应的消息，用来确认队列中哪个具体消息；
+   参数2 - requeue，表示是否重新入队列；false-丢弃或进入死信队列，true-重新入队列，消费者还是会消费到这个消息，如果没有其他消费者监控这个queue的话，要注意一直无限循环发送的危险。
+*/
+channel.basicReject(message.getMessageProperties().getDeliveryTag(), false);
+
+/*
+   参数1 - deliveryTag对应的消息，用来确认队列中哪个具体消息；
+   参数2 - 表示是否应用于多消息，即是否开启多个消息同时确认；
+   参数3 - requeue，表示是否重新入队列；false-丢弃或进入死信队列，true-重新入队列，消费者还是会消费到这个消息；
+   与basciReject区别就是同时支持多个消息
+*/
+log.error("消息即将再次返回队列处理...");
+channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+
+/*
+   恢复消息到队列
+   参数requeue表示是否重新入队列，true则重新入队列，并且尽可能的将之前recover的消息投递给其他消费者消费，而不是自己再次消费，false则消息会重新被投递给自己。
+*/
+channel.basicRecover(true);
+```
+
+**消费者注解 @RabbitListener**
 
 1. @RabbitListener 注解是指定某方法作为消息消费的方法，例如监听某 Queue 里面的消息，接受的参数需要和发送者的类型一致；
 2. @RabbitListener 可以标注在类上面，需配合 @RabbitHandler 注解一起使用，标识当有收到消息的时候，就交给@RabbitHandler 的方法处理。
-
-```java
-
-
-```
 
 ## 6. TTL 队列
 
