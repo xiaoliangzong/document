@@ -271,13 +271,15 @@ docker stack deploy -c stackFile路径 service名 --with-registry-auth  # -c 路
 # 查询stack列表
 docker stack ls
 # 查询stack服务列表
-docker stack services <stack_name>名称
+docker stack services <stack_name>
 # 查询某个服务中的容器运行状态
-docker service ps <service_name>名称
-# stack删除
-docker stack rm <stack_name>名称
+docker service ps <service_name>
+# 查询日志
+docker service logs --tail 1000 -f <service_name>
+# 删除stack
+docker stack rm <stack_name>
 # 重启某个服务
-docker service update --force <service_name>名称
+docker service update --force <service_name>
 # 移除stack(下面所有的service会被移除)
 docker stack down xxx
 ```
