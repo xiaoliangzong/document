@@ -208,6 +208,10 @@ alter table [<tableName>] change column field field2;
 CREATE TABLE 表2
 SELECT * FROM xxx.表1
 
+
+INSERT INTO tableA SELECT * FROM tableB;
+
+
 -- 根据表1创建表2
 CREATE TABLE 表2 LIKE xxx.表1
 

@@ -355,17 +355,26 @@ firewall-cmd --list-ports # 只看端口信息
 top               # P占用最大   -d 5  每5s刷新一次
 ps -l             # 查询进程
 pmap -d 进程id    # 用于报告进程的内存映射关系
-free -h			   # 显示当前系统未使用和已使用的内存数目，还可以显示被内核使用的内存缓冲区
-free -s 5seconds  -c count		# 每5s执行一次
+
+# 显示当前系统未使用内存数目、已使用内存数目、被内核使用的内存缓冲区；
+# -k单位为k，-m单位为M，-g单位为G，-h表示输出是可读的，即单位是直接转换之后的，-t表示total，RAM + swap之和，-c表示输出次数，-s 每隔几秒执行一次
+free -h
+free -mt
+free -s 5 -c 3		# 每5s执行一次，输出三次
 ```
 
 ## 10. 服务管理
 
-- service ：可以启动、停止、重新启动和关闭系统服务，还可以显示所有系统服务的当前状态。
-- systemctl：systemd 工具，主要负责控制 systemd 系统和服务管理器
+systemctl 是系统服务管理器指令，主要负责控制 systemd 系统和服务管理器。实际上 systemctl 是 service 和 chkconfig 的集合和代替。
+
+- service ：systemd 是一个系统管理守护进程、工具和库的集合；主要操作有系统服务启动、停止、重启、关闭、显示状态；
 - chkconfig：是管理系统服务(service)的命令行工具。所谓系统服务(service)，就是随系统启动而启动，随系统关闭而关闭的程序。
 
-`systemctl命令是service命令和chkconfig命令的集合和代替`
+![systemctl=chkconfig+service](../public/images/Linux/systemctl-chkconfig%2Bservice.png)
+
+sysctl 被用于在内核运行时动态地修改内核的运行参数，可用的内核参数在目录/proc/sys 中。它包含一些 TCP/ip 堆栈和虚拟内存系统的高级选项，这可以让有经验的管理员提高引人注目的系统性能。用 sysctl 可以读取设置超过五百个系统变量。
+
+`sysctl net.ipv4.ip_forward`
 
 ```sh
 [root@localhost ~]# service httpd start
