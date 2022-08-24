@@ -159,3 +159,38 @@ caffeine 和 redis 相比，没有了网络 IO 上的消耗
 3. exit
 4. 重新启动
 ```
+
+## 12. Reids 集群实战部署
+
+```shell
+#先创建一个redis的网卡
+docker network create --driver bridge --subnet 192.167.0.0/16 --gateway 192.167.0.1 redis
+#编写创建redis配置的脚本
+for port in $(seq 1 6); \
+do \
+mkdir -p /mydata/redis/node-${port}/conf
+touch /mydata/redis/node-${port}/conf/redis.conf
+cat <<EOF>>/mydata/redis/node-${port}/conf/redis.conf
+port 6379
+bind 0.0.0.0
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+cluster-announce-ip 192.167.0.1${port}
+cluster-announce-port 6379
+cluster-announce-bus-port 16379
+appendonly yes
+EOF
+done
+#启动redis集群
+for port in $(seq 1 6); \
+do \
+docker run -p 637${port}:6379 -p 1637${port}:16379 --name=redis-${port} -v /mydata/redis/node-${port}/data:/data -v /mydata/redis/node-${port}/conf/redis.conf:/etc/redis/redis.conf -d --net redis --ip 192.167.0.1${port} redis:5.0.9-alpine3.11 redis-server /etc/redis/redis.conf
+done
+
+
+docker run -p 6371:6379 -p 16371:16379 --name=redis-1 -v /mydata/redis/node-1/data:/data -v /mydata/redis/node-1/conf/redis.conf:/etc/redis/redis.conf -d --net redis --ip 192.167.0.11 redis:5.0.9-alpine3.11 redis-server /etc/redis/redis.conf
+#创建集群
+docker exec -it redis-1 /bin/sh
+redis-cli --cluster create 192.167.0.11:6379 192.167.0.12:6379 192.167.0.13:6379 192.167.0.14:6379 192.167.0.15:6379 192.167.0.16:6379 --cluster-replicas 1
+```

@@ -81,10 +81,10 @@ wall 'message'      # 发广播信息
 
 ping -c 3 19.168.100.19    # 只进行ping三次
 
-shutdown            # 关机重启 -c 取消前一个关机命令 -h 关机  -h row -r重启
-logout              # 退出登录
+shutdown                # 关机重启 -c 取消前一个关机命令 -h 关机  -h row -r重启
+logout                  # 退出登录
 halt/init 0/poweroff    # 关机
-reboot/init 6       # 重启，init改变操作系统的运行级别；查看系统运行级别：cat /etc/inittab  # 默认是3。
+reboot/init 6           # 重启，init改变操作系统的运行级别；查看系统运行级别：cat /etc/inittab  # 默认是3。
 
 df -h               # 查看磁盘使用信息，列出文件系统整体的磁盘使用量
 du                  # 检查磁盘空间使用量，文件夹占用的空间大小
@@ -99,8 +99,8 @@ sudo                             # 以系统管理者的身份执行指令
 
 ls -h &>> xx.txt
 ls -h >> xx.txt 2>&1		         # 将输出结果保存到文件
-ls -h >>						     # 正确结果保存到文件
-ls -h 2>>						     # 错误结果保存到文件
+ls -h >>						         # 正确结果保存到文件
+ls -h 2>>						      # 错误结果保存到文件
 >                                    # 覆盖（文件会自动创建）
 >>                                   # 追加（文件会自动创建）
 read ip < xx.txt                     # 输入
@@ -325,16 +325,19 @@ ls -i       # 查询inode号
 **防火墙**
 
 ```sh
-# 查看所有开启的端口，如果是阿里云，需要配置安全组规则！
-firewall-cmd --list-ports
 # firewalld 查看服务状态、启动、关闭、重启
-systemctl status firewalld
 service firewalld start    systemctl start firewalld
 service firewalld stop     systemctl stop firewalld
 service firewalld restart  systemctl restart firewalld
+systemctl status firewalld
+
+
 # 查看防火墙规则
 firewall-cmd --list-all          # 查看全部信息
-firewall-cmd --list-ports        # 只看端口信息
+firewall-cmd --list-ports        # 查看所有开启的端口，如果是阿里云，需要配置安全组规则！
+firewall-cmd --state             # 查看防火墙状态
+firewall-cmd --reload            # 更新防火墙规则
+
 # 开启端口
 firewall-cmd --zone=public --add-port=8080/tcp --permanent   # 开端口命令，--zone作用域，--add-port=80/tcp添加端口，格式为：端口/通讯协议，--permanent永久生效，没有此参数重启后失效
 systemctl restart firewalld.service                          # 重启防火墙
@@ -380,22 +383,19 @@ free -s 5 -c 3		# 每5s执行一次，输出三次
 
 ## 10. 服务管理
 
-systemctl 是系统服务管理器指令，主要负责控制 systemd 系统和服务管理器。实际上 systemctl 是 service 和 chkconfig 的集合和代替。
+**systemctl** 是系统服务管理器指令，主要负责控制 systemd 系统和服务管理器。实际上 systemctl 是 service 和 chkconfig 的集合和代替。
 
 - service ：systemd 是一个系统管理守护进程、工具和库的集合；主要操作有系统服务启动、停止、重启、关闭、显示状态；
 - chkconfig：是管理系统服务(service)的命令行工具。所谓系统服务(service)，就是随系统启动而启动，随系统关闭而关闭的程序。
 
 ![systemctl=chkconfig+service](../public/images/Linux/systemctl-chkconfig%2Bservice.png)
 
-sysctl 被用于在内核运行时动态地修改内核的运行参数，可用的内核参数在目录/proc/sys 中。它包含一些 TCP/ip 堆栈和虚拟内存系统的高级选项，这可以让有经验的管理员提高引人注目的系统性能。用 sysctl 可以读取设置超过五百个系统变量。
-
-`sysctl net.ipv4.ip_forward`
+**sysctl** 被用于在内核运行时动态地修改内核的运行参数，可用的内核参数在目录/proc/sys 中。它包含一些 TCP/IP 堆栈和虚拟内存系统的高级选项，这可以让有经验的管理员提高引人注目的系统性能。
 
 ```sh
-[root@localhost ~]# service httpd start
-Redirecting to /bin/systemctl start  httpd.service
-
-service < option > | --status-all | [ service_name [ command | --full-restart ] ]
+sysctl -a                     # 显示全部配置信息
+sysctl -p                     # 使配置 /etc/sysctl.conf 生
+sysctl net.ipv4.ip_forward    # 查看是否开启路由ip转发
 
 # 1、 检查某个单元是否启动
 systemctl is-enabled httpd.service
@@ -557,8 +557,13 @@ kill -HUP pid        # 平滑重启
 
 ### 11.3.3 vsftpd 和 ftp
 
-1. ftp File Transfer Protocol 文件传输协议，实现不同操作系统之间文件的传输
-2. vsftpd 一个基于 ftp 协议的文件传输服务器软件，跨平台、跨操作系统的传输文件
+1. ftp（File Transfer Protocol） 文件传输协议，用于在网络上进行文件传输的一套标准协议，使用客户/服务器模式；它属于网络传输协议的应用层；默认端口 21
+2. sftp （SSH File Transfer Protocol）安全文件传输协议；默认端口 22
+
+   - 线上服务器提供在线服务，对用户需要控制，只能让用户在自己的 home 目录下活动
+   - 用户只能使用 sftp，不能 ssh 到服务器进行操作
+
+3. vsftpd（Very Secure FTP daemon） 一个基于 ftp 协议的文件传输服务器软件，跨平台、跨操作系统的传输文件
 
 ### 11.3.4 LNMP
 
