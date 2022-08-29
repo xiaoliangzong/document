@@ -92,6 +92,24 @@ http {
     keepalive_timeout  65;
 
     #gzip  on;
+    #开启gzip压缩
+    gzip on;
+    #http的协议版本
+    gzip_http_version 1.0;
+    #IE版本1-6不支持gzip压缩，关闭
+    gzip_disable 'MSIE[1-6].';
+    #需要压缩的文件格式 text/html默认会压缩，不用添加
+    gzip_types text/css text/javascript application/javascript image/jpeg image/png image/gif;
+    #设置压缩缓冲区大小，此处设置为4个8K内存作为压缩结果流缓存
+    gzip_buffers 4 8k;
+    #压缩文件最小大小
+    gzip_min_length 1k;
+    #压缩级别1-9
+    gzip_comp_level 4;
+    #给响应头加个vary，告知客户端能否缓存
+    gzip_vary on;
+    #反向代理时使用
+    gzip_proxied off;
 
  # 配置负载均衡
  upstream myserver{
@@ -122,7 +140,7 @@ http {
   location / {
    root   html;
    index  index.html index.htm;
-   try_files $uri $uri/ /index.html;
+   try_files $uri $uri/ /index.html;   #检测文件存在性重定向到首页目录    防止404
    proxy_pass http://127.0.0.1:8080
   }
   # 配置反向代理2-调转到不同的url

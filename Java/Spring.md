@@ -413,7 +413,7 @@ Spring 事务管理分为编程式和声明式两种方式；
 3. 注解属性
    - value（transactionManager）：当配置文件中存在多个 TransactionManager，可以使用该属性指定哪个事务管理器
    - Propagation：事务的传播属性，默认值为 REQUIRED
-   - isolation：事务的隔离级别，默认值 DEFAULT
+   - isolation：事务的隔离级别，默认是 Isolation.DEFAULT，它是指数据库的默认隔离级别。
    - timeout：事务的超时时间，默认值为-1，如果超过时间限制但事务还没有完成，则自动回滚事务
    - readOnly：是否为只读事务，默认为 false，为了忽略不需要事务的方法，比如读取数据，可以设置为 true
    - rollbackFor：指定能够触发事务回滚的异常类型，如果有多个异常类型需要指定，各类型之间使用逗号分隔
@@ -431,7 +431,17 @@ Spring 事务管理分为编程式和声明式两种方式；
 | PROPAGATION_NEVER         | 以非事务方式执行，如果当前存在事务，则抛出异常                                                     |
 | PROPAGATION_NESTED        | 如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与 PROPAGATION_REQUIRED 类似的操作。 |
 
-### 5.4 实现原理
+### 5.4 事务的隔离级别
+
+| 事务隔离级别     | 说明                                                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| DEFAULT          | 这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是 READ_COMMITTED                                                                                              |
+| READ_UNCOMMITTED | 该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据，该级别不能防止脏读和不可重复读，因此很少使用该隔离级别。                                                                   |
+| READ_COMMITTED   | 该隔离级别表示一个事务只能读取另一个事务已经提交的数据，该级别可以防止脏读，这也是大多数情况下的推荐值。                                                                                   |
+| REPEATABLE_READ  | 该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略，该级别可以防止脏读和不可重复读。 |
+| SERIALIZABLE     | 所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别。                       |
+
+### 5.45 实现原理
 
 @Transactional 原理是基于 Spring AOP，AOP 又是通过动态代理实现，在代码运行时生成一个代理对象，根据@Transactional 的属性配置信息，代理对象决定该注解标注的目标方法是否由拦截器@TransactionInterceptor 来使用拦截，在拦截中，会在目标方法开始执行前创建并加入事务，并执行目标方法的逻辑，最后根据执行情况是否出现异常，利用抽象事务管理器 AbstractPlatformTransactionManager 操作数据源 DataSource 提交或回滚事务。
 
@@ -440,7 +450,7 @@ Spring AOP 代理有 CglibAopProxy 和 JdkDynamicAopProxy 两种
 - 对于 CglibAopProxy，需要调用其内部类的 DynamicAdvisedInterceptor 的 intercept 方法。
 - 对于 JdkDynamicAopProxy，需要调用其 invoke 方法。
 
-### 5.5 使用事务的注意事项及常见问题
+### 5.6 使用事务的注意事项及常见问题
 
 **注意事项**
 
@@ -459,6 +469,8 @@ Spring AOP 代理有 CglibAopProxy 和 JdkDynamicAopProxy 两种
 7. 避免自身调用问题，若同一类中的没有 @Transactional 注解的方法内部调用有@Transactional 注解的方法，有@Transactional 注解的方法的事务被忽略，不会发生回滚；
 
 8. 合理使用异常处理以及事务，避免异常被 try catch 导致不回滚。
+
+9. 事务场景中，DML 操作尽量在一块执行，能够避免 Lock wait timeout exceeded；
 
 **常见问题**
 
