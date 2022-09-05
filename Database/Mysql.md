@@ -4,18 +4,16 @@
 
 windows 系统下 mysql 安装有两种方式: msi 直接安装和 zip 解压缩安装，本章节详细讲解 zip 包方式
 
-- 1. 解压，在根目录下新建 my.ini 配置文件
-- 2. 管理员身份运行进入 cmd 命令行，然后进入 bin 目录，执行初始化命令：mysqld --initialize-insecure --user=mysql --console
-- 3. 创建服务，可以不写服务名，默认是 mysql，如果安装多个服务，可以起不同的名字； mysqld --install [服务名]
-- 4. 配置环境变量
-- 5. 启动 net start [mysql]
-- 6. 登录后修改密码
-  - alter user 'root'@'localhost' identified with mysql_native_password by '新密码';
-  - set password for 'root'@'localhost'=password('新密码');
+1. 解压，在根目录下新建 my.ini 配置文件
+2. 管理员身份运行进入 cmd 命令行，然后进入 bin 目录，执行初始化命令：mysqld --initialize-insecure --user=mysql --console
+3. 创建服务，可以不写服务名，默认是 mysql，如果安装多个服务，可以起不同的名字； mysqld --install [服务名]
+4. 配置环境变量
+5. 启动 net start [mysql]
+6. 登录后修改密码
 
 > **说明：**
 >
-> - 初始化时，可以使用命令（ mysqld --verbose --help）查看参数配置，--initialize-insecure 标识初始化时创建 root 用户，无密码
+> - 初始化时，可以使用命令（mysqld --verbose --help）查看参数配置，--initialize-insecure 标识初始化时创建 root 用户，无密码
 > - 启动/停止服务命令：net start/stop [服务名]
 > - 如果使用 zip 包安装多个版本 mysql，则第一个安装之后，不需要设置环境变量，否则第二次执行 mysqld 初始化时，不知道使用哪个 mysqld；如果第二个版本的安装成功，但启动失败，尝试重启电脑后，卸载重新安装即可
 > - 如果卸载，zip 包安装方式在控制面板是找不到的，删除服务时，使用命令 sc delete [服务名]
@@ -23,7 +21,93 @@ windows 系统下 mysql 安装有两种方式: msi 直接安装和 zip 解压缩
 
 ### 1.2 linux
 
-### 1.3 my.ini 配置文件
+### 1.3 docker
+
+```sh
+[root@localhost mysql]# tree
+.
+├── conf
+│   └── my.cnf
+├── data
+├── init
+│   └── init.sql
+└── mysql-stack.yml
+
+2 directories, 3 files
+
+[root@localhost mysql]# cat conf/my.cnf
+[mysqld]
+user=mysql
+default-storage-engine=INNODB
+character-set-server=utf8mb4
+lower_case_table_names=1
+sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+innodb_log_file_size=256M
+max_allowed_packet=1000M
+max_connections=200
+character-set-server=utf8
+default-storage-engine=INNODB
+innodb_buffer_pool_size=64M
+net_read_timeout=600
+net_write_timeout=600
+[client]
+default-character-set=utf8mb4
+[mysql]
+default-character-set=utf8mb4
+
+[root@localhost mysql]# cat mysql-stack.yml
+version: '3.8'
+services:
+  mysql:
+    image: mysql:5.7.31
+    environment:
+      - TZ=Asia/Shanghai                # 设置时区为Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=root        # root用户密码
+    volumes:
+      - "./data:/var/lib/mysql"         # 挂载数据
+      - "./conf/my.cnf:/etc/my.cnf"     # 挂载配置文件
+      - "./init:/docker-entrypoint-initdb.d/"       # 挂载初始化sql
+    command:
+      --default-authentication-plugin=mysql_native_password
+    deploy:
+      replicas: 1                       # 制定容器数量
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "8"                     # 20%的内存可用处理时间
+          memory: 4096M                 # 内存
+      update_config:
+        parallelism: 1                  # 每次启动一个容器一份服务
+        delay: 5s                       # 更新一组容器之间的等待时间
+        monitor: 10s                    # 单次更新多长时间后没有结束则判定更新失败
+        max_failure_ratio: 0.1          # 更新时能容忍的最大失败率
+        order: start-first              # 更新顺序为新任务启动优先
+    ulimits:                            # 解决mysql占用内存过大的bug
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    ports:
+      - 3306:3306
+    networks:
+      - mysql-net
+networks:
+  mysql-net:
+    external: true
+
+[root@localhost mysql]# cat init/init.sql
+use mysql;
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root';
+grant all privileges on *.* to root@'%' identified by 'root' with grant option;
+flush privileges;
+
+
+[root@localhost mysql]# docker network create --driver overlay mysql-net
+[root@localhost mysql]# docker stack deploy -c mysql-stack.yml mysql
+```
+
+### 1.4 my.ini、my.cnf 配置文件
 
 ```ini
 [mysqld]
@@ -111,14 +195,14 @@ port=3306
 1. now()/current_timestamp()  -- 获取当前日前时间(yyyy-MM-dd HH:mm:ss)
 2. curdate()/current_date()   -- 当前日期
 3. curtime()/current_time()   -- 当前时间
-4. year()      -- 年
+4. year(date)      -- 年，接受date参数，并返回日期的年份
 5. month()     -- 月
 6. monthname() -- 英文月份
 7. day()
 8. hour()
 9. minute()
 10. second()
-11. str_to_date() -- 将字符串格式的日期转换为date，转换失败则为null
+11. str_to_date() -- 将字符串格式的日期转换为date，转换失败则为null，str_to_date('23-1-1982', '%d-%m-%Y')
 12. date_format() -- 日期格式化，将日期转换成字符串
 13. datediff()    -- 两个日期相差多少天
 -- `update_time` timestamp default current_timestamp on update current_timestamp comment '更新时间‘
@@ -281,10 +365,10 @@ alter table [<tableName>] drop index field;
 alter table [<tableName>] drop foreign key fk_b_a;
 
 -- 外键约束增加的四个选项
-on delete restrict on update restrict 拒绝删除修改父表当中子表引用的数据
-on delete no action on update no action 不允许删除修改父表当中子表引用的数据(默认)
-on delete cascade on update cascade 级联修改删除
-on delete set null on update set null 设置为 null
+on delete restrict on update restrict    -- 拒绝删除修改父表当中子表引用的数据
+on delete no action on update no action  -- 不允许删除修改父表当中子表引用的数据(默认)
+on delete cascade on update cascade      -- 级联修改删除
+on delete set null on update set null    -- 设置为 null
 ```
 
 ### 3.4 数据类型
@@ -482,8 +566,9 @@ select * from 表1 inner join 表2 on 表1.xxx between 表2.xxx and 表2.xxx   -
 select * from 表1 left join 表2 on 表1.xxx = 表2.xxx   -- 左连接
 
 -- 集合运算，纵向合并两个表的数据，取并集
-union all   -- 直接合并，进行数据的排序和去重，查询效率低
-union       -- 没有进行去重和排序，查询效率高
+-- 进行对结果取并集运算时，要确保两个结果集有相同的列数和列的数据类型，列名可以不一致
+union all   -- 没有进行去重和排序，查询效率高
+union       -- 直接合并，进行数据的排序和去重，查询效率低
 ```
 
 ### 4.4 子查询
@@ -551,11 +636,22 @@ offset
 
 ## 5. 备份
 
-**数据库备份方式：使用 navicat/dbeaver 软件或 mysqldump 命令行备份**
+**几种方式**
+
+<div style="color:red">
+
+1. 使用 navicat/dbeaver 等数据库连接工具；
+2. mysqldump 命令；
+3. 该方式只备份数据，而不是 sql 语句，效率高；select 查询语句 into outfile 'filename'; load data infile 'filename' into table tableName
+
+4. 将需要备份的表复制一份：create table tableName select \* from tableName;
+
+</div>
 
 ```sql
+-- 2. mysqldump
 /*
-1. 导出（不需要登录）
+  导出（不需要登录）
 	 --column-statistics=0 解决版本不兼容问题，新版的 mysqldump 默认启用了一个新标志，作用是禁用它
 	 databases 只导出一个数据库的几张表
 	 -t 只导出表数据
@@ -563,10 +659,24 @@ offset
 */
 mysqldump --column-statistics=0 -u username -h ip -p database>D:\xxx.sql    -- 导出数据库，结尾不能加；，要不然就报错！！！
 mysqldump -u username -h ip -p databases table1 table2>D:\xxx.sql           -- 导出表结构和内容
--- 2. 导入
+-- 导入
 mysql -u root -h ip -p  -- 登录
 use database            -- 选择对应的数据库，或者创建数据库 create table 数据库名 character set 字符集
 source D:\xxx.sql       -- 载入
+
+-- 3. select into outfile   /   load data infile into table
+/*
+  可选参数（默认值）：
+    FIELDS TERMINATED BY ' '         字段分隔
+    [OPTIONALLY] ENCLOSED BY ''      字段用什么字符包起来，如果使用了OPTIONALLY，则只有CHAR和VERCHAR被包
+    ESCAPED BY ''                    当需要转义时用什么作为转义字符
+    LINES TERMINATED BY ' '          每行记录之间用什么分隔
+  注意事项
+    1. 输出文件在指定目录下存在的话就会报错，需要先删除再试；
+    2. 遇到报错 The MySQL server is running with the --secure-file-priv option so it cannot execute this statement ，则需要设置变量secure_file_priv的值
+*/
+select * from <tableName> into outfile 'D:/download/a.txt';
+load data infile 'D:/download/a.txt' into table <tableName>;
 ```
 
 ## 6. 事务
@@ -662,68 +772,67 @@ bin log 是 Server 层自己的日志
 4. 执行器生成这个操作的 binlog，并把 binlog 写入磁盘。
 5. 执行器调用引擎的提交事务接口，引擎把刚刚写入的 redo log 改成提交（commit）状态，更新完成。
 
-## 8. 用户权限
+## 8. 用户、权限
 
 ```sql
 -- 1. 查询用户
-select user,host from mysql.user;
+select user, host from mysql.user;
 
+/*
 -- 2. 创建用户
-create user 用户名@主机地址 identified by 密码
-@主机地址:指定创建用户可以在那台主机上登录,如果是需要在所有的主机上登录,可以将主机地址写成通配符%，%需要加引号
-本地:localhost
-创建用户之前必须登录到数据库服务器上,而且需要管理员才能创建.
+    主机地址：指定创建用户在那台主机上登录，如需在所有的主机上登录，则设置成通配符 %，% 需要加引号；如本地，则设置成localhost
+*/
+create user <username>;
+create user 'username'@'host' identified by '密码';
 
 -- 3. 删除用户
-drop user username@host;
+drop user 'username'@'host';
 
--- 4. 给用户授权
-GRANT privileges ON databasename.tablename TO 'username'@'host'
-  privileges:权限，所有权限使用all
-    用户的操作权限  select  insert  update delect alter create
-  databasename.tablename:  *.*(所有数据库的所有表).
-在授权结束后,通过一条语句来刷新权限:flush privileges
-将某个用户设置为次级管理员(可以授权)
-  GRANT privileges ON databasename.tablename TO 'username'@'host' with grant option
-查看授权信息: show grants
+-- 4. 设置、更改用户密码
+set password = 'password';                       -- 修改当前登录的密码
+set password for '用户名'@'主机地址'='password';
+alter user 'root'@'localhost' identified with mysql_native_password by '123456';
 
--- 5. 更改用户密码
-set password for 用户名@主机地址=password(新密码)
-简写:(修改当前登录的密码): set password = password(新密码)
+/*
+-- 5. 给用户授权
+    privileges：用户的操作权限，all表示所有权限，其他权限包括 select、insert、update、delect、alter、create
+    databasename.tablename：数据库名.表名，*.*表示所有数据库的所有表
+*/
+GRANT all privileges ON databasename.tablename TO 'username'@'host';
 
--- 6. 撤销用户权限
-revoke privileges on databasename.tablename from 'username'@'host'
-
---7. 刷新权限
+--6. 刷新权限，授权结束后，需要刷新权限
 flush privileges;
+
+-- 将某个用户设置为次级管理员（可以授权）
+GRANT privileges ON databasename.tablename TO 'username'@'host' with grant option
+
+-- 7. 查看授权信息
+show grants
+
+-- 8. 撤销用户权限
+revoke privileges on databasename.tablename from 'username'@'host'
 ```
 
 ## 10. 三大范式和 er 图
 
-```markdown
-二 关系型数据库的设计原则:(三个范式):
-1>第一范式: 确保每列的原子性.(每个表当中必须有一个主键列)
-如果每列(或者每个属性)都是不可再分的最小数据单元(也称为最小的原子单元),则满足第一范式.
-2>第二范式:在第一范式的基础上更进一层,目标是确保表中的每列都和主键相关.
-如果一个关系满足第一范式,并且除了主键以外的其他列,都依赖于该主键,则满足第二范式.
-3>第三范式:在第二范式的基础上更进一层,目标是确保每列都和主键列直接相关,而不是间接相关.
-如果一个关系满足第二范式,并且除了主键以外的其他列之间没有依赖关系,则满足第三范式
-4>对应关系:
-1 对 1 关系 用一张表存储 1 对 1,添加一个列(eg:id 和 id_card)
-1 对多关系和多对 1 关系 在多的一方的表中添加一个列(唯一标识的列),来引用 1 的一方的数据
-多对多关系: 中间表 stu_teacher(id,stu_id,tea_id;)
-三 E-R 图(Entity-Relation 实体关系图)
-1>E-R 图:
-在需求当中,抽离处该项目当中所有的实体对象,分析出这样的属性(数据)
-使用矩形表示实体
-使用椭圆表示属性
-使用菱形表示实体之间关系 n\m 表示多,1 表示 1
-2>E-R 图绘图工具:
-微软 visio(亿图)\EDraw\Smind\画图软件
-3>绘制酒店管理系统 E-R 图:
-4>根据 E-R 图建立数据库模型
-navicat 工具\powerdesigner 工具
-```
+**关系型数据库设计原则**
+
+第一范式：确保每列的原子性（每个表当中必须有一个主键列），如果每列都是不可再分的最小数据单元，也称为最小的原子单元，则满足第一范式。
+例如用户表（姓名、性别、地址），地址列可以分（分为国家、省、市、区），也可以不分，需要根据实际情况决定。
+
+第二范式：确保表中的每列都和主键相关。是在第一范式的基础上更进一层，除了主键以外的其它列，都依赖于该主键，则满足第二范式。
+
+第三范式：目标是确保每列都和主键列直接相关，而不是间接相关。在第二范式的基础上更进一层，如果一个关系满足第二范式，并且除了主键以外的其它列之间没有依赖关系，则满足第三范式。
+
+**E-R 图**
+
+Entity-Relation 实体关系图；在需求当中，抽离出该项目当中所有的实体对象，分析出这样的属性(数据)
+
+- 使用矩形表示实体
+- 使用椭圆表示属性
+- 使用菱形表示实体之间关系 n\m 表示多,1 表示 1
+
+常用绘制 E-R 图的工具：微软 visio、亿图、EDraw、Smind
 
 ## 11. 索引
 

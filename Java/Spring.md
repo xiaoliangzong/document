@@ -884,3 +884,4 @@ jar -jar xxx.jar --server.port=8080
 - GET 请求方式，参数拼接在 URL 后面，此时参数对象中的 @JsonProperty 不会生效。
 
 @JsonUnwrapped 对象扁平化
+被 @JsonAnyGetter 注解的方法必须是非静态的、无参数的，且返回值必须为 java.util.Map。序列化时，Map 的条目会被扁平化（与对象其他的属性位于同一级别，与 @JsonUnwrapped 的处理方式相同），而不是作为嵌套属性被序列化。
