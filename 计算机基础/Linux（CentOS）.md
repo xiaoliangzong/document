@@ -3,6 +3,8 @@
 ## 1. 基础命令
 
 ```sh
+################################ 文件、目录 ##################################
+
 ls -al              # 查看文件， -h 显示大小
 drwxr-xr-x          # 第一个字符 d-目录，-代表文件，l代表软链接line file， 所有者：同组用户：其他用户
 umask -S 			# 查看或设置文件默认权限，-S是以rwx形式显示新建文件缺省权限 文件666 目录777，默认情况中，文件是没有可执行（x）权限，缺省创建的文件是没有可执行权限x的
@@ -66,13 +68,21 @@ last                # 列出目前与过去登入系统的用户信息
 lastlog             # 检查某特定用户上次登录的时间 -u 特定登录用户的记录信息
 traceroute          # 显示数据包到主机间的路径（跟踪路径）？
 
-useradd             # 添加用户
+################################ 用户、用户组、密码 ##################################
+useradd             # 添加用户，-g组，-s登录命令，-d家目录，如 useradd -g sftp -s /sbin/nologin sftpuser
 userdel -r          # 删除用户
-passwd userName     # root修改密码  echo 123|passwd --stdin userName  修改用户密码为123
+usermod             # 修改用户信息
+
+groupadd            # 添加用户组
+
 passwd              # 修改自身的密码
+passwd userName     # root修改密码
+echo 123|passwd --stdin userName    # 修改用户密码为123
+
 id username         # 判断用户是否存在
 id -u               # 等于0表示admin
-cat /etc/passwd | cut -d : -f 1 | grep 'dangbo';echo $?
+# 查询dangbo用户是否存在，$?表示上一条命令执行后返回的状态；0表示执行正常，非0表示执行异常或错误
+cat /etc/passwd | cut -d : -f 1 | grep 'dangbo'; echo $?
 
 wirte               # 给用户发信息，以ctrl+D保存结束，ctrl+backspace 进行删除
 mail root           # 发邮件，以ctrl+D保存结束，ctrl+backspace 进行删除；echo "system date failed" |mail -s 'check system date'  root@localhost
@@ -555,15 +565,69 @@ kill -HUP pid        # 平滑重启
 3. 修改主配置文件nginx.conf，在http节点下添加内容：include xxx/*.conf
 ```
 
-### 11.3.3 vsftpd 和 ftp
+### 11.3.3 ftp、sftp、vsftpd
 
-1. ftp（File Transfer Protocol） 文件传输协议，用于在网络上进行文件传输的一套标准协议，使用客户/服务器模式；它属于网络传输协议的应用层；默认端口 21
-2. sftp （SSH File Transfer Protocol）安全文件传输协议；默认端口 22
+**ftp**
 
-   - 线上服务器提供在线服务，对用户需要控制，只能让用户在自己的 home 目录下活动
-   - 用户只能使用 sftp，不能 ssh 到服务器进行操作
+文件传输协议（File Transfer Protocol），是网络上进行文件传输的一套标准协议，默认端口 21；vsftp 是 ftp 服务器软件，vsftpd 是 vsftp 软件的守护进程。
 
-3. vsftpd（Very Secure FTP daemon） 一个基于 ftp 协议的文件传输服务器软件，跨平台、跨操作系统的传输文件
+**sftp**
+
+安全文件传输协议（Secure File Transfer Protocol），使用 SSH 协议进行 FTP 传输的协议叫 SFTP，默认端口 22；
+
+- 线上服务器提供在线服务，对用户需要控制，只能让用户在自己的 home 目录下活动；
+- 用户只能使用 sftp，不能 ssh 到服务器进行操作；
+
+```shell
+# 1. 创建用户组，并将用户添加到用户组
+groupadd sftp
+useradd -g sftp -s /sbin/nologin sftpuser
+passwd sftpuser
+
+# 2. 配置sshd_config文件
+vim /etc/ssh/sshd_config
+
+
+#Subsystem sftp /usr/libexec/openssh/sftp-server      # 注释掉文件末尾的这行
+
+Subsystem sftp internal-sftp     # 使用sftp服务使用系统自带的internal-sftp
+Match Group sftp                 # 匹配sftpusers组的用户，如果要匹配多个组，多个组之间用逗号分割；
+ChrootDirectory /home/%u         # 用chroot将用户的根目录指定到%h，%h代表用户home目录，这样用户就只能在用户目录下活动。也可用%u，%u代表用户名。
+ForceCommand internal-sftp -l VERBOSE        # 设置日志级别为VERBOSE
+# ForceCommand internal-sftp                   # 指定sftp命令
+# AllowTcpForwarding no
+AllowUsers root@10.10.10.*                   # 限制root用户只能通过10.10.10.*网段登录访问
+X11Forwarding no
+
+Match user sftpuser                          # 匹配用户，如果要匹配多个用户，多个用户之间用逗号分割；
+ChrootDirectory /home/%u
+ForceCommand internal-sftp
+AllowTcpForwarding no
+X11Forwarding no
+
+# 3. 设置目录权限
+chown root:sftp /home/sftpuser
+chmod 755 /home/sftpuser
+
+# 目录开始一直往上到系统根目录为止的目录拥有者都只能是 root，用户组可以不是 root。
+# 目录开始一直往上到系统根目录为止都不可以具有群组写入权限
+
+# 4. 重启sshd服务
+systemctl restart sshd
+# 5. 验证sftp登录
+sftp sftpuser@localhost
+
+```
+
+**ssh**
+
+一组协议（Secure Shell），在进行数据传输之前，ssh 先对联机数据包通过加密技术处理，加密后再进行数据传输，确保了传递的数据安全；在默认状态下，SSH 服务主要提供 2 个服务功能：
+
+- 提供类似 telnet 远程联机服务的服务；
+
+- 类似 FTP 服务的 sftp-server，借助 SSH 协议来传输数据的，提供更安全的 SFTP；
+
+所以 ssh 服务本身就可以提供 SFTP 服务，Linux 下自带的 ssh 服务器端软件为 openssh，sshd 是 ssh 服务（openssh）的守护进程。
 
 ### 11.3.4 LNMP
 
