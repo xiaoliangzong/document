@@ -656,6 +656,7 @@ offset
 	 databases 只导出一个数据库的几张表
 	 -t 只导出表数据
 	 -d 只导出表结构
+   --quick，-q  该选项用于转储大的表。它强制mysqldump从服务器一次一行地检索表中的行而不是检索所有行并在输出前将它缓存到内存中
 */
 mysqldump --column-statistics=0 -u username -h ip -p database>D:\xxx.sql    -- 导出数据库，结尾不能加；，要不然就报错！！！
 mysqldump -u username -h ip -p databases table1 table2>D:\xxx.sql           -- 导出表结构和内容

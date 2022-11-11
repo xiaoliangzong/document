@@ -12,6 +12,8 @@ mvn dependency:get -DremoteRepositories=http://xxx/repository/public/ -DgroupId=
 mvn clean package --settings /xxx/conf/settings.xml
 # 安装时，指定本地仓库位置
 mvn clean install -Dmaven.repo.local=/home/xxx/
+# 查看依赖树
+mvn -X dependency:tree>tree.txt
 
 ```
 
@@ -138,6 +140,8 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
 POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM，所有 Maven 项目继承该配置，
 在这个 POM 中找到 repositories 标签的 url：https://repo.maven.apache.org/maven2
 
+本地仓库 > profile > pom 中的 repository > mirror
+
 ```xml
 <!-- setting 设置 -->
 <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
@@ -145,7 +149,7 @@ POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
 
     <!-- 本地仓库路径配置，命令行参数：-Dmaven.repo.local=xxx -->
-    <localRepository>D:\apache-maven-3.6.1\repository-nexus</localRepository>
+    <localRepository>D:\apache-maven-3.8.1\repository</localRepository>
 
 
     <!-- 远程库的服务器信息，用于需要认证的远程仓库，一般这种信息不配置在 pom.xml 中 -->
@@ -163,28 +167,41 @@ POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM
         </server>
     </servers>
 
-    <!-- 仓库镜像 -->
     <!--
-        mirrors 可以配置多个子节点，但它只会使用其中的一个节点，即默认情况下配置多个mirror的情况下，只有第一个生效；只有当前一个mirror无法连接的时候，才会去找后一个；
-        mirror 相当于一个拦截器，它会拦截maven对remote repository的相关请求，把请求里的remote repository地址，重定向到mirror里配置的地址；
-        mirror 中配置的库，默认只支持 release 库的拉取，snapshot 是不支持的。
-    -->
+     | 仓库镜像：
+     | mirror 相当于一个拦截器，它会拦截maven对remote repository的相关请求，把请求里的remote repository地址，重定向到mirror里配置的地址；
+     |
+     | mirrors 可以配置多个子节点，但它只会使用其中的一个节点，即默认情况下配置多个mirror的情况下，只有第一个生效，
+     | 只有当前一个mirror无法连接的时候，才会去找后一个；
+     |
+     | mirror 中配置的库，默认只支持 release 库的拉取，snapshot 是不支持的。
+     |
+     | -->
     <mirrors>
         <mirror>
-            <id>nexus</id>                <!-- id是唯一标识一个mirror -->
-            <name>nexus maven</name>      <!-- name是节点名 -->
-            <url>http://192.168.100.99:8082/repository/maven-public/</url>   <!-- url是官方的库地址 -->
-            <mirrorOf>*</mirrorOf>        <!-- mirrorOf代表一个镜像的替代位置，常用配置：* 匹配所有远程仓库，repo1,repo2 只匹配这两个仓库，*,!repo1 匹配除repo1外的所有仓库 -->
-        </mirror>
-        <mirror>
-            <id>alimaven</id>
-            <name>aliyun maven</name>
-            <url>https://maven.aliyun.com/repository/public/</url>
+            <id>alimaven</id>                                        <!-- id是唯一标识一个mirror -->
+            <name>aliyun maven</name>                                <!-- name是节点名 -->
+            <url>https://maven.aliyun.com/repository/public/</url>   <!-- url是官方的库地址 -->
+            <!--
+             | mirrorOf代表一个镜像的替代位置，常用配置：* 匹配所有远程仓库，repo1,repo2 只匹配这两个仓库，*,!repo1 匹配除repo1外的所有仓库；
+             |
+             | 如果配置为 * ，则表示该仓库地址为所有仓库的镜像，那么这个时候，maven会忽略掉其他设置的各种类型仓库，只在mirror里面找，
+             | 所以建议不要这样设置，它将导致pom文件中、pforile里面的仓库设置都失效。
+             |
+             | -->
             <mirrorOf>central</mirrorOf>
         </mirror>
     </mirrors>
 
-    <!-- profiles节点，<profiles>里配置了多个<profile>，需要使用<activeProfiles>来进行激活，激活了哪个<profile>，哪个<profile>才生效 -->
+    <!--
+     | <profiles>里可以配置多个<profile>，并且需要使用<activeProfiles>来激活，只有激活了哪个<profile>，哪个<profile>才生效。
+     |
+     | 配置Maven项目中需要使用的远程仓库，可以配置多个，可以配置在 pom 或 setting 中，但一般为了共用，经常配置在 setting 中
+     |
+     | 优先级顺序：如果都激活了，根据profile定义的先后顺序来进行覆盖取值，后面定义的会覆盖前面，其properties为同名properties中最终有效，
+     | 并不是根据activeProfile定义的顺序。
+     |
+     | -->
     <profiles>
         <!-- 全局设置 -->
         <profile>
@@ -201,40 +218,7 @@ POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM
             </properties>
         </profile>
 
-        <!-- 私服仓库 jar/pom 的下载，需要在 pom 或 setting 中配置 repositories，但是为了共用，经常配置在 setting 中 -->
-	    <profile>
-            <id>nexus-profile</id>
-            <!-- 配置Maven项目中需要使用的远程仓库，可以配置多个，也可以在 pom.xml 中配置 -->
-            <repositories>
-                <repository>
-                    <id>nexus</id>	<!--仓库id，repositories可以配置多个仓库，保证id不重复-->
-                    <name>xxx-nexus-name</name>
-                    <url>http://192.168.100.99:8082/repository/maven-public/</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-            <!-- 配置Maven项目中需要使用的远程仓库 -->
-            <pluginRepositories>
-                <pluginRepository>
-                    <id>nexus</id>
-                    <name>Public Repositories</name>
-                    <url>http://192.168.100.99:8082/repository/maven-public/</url>
-                </pluginRepository>
-                <releases>
-                    <enabled>true</enabled>
-                </releases>
-                <snapshots>
-                    <enabled>true</enabled>
-                </snapshots>
-            </pluginRepositories>
-        </profile>
-
-        <!-- 阿里云配置 -->
+        <!-- 阿里云仓库配置 -->
         <profile>
             <id>ali-profile</id>
             <repositories>
@@ -258,6 +242,37 @@ POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM
                 </pluginRepository>
             </pluginRepositories>
         </profile>
+
+		<!-- 私服仓库配置 -->
+        <profile>
+            <id>nexus-profile</id>
+            <repositories>
+                <repository>
+                    <id>nexus</id>    <!--仓库id，repositories可以配置多个仓库，保证id不重复-->
+                    <name>xxx-nexus-name</name>
+                    <url>http://192.168.100.99:8082/repository/maven-public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>nexus</id>
+                    <name>Public Repositories</name>
+                    <url>http://192.168.100.99:8082/repository/maven-public/</url>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+				</pluginRepository>
+            </pluginRepositories>
+        </profile>
     </profiles>
 
     <!-- 激活配置 -->
@@ -265,8 +280,8 @@ POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM
     <!-- 也可以使用-P参数显示的激活一个profile -->
     <activeProfiles>
         <activeProfile>jdk1.8</activeProfile>
-        <activeProfile>nexus-profile</activeProfile>
         <activeProfile>ali-profile</activeProfile>
+        <activeProfile>nexus-profile</activeProfile>
     </activeProfiles>
 </settings>
 ```
@@ -287,7 +302,7 @@ POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM
 <server>
     <id>db-maven-snapshot</id>
     <username>admin</username>
-    <password>ad min123</password>
+    <password>admin123</password>
 </server>
 
 <!-- pom中增加url -->
@@ -312,7 +327,6 @@ maven clean deploy
 ### 5.2 下载部署
 
 ```xml
-<!-- profiles节点，<profiles>里配置了多个<profile>，需要使用<activeProfiles>来进行激活，激活了哪个<profile>，哪个<profile>才生效 -->
 <profile>
     <!--profile的id-->
     <id>nexus-profile</id>

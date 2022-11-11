@@ -65,205 +65,136 @@ Spring 框架是一个分层架构，它包含了很多模块，每个模块完�
 5. FileSystemXmlApplicationContext 用于加载指定盘符下的 xml。
 6. 从 IOC 获取 Bean 对象，调用 applicationContext.getBean()方法。
 
-### 3.1 实例化方式
+### 3.1 对象实例化
 
-1. 基于 xml 配置
-   - 使用默认构造方法方式；
-   - 静态工厂，常用于 Spring 整合其他框架（工具）；
-   - 实例工厂，比如 Spring 中的 FactoryBean 接口，具有工厂生成对象能力；每个具体实现类只能生成特定的对象，比如 ProxyFactoryBean 实现类，用于生成代理对象实例；
-2. 基于注解；
+1. 基于注解 [详情请参考 Spring 注解](#5-spring-注解)
 
-### 3.2 依赖注入方式
+   - @Repository
+   - @Service
+   - @Component
+   - @Controller、@RestController
+   - @Configuration 和 @Bean
+   - @Import
 
-1. 基于 xml 配置，使用构造方法方式；
-2. 基于 xml 配置，使用 setter 方法注入；
-
-   - p 标签方式，是对 setter 方法注入进行简化
-   - SpEL 方式，是对 <property> 进行统一编程，所有的内容都使用 value
-   - 集合属性注入
-
-3. 基于注解
-
-**xml 方式**
+2. 基于 xml 配置
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
+
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        					   http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <!-- 组件扫描，扫描含有注解的类 -->
-    <context:component-scan base-package="com.xxx"></context:component-scan>
+    <!-- 实例化方式 -->
+    <!-- 1. 默认无参构造方法 -->
+    <bean id="userDao" class="com.ruixi.ioc.ioc.UserDaoImpl" init-method="init" destroy-method="destroy"/>
 
-    <!--
-        1. 构造方法注入：
-        无参构造，直接使用 <bean />标签，说明：如果类没有构造器，则默认创建一个无参构造器；
-        有参构造，使用 <constructor-arg> 配置构造方法的一个参数；
-            其中name为参数名称，type为参数类型，value为数据，ref为引用对象（一般是另一个bean id值），index为参数索引，从0开始。如果只有索引，匹配到了多个构造方法时，默认使用第一个；
-            如果只有一个有参数的构造方法并且参数类型与注入的bean的类型匹配，那就会注入到该构造方法中。
+    <!-- 2. 静态工厂，常用于 Spring 整合其他框架（工具） -->
+    <bean id="userDao1" class="com.ruixi.ioc.ioc.StaticFactory" factory-method="createUserDao"/>
+
+    <!-- 3. 实例工厂 -->
+    <bean id="instanceFactory" class="com.ruixi.ioc.ioc.InstanceFactory"/>
+    <bean id="userDao2" factory-bean="instanceFactory" factory-method="instance"/>
+
+    <!-- 4. FactoryBean接口，具有工厂生成对象能力；每个具体实现类只能生成特定的对象，通常是用来创建比较复杂的Bean。
+        比如 ProxyFactoryBean 实现类，用于生成代理对象实例。
+        该 Bean 的 id 实际上是从 BeanFactory 中获取的 getObject() 返回的对象，而不是 FactoryBean 本身。如果要获取 FactoryBean 对象，可以在 id 前面加一个&符号来获取。
+        说明：
+        FactoryBean 是很早的一个类了，和 xml 初始化配套的东西，若是一个 Bean 的创建过程中涉及到很多其他Bean或复杂的逻辑，在 xml 时代配置文件能做的工作有限，只能通过工厂类初始化复杂的 bean。但是现在 java configuration 时代 java 本身就已经逻辑完备了，只使用 @Bean 就可以满足复杂 bean 的初始化需求。
+        所以现在看来 FactoryBean 可以算作一个历史遗留的备选方案吧
     -->
-    <bean id="userDao" class="com.xxx.UserDao"></bean>
-    <bean id="userService" class="com.xxx.UserService">
-        <constructor-arg name="userDao" index="0" type="" value="" ref="userDao"></constructor-arg>
-    </bean>
-
-    <!--
-        2. setter 注入
-        使用<property>标签，name为属性名称（setter方法去掉set前缀，用来匹配set方法），value 或 <value>子节点为属性值，ref为引用对象
-    -->
-    <bean id="userService" calss="com.xxx.UserService">
-        <property name="userDao" ref="userDao"></property>
-    </bean>
-
-    <bean id="sysUser" class="com.xxx.SysUser">
-        <property name="name" value="dangbo"></property>
-        <property name="age">
-            <value>18</value>
-        </property>
-        <property name="student" ref="studentId"></property>
-    </bean>
-
-    <!-- 2.1 静态工厂 -->
-    <bean id="" class="工厂全限定类名" factory-method="静态方法"></bean>
-
-    <!-- 2.2 实例工厂 -->
-    <bean id="factoryId" class="工厂全限定类名"></bean>        <!-- 创建工厂实例 -->
-    <bean id="" factory-bean="factoryId" factory-method="实例工厂方法"></bean>
-
-    <!--
-        p 标签注入
-        p命名空间使用前提，必须添加命名空间
-        对setter方法注入进行简化，替换<property name="属性名">，而是在<bean p:属性名="普通值"  p:属性名-ref="引用值">
-    -->
-    <bean id="personId" class="com.xxx.Person"
-        p:name="dangbo" p:age="18"
-        p:student-ref="studentId">
-    </bean>
-
-    <!--
-        SpEL
-        对<property>进行统一编程，所有的内容都使用value
-        <property name="" value="#{表达式}">
-        #{123}、#{'jack'} ： 数字、字符串
-        #{beanId}	：另一个bean引用
-        #{beanId.propName}	：操作数据
-        #{beanId.toString()}	：执行方法
-        #{T(类).字段|方法}	：静态方法或字段
-    -->
-    <bean id="userId" class="com.xxx.User" >
-        <property name="name" value="#{userId.name?.toUpperCase()}"></property>     <!-- ?. 如果对象不为null，将调用方法 -->
-        <property name="age" value="#{18}"></property>
-    </bean>
-
-    <!--
-        集合注入
-        集合的注入都是给<property>添加子标签，数组<array>，List<list>，Set<set>，Map<map>，map存放k/v 键值对，使用<entry>描述，Properties<props>
-        普通数据<value>，引用数据<ref>
-    -->
-    <bean id="collDataId" class="com.xxx.CollData" >
-        <property name="arrayData">
-            <array>
-                <value>1</value>
-            </array>
-        </property>
-
-        <property name="listData">
-            <list>
-                <value>1</value>
-            </list>
-        </property>
-
-        <property name="setData">
-            <set>
-                <value>1</value>
-            </set>
-        </property>
-
-        <property name="mapData">
-            <map>
-                <entry key="1" value="1"></entry>
-                <entry>
-                    <key>2</key>
-                    <value>2</value>
-                </entry>
-            </map>
-        </property>
-
-        <property name="propsData">
-            <props>
-                <prop key="1">1</prop>
-            </props>
-        </property>
-    </bean>
+    <bean id="myFactoryBean" class="com.ruixi.ioc.ioc.MyFactoryBean"/>
 </beans>
 ```
 
-**注解方式**
+### 3.2 依赖注入
 
-| 注解            | 解释说明                                                                                                   | 使用场景                                                         |
-| --------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| @Bean           | 主要用于方法上，将该方法的对象注入到 Spring IOC 容器中，                                                   | 常与@Qualifier、@Scope、@Bean 搭配使用，适用于导入第三方组件的类 |
-| @Configuration  | 声明该类为配置类，可替换 xml 配置文件，可以被 @Component 替代，不过使用@Configuration 声明配置类更加语义化 | 常和@Bean 一起使用                                               |
-| @Repository     | 标识持久层组件                                                                                             |                                                                  |
-| @Service        | 标识服务层/业务层组件                                                                                      |                                                                  |
-| @Controller     | 标识表现层组件                                                                                             |                                                                  |
-| @Component      | 标识组件，可以替代@Repository、@Service、@Controller，因为这三个注解被@Component 标注                      |                                                                  |
-| @ComponentScan  | 扫描特定注解的组件，相当于 xml 的<context:component-scan>                                                  |                                                                  |
-| @Import         | 通过快速导入的方式将实例加入到 Spring IOC 容器中，导入组件的 id 为全路径，                                 | 常用于其他框架整合 Spring 时，使用@Import 注解导入整合类         |
-| @Value          |                                                                                                            |                                                                  |
-| @PropertySource | 读取指定 properties 文件                                                                                   | 不常用，常用的是 Spring Boot 的@ConfigurationProperties          |
-| @Conditional    | 条件                                                                                                       | 大量应用于 Spring Boot 底层，比如@ConfitionalOnClass 等          |
-| @Required       | 该注解用于 Bean 属性的 setter 方法，表明该属性必须设置，否则抛异常 BeanInitializationException             | Spring 5.1 版本已弃用，官方推荐使用构造器注入                    |
-| @Qualifier      | 明确指定需要装配的 Bean（针对存在相同类型的 Bean），否则抛异常 NoUniqueBeanDefinitionException             | 当有多个相同类型的 bean，@Qualifier 和@Autowire 结合使用         |
-| @Primary        | 指定默认情况下应该注入特定类型的 Bean，@Qualifier 和 @Primary 同时存在， @Qualifier 优先级高               | 常与@Bean 搭配使用，                                             |
-| @Lazy           | 延迟加载，调用某个 bean 的时候才去初始化（针对单例）                                                       | @Lazy(value = true)，默认为 true                                 |
-| @AliasFor       | 可以注解到自定义注解的两个属性上，表示这两个互为别名，含义一样                                             | 注解继承时，子注解想拥有父注解的属性值                           |
-| @Autowired      | 自动装配                                                                                                   |
+1. 基于注解
 
-**Autowire 详解**
+   - @Autowired
+   - @Resource
+   - @Value
 
-|          | @Autowired                                                                                                                                                                            | @Resource                                              |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| 来源     | 是 Spring 的注解                                                                                                                                                                      | 是 javax.annotation 注解                               |
-| 原理     | 通过 AutowiredAnnotationBeanPostProcessor 类实现注入                                                                                                                                  |                                                        |
-| 作用域   | 标注在构造器、方法、参数、字段、注解                                                                                                                                                  | 标注在类, 字段, 方法                                   |
-| 注入方式 | 默认根据类型 byType 注入，如存在多个类型则通过 byName 注入。<br>存在同类型的多个 Bean 的解决方法：<br> ① 使用@Qualifier；<br> ② 使用@Primary 解决；<br>③ 设置成与注入的 Bean 名称相同 | 默认根据 byName 注入，如名称未找到，则根据 byType 注入 |
-| 属性说明 | 属性 required，默认为 true，表示未找到对应 bean 时抛出异常                                                                                                                            | 属性 name 和 type，指定值后，则按照指定的进行匹配      |
+2. 基于 xml 配置
 
-![区别](../public/images/Java/Spring/ResourceAutowird.png)
+   - 有参构造方法注入
+   - setter 方法注入；
+     - <property> 标签注入
+     - p 标签方式，是对 setter 方法注入进行简化
+     - SpEL 方式，是对 <property> 进行统一编程，所有的内容都使用 value
+     - 集合属性注入
 
-**@Import 详解**
+```xml
+<!-- 组件扫描，扫描含有注解的类 -->
+<context:component-scan base-package="com.xxx"></context:component-scan>
+<!--
+    1. 有参构造方法注入，使用 <constructor-arg> 标签
+        name ： 参数名称，
+        type ： 参数类型，
+        value ： 数据，
+        ref ： 引用对象（一般是另一个bean id值），
+        index ： 参数索引，从0开始。如果只有索引，匹配到了多个构造方法时，默认使用第一个；如果只有一个有参数的构造方法
+        并且参数类型与注入的bean的类型匹配，那就会注入到该构造方法中。
+-->
+<bean id="userDao" class="com.xxx.UserDao"></bean>      <!-- 无参构造器创建对象 -->
+<bean id="userService" class="com.xxx.UserService">
+    <constructor-arg name="userDao" index="0" type="" value="" ref="userDao"></constructor-arg>
+</bean>
 
-1. 直接导入 class 数组
-2. 实现 ImportSelector 接口的实现类
+<!-- *************************************** setter 注入 ***************************************-->
+<!--
+    2.1 <property>标签；name ：属性名称（setter方法去掉set前缀，用来匹配set方法），value/<value> ： 属性值，ref ： 引用对象
+-->
+<bean id="userService" calss="com.xxx.UserService">
+    <property name="userDao" ref="userDao"></property>
+</bean>
+<bean id="sysUser" class="com.xxx.SysUser">
+    <property name="name" value="dangbo"></property>
+    <property name="age">
+        <value>18</value>
+    </property>
+    <property name="student" ref="studentId"></property>
+</bean>
 
-   是 spring 导入外部配置的核心接口，在 springboot 的自动化配置和@Enablexxx（功能性注解）中起到了决定性的作用。  
-   ImportSelector 接口中，selectImports()方法作用是：选择并返回需要导入的类的名称；返回一个字符串数组，当在@Configuration 标注的 Class 上使用@Import 引入了一个 ImportSelector 实现类后，
-   会把实现类中返回的 Class 名称都定义为 DeferredImportSelector 接口集成 ImportSelector，延迟选择性导入，在装载 bean 时，需要等所有的@Configuration 都执行完毕后才会进行装载。
+<!--
+    2.2 p 标签注入，使用前必须添加命名空间，对setter方法注入进行简化，替换<property name="属性名">，而是在<bean p:属性名="普通值"  p:属性名-ref="引用值">
+-->
+<bean id="personId" class="com.xxx.Person"
+    p:name="dangbo" p:age="18"
+    p:student-ref="studentId">
+</bean>
 
-3. 实现 ImportBeanSelector 接口
+<!--
+    2.3 SpEL，对 <property> 进行统一编程，所有的内容都使用value，<property name="" value="#{表达式}">
+    #{123}、#{'jack'} ： 数字、字符串
+    #{beanId}	：另一个bean引用
+    #{beanId.propName}	：操作数据
+    #{beanId.toString()}	：执行方法
+    #{T(类).字段|方法}	：静态方法或字段
+-->
+<bean id="userId" class="com.xxx.User" >
+    <property name="name" value="#{userId.name?.toUpperCase()}"></property>     <!-- ?. 如果对象不为null，将调用方法 -->
+    <property name="age" value="#{18}"></property>
+</bean>
 
-```java
-// 方式1
-@Import({**.class,***.class})  // 导入的bean的全限定名
-public class Test{}
-
-// 方式2
-// spring 底层使用较多，像Enablexxx等都是通过这种方式实现的。
-public class ImportSee implements ImportSelector {
-    @Override
-    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-        return new String[]{"com.company.module.类名"};
-    }
-}
-
-// 方式3
-// mybatis中的@MapperScan注解，就是基于这种方式实现注入Spring IOC容器的。
+<!--
+    2.4 集合注入，集合的注入都是给<property>添加子标签
+    数组<array>，List<list>，Set<set>，Map<map>，map存放k/v 键值对，使用<entry>描述，Properties<props>，普通数据<value>，引用数据<ref>
+-->
+<bean id="collDataId" class="com.xxx.CollData" >
+    <property name="arrayData"><array><value>1</value></array></property>
+    <property name="listData"><list><value>1</value></list></property>
+    <property name="setData"><set><value>1</value></set></property>
+    <property name="mapData">
+        <map><entry key="1" value="1"></entry><entry><key>2</key><value>2</value></entry></map>
+    </property>
+    <property name="propsData"><props><prop key="1">1</prop></props></property>
+</bean>
 ```
 
 ### 3.3 作用域
 
-注解 @Scope 可以控制 Spring Bean 的作用域，四种常见的作用域：
+@Scope 注解 和<Bean> 标签中的 scope 属性可以控制 Spring Bean 的作用域；默认为单例 singleton，多例时，初始化时，不会实例化 bean，只有每次调用的时候才会实例化。四种常见的作用域：
 
 |  作用域   | 解释说明                                                                      |
 | :-------: | ----------------------------------------------------------------------------- |
@@ -272,26 +203,14 @@ public class ImportSee implements ImportSelector {
 |  request  | 每一次 HTTP 请求都会产生一个新的 bean，该 bean 仅当前 HTTP request 内有效     |
 |  session  | 每一次 HTTP Session 会产生一个新的 bean，该 bean 仅在当前 HTTP session 内有效 |
 
-```xml
-<!-- 默认为单例singleton，多例时，初始化时，不会实例化bean，只有每次调用的时候才会实例化 -->
-<bean id="" class="" scope="singleton|prototype|request|session"></bean>
-```
-
 ### 3.4 生命周期
 
-1. 基于 xml，Bean 标签存在 init-method 和 destroy-method 方法；
-
-```xml
-<!-- 针对单例的Bean，初始化执行init方法，容器关闭时，销毁执行destroy方法 -->
-<bean id="" class="" init-method="初始化方法名称" destroy-method="销毁方法名称"></bean>
-
-```
-
-2.  实现接口 InitializingBean 和 DisposableBean，重写方法；
-3.  实现接口 BeanPostProcessor，并将实现类提供给 spring 容器，spring 容器将自动执行，在初始化方法前执行 before()，在初始化方法后执行 after()。对容器中所有的 bean 都生效。
-4.  基于注解@PostConstruct 和 @PreDestroy 实现；需要注意的是：@PostConstruct 和@PreDestroy 这两个注解都不是 Spring 的，是 java 的。
-    - @PostConstruct：修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被@PostConstruct 修饰的方法会在构造函数之后，init()方法之前运行。
-    - @PreDestroy：修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被@PreDestroy 修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
+1. init-method 和 destroy-method 方法；只针对单例的 Bean，初始化执行 init 方法，容器关闭时，销毁执行 destroy 方法；
+2. 实现接口 InitializingBean 和 DisposableBean，重写方法；
+3. 实现接口 BeanPostProcessor，并将实现类提供给 spring 容器，spring 容器将自动执行，在初始化方法前执行 before()，在初始化方法后执行 after()。默认对容器中所有的 bean 都生效，可以通过第二个参数 beanName 进行控制
+4. 基于注解@PostConstruct 和 @PreDestroy 实现；需要注意的是：@PostConstruct 和@PreDestroy 这两个注解都不是 Spring 的，是 java 的。
+   - @PostConstruct：修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被@PostConstruct 修饰的方法会在构造函数之后，init()方法之前运行。
+   - @PreDestroy：修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被@PreDestroy 修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
 
 ### 3.5 循环依赖解决方案
 
@@ -365,7 +284,70 @@ JoinPoint-->程序执行的某个位置,就是连接点对象,可以使用该对
    织入是将切面和到其他应用类型或对象连接或创建一个被通知对象的过程。
    织入可以在编译时，加载时，或运行时完成。
 
-## 5. Spring 事务
+## 5. Spring 注解
+
+| 注解            | 解释说明                                                                                                   | 使用场景                                                         |
+| --------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| @Bean           | 主要用于方法上，将该方法的对象注入到 Spring IOC 容器中，                                                   | 常与@Qualifier、@Scope、@Bean 搭配使用，适用于导入第三方组件的类 |
+| @Configuration  | 声明该类为配置类，可替换 xml 配置文件，可以被 @Component 替代，不过使用@Configuration 声明配置类更加语义化 | 常和@Bean 一起使用                                               |
+| @Repository     | 标识持久层组件                                                                                             |                                                                  |
+| @Service        | 标识服务层/业务层组件                                                                                      |                                                                  |
+| @Controller     | 标识表现层组件                                                                                             |                                                                  |
+| @Component      | 标识组件，可以替代@Repository、@Service、@Controller，因为这三个注解被@Component 标注                      |                                                                  |
+| @ComponentScan  | 扫描特定注解的组件，相当于 xml 的<context:component-scan>                                                  |                                                                  |
+| @Import         | 通过快速导入的方式将实例加入到 Spring IOC 容器中，导入组件的 id 为全路径，                                 | 常用于其他框架整合 Spring 时，使用@Import 注解导入整合类         |
+| @Value          |                                                                                                            |                                                                  |
+| @PropertySource | 读取指定 properties 文件                                                                                   | 不常用，常用的是 Spring Boot 的@ConfigurationProperties          |
+| @Conditional    | 条件                                                                                                       | 大量应用于 Spring Boot 底层，比如@ConfitionalOnClass 等          |
+| @Required       | 该注解用于 Bean 属性的 setter 方法，表明该属性必须设置，否则抛异常 BeanInitializationException             | Spring 5.1 版本已弃用，官方推荐使用构造器注入                    |
+| @Qualifier      | 明确指定需要装配的 Bean（针对存在相同类型的 Bean），否则抛异常 NoUniqueBeanDefinitionException             | 当有多个相同类型的 bean，@Qualifier 和@Autowire 结合使用         |
+| @Primary        | 指定默认情况下应该注入特定类型的 Bean，@Qualifier 和 @Primary 同时存在， @Qualifier 优先级高               | 常与@Bean 搭配使用，                                             |
+| @Lazy           | 延迟加载，调用某个 bean 的时候才去初始化（针对单例）                                                       | @Lazy(value = true)，默认为 true                                 |
+| @AliasFor       | 可以注解到自定义注解的两个属性上，表示这两个互为别名，含义一样                                             | 注解继承时，子注解想拥有父注解的属性值                           |
+| @Autowired      | 自动装配                                                                                                   |
+
+**Autowire 详解**
+
+|          | @Autowired                                                                                                                                                                            | @Resource                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| 来源     | 是 Spring 的注解                                                                                                                                                                      | 是 javax.annotation 注解                               |
+| 原理     | 通过 AutowiredAnnotationBeanPostProcessor 类实现注入                                                                                                                                  |                                                        |
+| 作用域   | 标注在构造器、方法、参数、字段、注解                                                                                                                                                  | 标注在类, 字段, 方法                                   |
+| 注入方式 | 默认根据类型 byType 注入，如存在多个类型则通过 byName 注入。<br>存在同类型的多个 Bean 的解决方法：<br> ① 使用@Qualifier；<br> ② 使用@Primary 解决；<br>③ 设置成与注入的 Bean 名称相同 | 默认根据 byName 注入，如名称未找到，则根据 byType 注入 |
+| 属性说明 | 属性 required，默认为 true，表示未找到对应 bean 时抛出异常                                                                                                                            | 属性 name 和 type，指定值后，则按照指定的进行匹配      |
+
+![区别](../public/images/Java/Spring/ResourceAutowird.png)
+
+**@Import 详解**
+
+1. 直接导入 class 数组
+2. 实现 ImportSelector 接口的实现类
+
+   是 spring 导入外部配置的核心接口，在 springboot 的自动化配置和@Enablexxx（功能性注解）中起到了决定性的作用。  
+   ImportSelector 接口中，selectImports()方法作用是：选择并返回需要导入的类的名称；返回一个字符串数组，当在@Configuration 标注的 Class 上使用@Import 引入了一个 ImportSelector 实现类后，
+   会把实现类中返回的 Class 名称都定义为 DeferredImportSelector 接口集成 ImportSelector，延迟选择性导入，在装载 bean 时，需要等所有的@Configuration 都执行完毕后才会进行装载。
+
+3. 实现 ImportBeanSelector 接口
+
+```java
+// 方式1
+@Import({**.class,***.class})  // 导入的bean的全限定名
+public class Test{}
+
+// 方式2
+// spring 底层使用较多，像Enablexxx等都是通过这种方式实现的。
+public class ImportSee implements ImportSelector {
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        return new String[]{"com.company.module.类名"};
+    }
+}
+
+// 方式3
+// mybatis中的@MapperScan注解，就是基于这种方式实现注入Spring IOC容器的。
+```
+
+## 6. Spring 事务
 
 事务指逻辑上的一组操作，组成这组操作的各个单元，要不全部成功，要不全部不成功。
 
@@ -376,7 +358,7 @@ Spring 事务管理分为编程式和声明式两种方式；
 - 编程式事务管理：通过编程的方式管理事务，使用 TransactionTemplate 或直接使用底层的 PlatformTransactionManager，可以带来极大的灵活性，但是难维护；
 - 声明式事务管理：使用注解@Transactional 或 配置文件（XML） 配置来管理事务，是基于 AOP 实现的，将事务管理代码从业务方法中分离出来；在实际业务中经常使用该方式。声明式事务管理也有两种常用的方式，一种是在配置文件（xml）中做相关的事务规则声明，另一种是基于@Transactional 注解的方式。
 
-### 5.1 配置文件（XML）方式
+### 6.1 配置文件（XML）方式
 
 ```xml
 <!-- 扫描组件 -->
@@ -406,7 +388,7 @@ Spring 事务管理分为编程式和声明式两种方式；
 </aop:config>
 ```
 
-### 5.2 @Transactional 注解
+### 6.2 @Transactional 注解
 
 1. 开启事务扫描，使用注解@EnableTransactionManagement（SpringBoot 中不需要加 @EnableTransactionManagement 来开启事务，自动装配时已经加了）；
 2. 注解标注位置，@Transactional 注解可以作用到接口、类、方法上，但是推荐值被应用到 public 的方法上；
@@ -419,7 +401,7 @@ Spring 事务管理分为编程式和声明式两种方式；
    - rollbackFor：指定能够触发事务回滚的异常类型，如果有多个异常类型需要指定，各类型之间使用逗号分隔
    - noRollbackFor：抛出指定的异常类型，不回滚
 
-### 5.3 事务的传播方式
+### 6.3 事务的传播方式
 
 | 事务传播方式              | 说明                                                                                               |
 | ------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -431,7 +413,7 @@ Spring 事务管理分为编程式和声明式两种方式；
 | PROPAGATION_NEVER         | 以非事务方式执行，如果当前存在事务，则抛出异常                                                     |
 | PROPAGATION_NESTED        | 如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与 PROPAGATION_REQUIRED 类似的操作。 |
 
-### 5.4 事务的隔离级别
+### 6.4 事务的隔离级别
 
 | 事务隔离级别     | 说明                                                                                                                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -441,7 +423,7 @@ Spring 事务管理分为编程式和声明式两种方式；
 | REPEATABLE_READ  | 该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略，该级别可以防止脏读和不可重复读。 |
 | SERIALIZABLE     | 所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别。                       |
 
-### 5.45 实现原理
+### 6.5 实现原理
 
 @Transactional 原理是基于 Spring AOP，AOP 又是通过动态代理实现，在代码运行时生成一个代理对象，根据@Transactional 的属性配置信息，代理对象决定该注解标注的目标方法是否由拦截器@TransactionInterceptor 来使用拦截，在拦截中，会在目标方法开始执行前创建并加入事务，并执行目标方法的逻辑，最后根据执行情况是否出现异常，利用抽象事务管理器 AbstractPlatformTransactionManager 操作数据源 DataSource 提交或回滚事务。
 
@@ -450,7 +432,7 @@ Spring AOP 代理有 CglibAopProxy 和 JdkDynamicAopProxy 两种
 - 对于 CglibAopProxy，需要调用其内部类的 DynamicAdvisedInterceptor 的 intercept 方法。
 - 对于 JdkDynamicAopProxy，需要调用其 invoke 方法。
 
-### 5.6 使用事务的注意事项及常见问题
+### 6.6 使用事务的注意事项及常见问题
 
 **注意事项**
 
@@ -486,53 +468,14 @@ Spring AOP 代理有 CglibAopProxy 和 JdkDynamicAopProxy 两种
 - 方法 a 和方法 b 属于同一事务，则将异常处理去掉，或者 catch 里边在抛出异常，也可以 catch 里边手动回滚；
 - 方法 a 和方法 b 属于同一事务，但方法 b 失败与否不能影响方法 a 的事务提交，且仍然在方法 a 中异常处理方法 b，则将嵌套方法 b 的事务传播属性修改为：PROPAGATION_NESTED，表示方法 B 是一个子事务，有一个 savepoint，失败时会回滚到保存点，不影响方法 a，方法 a 的提交和回滚可以控制 b，a 与 b 都是一个事务，只是 b 是一个子事务
 
-## 6. 全局异常处理
+## 7. 全局异常处理
 
 1. ControllerAdvice，注解定义全局异常处理类
 2. ExceptionHandler，注解声明异常处理方法
 
-## 7. 线程池
+## 8. 线程池
 
 ThreadPoolTaskExecutor，是对 ThreadPoolExecutor（java.util.concurrent）进行了封装处理
-
-## Spring 序列化
-
-> 在 java 中，一切皆对象，所有对象的状态信息转为存储或传输的形式，都需要序列化，通常建议：程序创建的每个 JavaBean 类都实现 Serializeable 接口。
-
-1. 序列化：将对象写入到 IO 流中
-2. 反序列化；从 IO 流中读取对象
-3. 意义：序列化机制允许将实现序列化的 Java 对象转换为字节序列，这些字节序列可以保存在磁盘上，或通过网络传输，以达到以后恢复成原来的对象。序列化机制使得对象可以脱离程序的运行而独立存在。
-4. 使用场景：所有可在网络上传输的对象都必须是可序列化的，比如 RMI（remote method invoke,即远程方法调用），传入的参数或返回的对象都是可序列化的，否则会出错；所有需要保存到磁盘的 java 对象都必须是可序列化的。
-
-### 实体序列化：实现 Serializable 接口
-
-- Serializable 接口是一个标记接口，不用实现任何方法。一旦实现了此接口，该类的对象就是可序列化的
-- 序列化版本号 serialVersionUID，private static final long serialVersionUID 的序列化版本号，只有版本号相同，即使更改了序列化属性，对象也可以正确被反序列化回来。
-- 序列化版本号可自由指定，如果不指定，JVM 会根据类信息自己计算一个版本号，这样随着 class 的升级，就无法正确反序列化；不指定版本号另一个明显隐患是，不利于 jvm 间的移植，可能 class 文件没有更改，但不同 jvm 可能计算的规则不一样，这样也会导致无法反序列化。
-- 反序列化并不会调用构造方法。反序列的对象是由 JVM 自己生成的对象，不通过构造方法生成。
-- 一个可序列化的类的成员不是基本类型，也不是 String 类型，那这个引用类型也必须是可序列化的；否则，会导致此类不能序列化
-- 所有保存到磁盘的对象都有一个序列化编码号，当程序试图序列化一个对象时，会先检查此对象是否已经序列化过，只有此对象从未（在此虚拟机）被序列化过，才会将此对象序列化为字节序列输出。如果此对象已经序列化过，则直接输出编号即可。而不会将同一对象序列化多次
-- 使用 transient 关键字选择不需要序列化的字段。
-
-### 序列化
-
-1. 序列化：将对象保存到磁盘中，或允许在网络中直接传输对象，对象序列化机制允许把内存中的 java 对象抓换成平台无关的二进制，从而可以持久的保存在磁盘，或者在网络中传输
-2. 反序列化：程序一旦获取序列化的对象，则二进制流都可以恢复成原来的。
-
-`Jackson2JsonRedisSerializer`：需要指明序列化的类 Class，可以使用 Obejct.class，反序列化带泛型的数组类会报转换异常，解决办法存储以 JSON 字符串存储，用 Jackson2，将对象序列化成 Json。这个 Serializer 功能很强大，但在现实中，是否需要这样使用，要多考虑。一旦这样使用后，要修改对象的一个属性值时，就需要把整个对象都读取出来，再保存回去；在 Redis 中保存的内容，比 Java 中多了一对双引号。
-`GenericJackson2JsonRedisSerializer`：比 `Jackson2JsonRedisSerializer` 效率低，占用内存高。
-GenericJacksonRedisSerializer 反序列化带泛型的数组类会报转换异常，解决办法存储以 JSON 字符串存储。
-GenericJacksonRedisSerializer 和 Jackson2JsonRedisSerializer 都是以 JSON 格式去存储数据，都可以作为 Redis 的序列化方式
-
-`StringRedisSerializer`：对 String 数据进行序列化。在 Java 和 Redis 中保存的内容是一样的
-
-`JdkSerializationRedisSerializer`：jdk 序列化，对于 Key-Value 的 Value 来说，是在 Redis 中是不可读的。对于 Hash 的 Value 来说，比 Java 的内容多了一些字符。
-
-`OxmSerializer`:使用 SpringO/X 映射的编排器和解排器实现序列化，用于 XML 序列化
-
-`GenericToStringSerializer`：使用 Spring 转换服务进行序列化。在网上没有找到什么例子，使用方法和 StringRedisSerializer 相比，StringRedisSerializer 只能直接对 String 类型的数据进行操作，如果要被序列化的数据不是 String 类型的，需要转换成 String 类型，例如：String.valueOf()。但使用 GenericToStringSerializer 的话，不需要进行转换，直接由 String 帮我们进行转换。但这样的话，也就定死了序列化前和序列化后的数据类型，例如：template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
-
-``
 
 ## valid、validated
 

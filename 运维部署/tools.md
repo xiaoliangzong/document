@@ -113,7 +113,7 @@
 
 ```shell
 # 全局安装
-npm install docsify -g
+npm install docsify-cli -g
 # 初始化项目，初始化成功后，可以看到 ./docs 目录下创建的几个文件
 docsify init ./docs
     # index.html 入口文件
