@@ -34,7 +34,7 @@ Spring 框架是一个分层架构，它包含了很多模块，每个模块完�
 ### 2.4 Data Access/Integration
 
 - JDBC 模块：提供了一个 JDBC 抽象层，它可以消除冗长的 JDBC 编码和解析数据库厂商特有的错误代码，包含了对 JDBC 数据访问进行封装的所有类；
-- ORM 模块：对象关系映射 API，提供了一个交互层，利用 ORM 封装包，可以混合使用所有 Sping 提供的特性进行 O/R 映射；
+- ORM 模块：对象关系映射 API，提供了一个交互层，利用 ORM 封装包，可以混合使用所有 Spring 提供的特性进行 O/R 映射；
 - OXM 模块：一个对 Object/XML 映射实现的抽象层，Object/XML 映射实现包括 JAXB、Castor、XMLBeans、JiBX 和 XSteam；
 - Java Messaging Service(JMS) 模块：主要包含了一些制造和消费消息的特性；
 - Transaction 模块：支持编程和声明性的事务管理，这些事务类必须实现特定的接口，并且对所有的 POJO 都适用；
@@ -48,31 +48,31 @@ Spring 框架是一个分层架构，它包含了很多模块，每个模块完�
 
 ## 3. IOC/DI
 
-`1. IOC 控制反转（Inversion Of Control），站在调用者（对象）的角度，创建被调用的实例不是由调用者完成，而是由 IOC 容器完成并注入。简单说，就是创建对象的控制权被反转到 Spring 框架。`  
-`2. DI 依赖注入（Dependency Injection），站在 Spring 容器的角度，指一个对象依赖的其他对象会通过被动的方式传递进来，是在容器实例化对象的时候不等对象请求就主动将它依赖的类注入给它，而不是自己创建或从容器中查找它依赖的对象。`
+`IOC 控制反转（Inversion Of Control）`，站在调用者（对象）的角度，创建被调用的实例不是由调用者完成，而是由 IOC 容器完成并注入。简单说，就是创建对象的控制权被反转到 Spring 框架。
 
-**区别**
+`DI 依赖注入（Dependency Injection）`，站在 Spring 容器的角度，指一个对象依赖的其他对象会通过被动的方式传递进来，是在容器实例化对象的时候不等对象请求就主动将它依赖的类注入给它，而不是自己创建或从容器中查找它依赖的对象。
 
-从不同角度对同一件事物的描述。就是通过引入 IOC 容器，利用注入依赖关系的方式，实现对象之间的解耦。
+**从不同角度对同一件事物的描述。就是通过引入 IOC 容器，利用注入依赖关系的方式，实现对象之间的解耦。**
 
-**核心说明（重点）**
+_核心源码_
 
-1. BeanFactory 是 Spring IOC 容器的基本实现，是一个工厂接口，面向 Spring 本身；采用延迟加载，第一次 getBean 时才会初始化 Bean。
-2. ApplicationContext 是 BeanFactory 的子接口，面向使用 Spring 框架的开发者，几乎所有的应用场合都直接使用 ApplicationContext 而非底层的 BeanFactory；
-   当配置文件被加载，就会进行对象实例化；它的功能更强大，提供了更多的高级特性，比如国际化处理、事件传递、Bean 自动装配、各种不同应用层的 Context 实现等。
-3. BeanDefinition 描述 Spring 中 Bean 对象的，IOC 容器的初始化包括 BeanDefinition 的 Resource 定位、载入和注册这三个基本的过程。
-4. ClassPathXmlApplicationContext 用于加载 classpath 下的 xml。
-5. FileSystemXmlApplicationContext 用于加载指定盘符下的 xml。
-6. 从 IOC 获取 Bean 对象，调用 applicationContext.getBean()方法。
+BeanFactory 是 Spring IOC 容器的基本实现，是一个工厂接口，面向 Spring 本身；采用延迟加载，第一次 getBean 时才会初始化 Bean。
+
+ApplicationContext 是 BeanFactory 的子接口，面向使用 Spring 框架的开发者，几乎所有的应用场合都直接使用 ApplicationContext 而非底层的 BeanFactory；
+当配置文件被加载，就会进行对象实例化；它的功能更强大，提供了更多的高级特性，比如国际化处理、事件传递、Bean 自动装配、各种不同应用层的 Context 实现等。
+
+BeanDefinition 是描述 Spring 中 Bean 对象的。
+
+从 IOC 获取 Bean 对象，调用 applicationContext.getBean()方法；ClassPathXmlApplicationContext 用于加载 classpath 下的 xml，FileSystemXmlApplicationContext 用于加载指定盘符下的 xml，AnnotationConfigApplicationContext 用于加载用注解标注的实例。
+
+AbstractAutowireCapableBeanFactory 的 doCreateBean() 方法创建 bean，包括 bean 的整个生命周期，以及 AOP 动态代理的创建过程。
 
 ### 3.1 对象实例化
 
-1. 基于注解 [详情请参考 Spring 注解](#5-spring-注解)
+1. 基于注解 [详情请参考章节（5. Spring 注解）](#5-spring-注解)
 
-   - @Repository
-   - @Service
-   - @Component
-   - @Controller、@RestController
+   - @Repository、@Service、@Component、@Controller
+   - @RestController
    - @Configuration 和 @Bean
    - @Import
 
@@ -80,7 +80,6 @@ Spring 框架是一个分层架构，它包含了很多模块，每个模块完�
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
-
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
@@ -111,9 +110,8 @@ Spring 框架是一个分层架构，它包含了很多模块，每个模块完�
 
 1. 基于注解
 
-   - @Autowired
-   - @Resource
-   - @Value
+   - @Autowired、@Resource、@Value
+   - @PropertySource、@ConfigurationProperties
 
 2. 基于 xml 配置
 
@@ -205,12 +203,43 @@ Spring 框架是一个分层架构，它包含了很多模块，每个模块完�
 
 ### 3.4 生命周期
 
-1. init-method 和 destroy-method 方法；只针对单例的 Bean，初始化执行 init 方法，容器关闭时，销毁执行 destroy 方法；
-2. 实现接口 InitializingBean 和 DisposableBean，重写方法；
-3. 实现接口 BeanPostProcessor，并将实现类提供给 spring 容器，spring 容器将自动执行，在初始化方法前执行 before()，在初始化方法后执行 after()。默认对容器中所有的 bean 都生效，可以通过第二个参数 beanName 进行控制
-4. 基于注解@PostConstruct 和 @PreDestroy 实现；需要注意的是：@PostConstruct 和@PreDestroy 这两个注解都不是 Spring 的，是 java 的。
-   - @PostConstruct：修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被@PostConstruct 修饰的方法会在构造函数之后，init()方法之前运行。
-   - @PreDestroy：修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被@PreDestroy 修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
+对于 prototype 作用域（多例）的 Bean 时， Spring 容器只负责创建 Bean 实例，当创建后， Bean 的实例就交给调用者，Spring 容器并不会跟踪其生命周期；
+而对于 singleton 作用域（单实例）的 Bean 时，Spring 容器负责管理整个生命周期，也就是从创建到初始化再到销毁的过程。
+
+1. 实例化 Bean
+
+2. 依赖注入，设置对象属性
+
+3. 检查 Aware 的相关接口并设置相关依赖
+
+   - 实现 BeanNameAware 接口，则调用 setBeanName() 方法
+   - 实现 BeanClassLoaderAware 接口，则调用 setBeanClassLoader() 方法，传入加载当前 bean 的 ClassLoader
+   - 实现 BeanFactoryAware 接口，则调用 setBeanFactory() 方法，可以使用这个方式来获取其他 Bean
+
+4. BeanPostProcessor 前置处理
+
+   - 实现 BeanPostProcessor 接口，并将实现类交给 spring 容器管理，spring 容器将自动执行，在初始化方法前执行 before()，在初始化方法后执行 after()，一般在初始化之后的方法中，将目标对象转换成代理对象，存放到单例池中。
+
+   - 作用域：默认对容器中所有的 bean 都生效，可以通过第二个参数 beanName 进行控制
+
+5. InitializingBean 接口
+
+6. 初始化方法 init-method
+
+7. BeanPostProcessor 后置处理
+
+8. 注册 Destruction 相关回调接口，在使用前注册了销毁的相关调用接口，为了后边真正销毁 Bean 时再执行相应的方法
+
+9. 使用
+
+10. DisposableBean 接口 和 自定义销毁方法 destory-method
+
+    - 如果实现 DisposableBean 接口，则 Spring 会调用 destory() 方法进行 Bean 的销毁；如果配置自定义销毁方法，则调用该方法对 Bean 销毁。
+
+<span style="color:red">额外说明：@PostConstruct 和 @PreDestroy 注解，都不是 Spring 的，而是 java 自带的</span>
+
+- @PostConstruct：修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被该注解修饰的方法会在构造函数之后，init()方法之前运行。
+- @PreDestroy：修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被该注解修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
 
 ### 3.5 循环依赖解决方案
 
@@ -222,33 +251,218 @@ Spring 框架是一个分层架构，它包含了很多模块，每个模块完�
   会在内存中复制变量，在自己的线程的工作内存，因此认为这个单例 Bean 是线程安全的，比如 Controller、Service、Dao 等；
 - 如果 Bean 是有状态的，则需要自己保证线程安全。
 
-## 4. AOP
+## 4. AOP、AspectJ
 
-> AOP 模块提供了一个符合 AOP 联盟标准的面向切面编程的实现，它让你可以定义例如方法拦截器和切点，从而将逻辑代码分开，降低他们之间的耦合性。
-> AOP 面向切面编程：允许程序模块化横向切割关注点，或横切典型的责任划分，如权限拦截、运行监控、日志和事务管理
-> 执行顺序：around before、before、目标方法、around after、after、returning
+AOP（Aspect Oriented Programming），面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP 是 OOP（面向对象编程）的延续，采取横向抽取机制，取代了传统纵向继承体系重复性代码，允许程序模块化横向切割关注点，或者说横切典型的责任划分，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。常见的使用场景有权限拦截、性能监视、日志、缓存和事务管理等。
 
-1. 环绕通知 (@Around) 方法执行前后都通知（优先级最高的通知）
-2. 前置通知 (@Before) 方法执行之前执行
-3. 后置通知 (@After) : 又称之为最终通知(finally)
-4. 返回通知 (@AfterReturning) 方法 return 之后执行
-5. 异常通知 (@AfterThrowing) 方法出现异常之后执行
+**AOP、Spring AOP、AspectJ**
 
-before：前置通知，在一个方法执行前被调用。
+<table>
+    <tr>
+        <td></td>
+        <td>解释说明</td>
+    </tr>
+       <tr>
+        <td><b> AOP 联盟</b></td>
+        <td>aopalliance.jar，是 java 中对于面向切面提供了一系列标准化接口，通常 Spring 或其它具备动态织入功能的框架依赖此包。</td>
+    </tr>
+       <tr>
+        <td><b>Spring AOP</b></td>
+        <td>运行时增强，使用纯 Java 实现，需要依赖 IOC 容器来管理，并且只能作用于 Spring 容器，在运行期通过动态代理<span style="background-color:yellow">（JDK 动态代理、CGLIB）</span>方式生成 AOP 动态代理类。它不需要专门的编译过程和类加载器。</td>
+    </tr>
+     </tr>
+       <tr>
+        <td><b> AspectJ </b> </td>
+        <td>编译时增强，基于字节码操作，是一个基于 Java 语言的 AOP 框架，也就是说 AspectJ 扩展了 Java 语言，提供了一个专门的编译器，使用该编译器提供的命令进行编译，从而在编译阶段就可生成 AOP 代理类。</td>
+    </tr>
+       <tr>
+        <td colspan=2, style="background-color:red">Spring AOP 开发时，由于自身的局限性，Spring2.0 开始，Spring AOP 集成了 AspectJ，可以使用 AspectJ 的 Annotation， Aspect 来定义切面，使用 Pointcut 来定义切入点，使用 Advice 来定义增强处理，使用注解@Before、@After 等，因此在开发中，需要引入 org.aspectj:aspectjweaver 包。虽然 Spring AOP 使用了 AspectJ 的 Annotation，但并没有使用它的编译器和织入器。</td>
+    </tr>
+</table>
 
-after: 在方法执行之后调用的通知，无论方法执行是否成功。
+### 4.1 专业术语
 
-after-returning: 仅当方法成功完成后执行的通知。
+- 目标类（target）：需要被代理的类；
+- 代理类（proxy）
+- 连接点（JoinPoint）：应用执行过程中能够插入切面的一个点，这个点可以是方法的调用、异常的抛出；
+- 切入点（PointCut）：可以插入增强处理的连接点；
+- 通知/增强（Advice）：增强处理，通知描述了切面何时执行以及如何执行增强处理；
+- 切面（Aspect）：切面是通知 Advice 和切点 PointCut 的结合。
+- 引入（Introduction）：引入允许我们向现有的类添加新的方法或者属性。
+- 织入（Weaving）：将增强处理应用到目标对象中，并创建一个被增强的代理对象的过程。
 
-after-throwing: 在方法抛出异常退出时执行的通知。
+### 4.2 底层核心
 
-around: 在方法执行之前和之后调用的通知。
+手动创建代理，ProxyCreatorSupport 类的三个实现类
 
-AOP 面向切面编程
-切面:横切关注点被模块化的特数对象
-通知:切面必须要完成的工作. 1.在 Spring 中启用 AspectJ 注解
+- ProxyFactory 方式：可以脱离 spring 直接使用，用到的比较多，自动化方式创建代理中都是依靠 ProxyFactory 来实现的；
+
+- ProxyFactoryBean 方式：Spring 环境种给指定的 Bean 创建代理的一种方式。缺点：1. target 属性只能填一个目标对象，不支持多个；2. 只能控制到类级别，类中的所有方法都会增强；3. 显式的调用代理工厂类获取代理对象；
+
+- AspectJProxyFactory 方式：通过 AspectJ 提供的一些功能实现代理。
+
+![ProxyCreatorSupport](../public/images/Java/Spring/ProxyCreatorSupport.png)
+
+自动化创建代理，用在 spring 环境中，通过 BeanPostProcessor 后置处理器来对符合条件的 bean 创建代理对象，具体实现该功能的子类是 AbstractAutoProxyCreator
+
+- BeanNameAutoProxyCreator 方式
+
+### 4.3 aopalliance
+
+AOP 联盟（aopalliance.jar），是 java 中对于面向切面提供了一系列标准化接口，通常 Spring 或其它具备动态织入功能的框架依赖此包。
+
+包中包含两个核心顶层接口：
+
+- Advice：增强/通知，代表要织入的逻辑
+- JoinPoint：连接点，增强逻辑的织入地点
+
+```shell
+Advice  # 增强/通知
+   |
+   ├── Interceptor  # 拦截器，表示以拦截器的方式去实现增强/通知
+   |       |
+   |       ├── MethodInterceptor    # 方法拦截器，需要执行时，调用invoke()方法，表示调用该拦截器。Spring中提供了实现类
+   |       ├── ConstructorInterceptor   # 构造器拦截器
+
+
+Joinpoint   # 连接点
+   |
+   ├── Invocation   # 调用连接点，表示程序调用，是一个可以被拦截器拦截的连接点
+   |       |
+   |       ├── MethodInvocation     # 方法调用连接点，需要执行时，调用invocation.proceed()方法，表示执行此拦截点，并进入到下一个连接点。Spring中提供了实现类
+   |       ├── ConstructorInvocation    # 构造器调用连接点
+```
+
+### 4.4 Spring AOP
+
+Spring AOP 是在 AOP 联盟（aopalliance）定义的一系列接口上，提供实现类或者进行封装。
+
+Spring AOP 只支持方法的拦截。
+
+**通知类型**
+
+`执行顺序：Around（前） < Before < 目标方法 < AfterReturning、AfterThrowing < Around（后）`
+
+- 前置通知 org.springframework.aop.MethodBeforeAdvice
+- 后置通知 org.springframework.aop.AfterReturningAdvice
+- 环绕通知 org.aopalliance.intercept.MethodInterceptor
+- 异常通知 org.springframework.aop.ThrowsAdvice
+
+**动态代理**
+
+1. JDK 动态代理和 Cglib 的区别？
+
+   - JDK 动态代理是利用拦截器（必须实现 InvocationHandler）加上反射机制生成一个代理接口的匿名类，在调用目标方法前后增强处理，因此只能对实现了接口的类生成代理，而不能针对类；
+   - Cglib 是利用 ASM 框架，通过修改目标类的 class 字节码文件的方式生成子类来增强处理，因此是针对类生成代理，因为父子类采用的是继承，所以目标类和目标方法不要使用 final，对于 final 类或方法，是无法继承的。
+
+2. JDK 动态代理和 Cglib 的选择？
+
+   - 如果目标对象有实现接口，则默认用 JDK 动态代理；但也可以通过配置的方式让其强制使用 Cglib
+   - 如果目标对象没有实现接口，必须采用 Cglib
+
+```java
+private static final CustomAspect CUSTOM_ASPECT = new CustomAspect();
+
+// JDK 动态代理
+public static <T> T doCreateJdkProxy(T t) {
+    return (T) Proxy.newProxyInstance(t.getClass().getClassLoader(), t.getClass().getInterfaces(),
+            new InvocationHandler() {
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    CUSTOM_ASPECT.before();
+                    // 执行方法：method.invoke(对象，实际参数)
+                    Object obj = method.invoke(t, args);
+                    CUSTOM_ASPECT.before();
+                    return obj;
+                }
+            });
+}
+
+// Cglib
+public static  <T> T doCreateCglibProxy(T t) {
+    // 核心类
+    Enhancer enhancer = new Enhancer();
+    // 设置父类
+    enhancer.setSuperclass(t.getClass());
+    // 设置回调函数，MethodInterceptor接口 等效 jdk InvocationHandler接口，intercept() 等效 jdk  invoke()
+    enhancer.setCallback(new MethodInterceptor() {
+        @Override
+        public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+            CUSTOM_ASPECT.before();
+            Object obj = methodProxy.invokeSuper(proxy, args);
+            CUSTOM_ASPECT.after();
+            return obj;
+        }
+    });
+    return (T) enhancer.create();
+}
+```
+
+### 4.5 AspectJ
+
+Spring AOP 集成 AspectJ，主要是通过注解技术，允许直接在 Bean 类中定义切面；新版本 Spring 框架，建议使用 AspectJ 方式来开发 AOP
+
+此处不讨论 AspectJ 的编译时增强。
+
+**通知类型**
+
+1. 环绕通知（@Around）： 方法执行前后都调用的通知（优先级最高的通知），必须手动执行目标方法
+2. 前置通知（@Before）： 方法执行之前被调用
+3. 后置通知（@AfterReturning）： 仅当方法成功完成后执行的通知
+4. 异常通知（@AfterThrowing）： 仅当方法抛出异常退出时执行的通知
+5. 最终通知（@After）： 方法执行之后被调用，无论方法中是否出现异常
+
+**切入点表达式**
+
+AspectJ 提供了一套自己的表达式语言即切入点表达式，切入点表达式可以标识切面织入到哪些类的哪些方法当中。只要把切面的实现配置好，再把这个切入点表达式写好就可以了，不需要一些额外的 xml 配置。
+
+```xml
+语法：execution(修饰符 返回值 包.类.方法名(参数) throws 异常)
+
+execution(
+    modifiers-pattern? //访问权限匹配 如 public、protected
+    ret-type-pattern //返回值类型匹配
+    declaring-type-pattern? //全限定性类名
+    name-pattern(param-pattern) //方法名(参数名)
+    throws-pattern? //抛出异常类型
+)
+注意:
+
+1. 中间以空格隔开,有问号的属性表示可以省略。
+2. 表达式中特殊符号说明：
+
+a: _ 代表 0 到多个任意字符，通常用作某个包下面的某些类以及某些方法。
+b: .. 放在方法参数中，代表任意个参数，放在包名后面表示当前包及其所有子包路径。
+c: + 放在类名后，表示当前类及其子类，放在接口后，表示当前接口及其实现类。
+表 2 方法表达式
+表达式 含义
+java.lang.String 匹配 String 类型
+java._.String 匹配 java 包下的任何“一级子包”下的 String 类型，如匹配 java.lang.String，但不匹配 java.lang.ss.String
+java..* 匹配 java 包及任何子包下的任何类型,如匹配 java.lang.String、java.lang.annotation.Annotation
+java.lang.*ing 匹配任何 java.lang 包下的以 ing 结尾的类型
+java.lang.Number+ 匹配 java.lang 包下的任何 Number 的自类型，如匹配 java.lang.Integer，也匹配 java.math.BigInteger
+表 3 参数表达式
+参数 含义
+() 表示方法没有任何参数
+(..) 表示匹配接受任意个参数的方法
+(..,java.lang.String) 表示匹配接受 java.lang.String 类型的参数结束，且其前边可以接受有任意个参数的方法
+(java.lang.String,..) 表示匹配接受 java.lang.String 类型的参数开始，且其后边可以接受任意个参数的方法
+(_,java.lang.String) 表示匹配接受 java.lang.String 类型的参数结束，且其前边接受有一个任意类型参数的方法
+举个栗子：execution(public _ com.zhoujunwen.service._._(..))，该表达式表示 com.zhoujunwen.service 包下的 public 访问权限的任意类的任意方法。
+
+切入点表达式，用于描述方法
+```
+
+execution(修饰符 返回值 包.类.方法.(参数)throws 异常)
+execution(\* \* _._(..))
+
+**在 Spring 中启用 AspectJ 注解**
+
+```xml
 Bean 配置文件中定义元素 <aop:aspectj-autoproxy>
-<aop:aspectj-autoproxy proxy-target-class="true"></aop:aspectj-autoproxy> 2.基于 xml 声明切面
+<aop:aspectj-autoproxy proxy-target-class="true"></aop:aspectj-autoproxy>
+
+2.基于 xml 声明切面
 需要在<beans>根元素中导入<aop:Schema>
 
 前置通知的方法: value 属性值就是切入点表达式的配置
@@ -265,65 +479,46 @@ JoinPoint-->程序执行的某个位置,就是连接点对象,可以使用该对
 异常通知:
 
 环绕增强:
-
-### AOP 实现原理
-
-**@AspectJ**
-
-1. 什么是引入?
-   引入允许我们在已存在的类中增加新的方法和属性。
-2. 什么是目标对象?
-   被一个或者多个切面所通知的对象。它通常是一个代理对象。也指被通知（advised）对象。
-3. 什么是代理?
-   代理是通知目标对象后创建的对象。从客户端的角度看，代理对象和目标对象是一样的。
-4. 有几种不同类型的自动代理？
-   BeanNameAutoProxyCreator
-   DefaultAdvisorAutoProxyCreator
-   Metadata autoproxying
-5. 什么是织入。什么是织入应用的不同点？
-   织入是将切面和到其他应用类型或对象连接或创建一个被通知对象的过程。
-   织入可以在编译时，加载时，或运行时完成。
+```
 
 ## 5. Spring 注解
 
-| 注解            | 解释说明                                                                                                   | 使用场景                                                         |
-| --------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| @Bean           | 主要用于方法上，将该方法的对象注入到 Spring IOC 容器中，                                                   | 常与@Qualifier、@Scope、@Bean 搭配使用，适用于导入第三方组件的类 |
-| @Configuration  | 声明该类为配置类，可替换 xml 配置文件，可以被 @Component 替代，不过使用@Configuration 声明配置类更加语义化 | 常和@Bean 一起使用                                               |
-| @Repository     | 标识持久层组件                                                                                             |                                                                  |
-| @Service        | 标识服务层/业务层组件                                                                                      |                                                                  |
-| @Controller     | 标识表现层组件                                                                                             |                                                                  |
-| @Component      | 标识组件，可以替代@Repository、@Service、@Controller，因为这三个注解被@Component 标注                      |                                                                  |
-| @ComponentScan  | 扫描特定注解的组件，相当于 xml 的<context:component-scan>                                                  |                                                                  |
-| @Import         | 通过快速导入的方式将实例加入到 Spring IOC 容器中，导入组件的 id 为全路径，                                 | 常用于其他框架整合 Spring 时，使用@Import 注解导入整合类         |
-| @Value          |                                                                                                            |                                                                  |
-| @PropertySource | 读取指定 properties 文件                                                                                   | 不常用，常用的是 Spring Boot 的@ConfigurationProperties          |
-| @Conditional    | 条件                                                                                                       | 大量应用于 Spring Boot 底层，比如@ConfitionalOnClass 等          |
-| @Required       | 该注解用于 Bean 属性的 setter 方法，表明该属性必须设置，否则抛异常 BeanInitializationException             | Spring 5.1 版本已弃用，官方推荐使用构造器注入                    |
-| @Qualifier      | 明确指定需要装配的 Bean（针对存在相同类型的 Bean），否则抛异常 NoUniqueBeanDefinitionException             | 当有多个相同类型的 bean，@Qualifier 和@Autowire 结合使用         |
-| @Primary        | 指定默认情况下应该注入特定类型的 Bean，@Qualifier 和 @Primary 同时存在， @Qualifier 优先级高               | 常与@Bean 搭配使用，                                             |
-| @Lazy           | 延迟加载，调用某个 bean 的时候才去初始化（针对单例）                                                       | @Lazy(value = true)，默认为 true                                 |
-| @AliasFor       | 可以注解到自定义注解的两个属性上，表示这两个互为别名，含义一样                                             | 注解继承时，子注解想拥有父注解的属性值                           |
-| @Autowired      | 自动装配                                                                                                   |
+| 注解                                                 | 解释说明                                                                                                  | 使用场景                                                             |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| @Bean                                                | 主要用于方法上，将该方法的对象注入到 Spring IOC 容器中，                                                  | 常与 @Qualifier、@Scope、@Primary 搭配使用，适用于导入第三方组件的类 |
+| @Scope                                               | 控制 Bean 的作用域；默认为单例 singleton，多例时，初始化时，不会实例化 bean，只有每次调用的时候才会实例化 | 常与 @Bean 搭配使用                                                  |
+| @Qualifier                                           | 针对存在多个同类型 bean 的情况，明确指定需要装配的 bean，否则抛异常 NoUniqueBeanDefinitionException       | 常与 @Bean、@Autowire 搭配使用                                       |
+| @Primary                                             | 指定默认情况下应该注入特定类型的 Bean，@Qualifier 和 @Primary 同时存在， @Qualifier 优先级高              | 常与 @Bean 搭配使用                                                  |
+| @Lazy                                                | @Lazy(value = true)，默认为 true，表示延迟加载，调用某个 bean 的时候才去初始化（针对单例）                | 延迟加载，常与 @Bean 搭配使用                                        |
+| @Configuration                                       | 声明该类为配置类，可以被 @Component 替代，不过使用@Configuration 声明配置类更加语义化                     | 常与 @Bean 一起使用                                                  |
+| @Repository<br>@Service<br>@Controller<br>@Component | 标识在类上，表示该类被 Spring IOC 容器管理，                                                              | 持久层、业务层、表现层、组件                                         |
+| @ComponentScan                                       | 扫描特定包下的组件                                                                                        | 等同于 xml 中的 <context:component-scan>                             |
+| @Conditional                                         | 条件判断                                                                                                  | 大量应用于 Spring Boot 底层，比如@ConfitionalOnClass 等              |
+| @AliasFor                                            | 作用于自定义注解的两个属性上，表示这两个互为别名，含义一样                                                | 注解继承时，子注解想拥有父注解的属性值                               |
+| ~~@Required~~                                        | ~~作用于 Bean 中的属性的 setter 方法，表明该属性必须设置，否则抛异常 BeanInitializationException~~        | ~~Spring 5.1 版本已弃用~~                                            |
+| @PropertySource                                      | 读取指定 properties 文件                                                                                  | 不常用，常用的是 Spring Boot 的@ConfigurationProperties              |
+| @Import                                              | 通过快速导入的方式将实例加入到 Spring IOC 容器中，导入组件的 id 为全路径，                                | 常用于其他框架整合 Spring                                            |
+| @Value                                               | 注入普通值                                                                                                |                                                                      |
+| @Autowired                                           | 自动注入                                                                                                  |
+| @Resource                                            | 自动注入                                                                                                  |
 
 **Autowire 详解**
 
-|          | @Autowired                                                                                                                                                                            | @Resource                                              |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| 来源     | 是 Spring 的注解                                                                                                                                                                      | 是 javax.annotation 注解                               |
-| 原理     | 通过 AutowiredAnnotationBeanPostProcessor 类实现注入                                                                                                                                  |                                                        |
-| 作用域   | 标注在构造器、方法、参数、字段、注解                                                                                                                                                  | 标注在类, 字段, 方法                                   |
-| 注入方式 | 默认根据类型 byType 注入，如存在多个类型则通过 byName 注入。<br>存在同类型的多个 Bean 的解决方法：<br> ① 使用@Qualifier；<br> ② 使用@Primary 解决；<br>③ 设置成与注入的 Bean 名称相同 | 默认根据 byName 注入，如名称未找到，则根据 byType 注入 |
-| 属性说明 | 属性 required，默认为 true，表示未找到对应 bean 时抛出异常                                                                                                                            | 属性 name 和 type，指定值后，则按照指定的进行匹配      |
-
-![区别](../public/images/Java/Spring/ResourceAutowird.png)
+|          | @Autowired                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | @Resource                                                                                                                                                                                                                                                                                                                                            |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 来源     | 是 Spring 的注解                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | 是 javax.annotation 注解                                                                                                                                                                                                                                                                                                                             |
+| 原理     | 通过 AutowiredAnnotationBeanPostProcessor 类实现注入                                                                                                                                                                                                                                                                                                                                                                                                                                     |                                                                                                                                                                                                                                                                                                                                                      |
+| 作用域   | 标注在构造器、方法、参数、字段、注解                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 标注在类, 字段, 方法                                                                                                                                                                                                                                                                                                                                 |
+| 注入方式 | 默认根据类型 byType 注入，如存在多个同类型 bean 时 则通过 byName 注入。<br>存在同类型的多个 Bean 的解决方法：<br> ① 使用@Qualifier；<br> ② 使用@Primary 解决；<br>③ 设置成与注入的 Bean 名称相同                                                                                                                                                                                                                                                                                         | 默认根据 byName 注入，如名称未找到，则根据 byType 注入                                                                                                                                                                                                                                                                                               |
+| 属性说明 | 属性 required，默认为 true，表示未找到对应 bean 时抛出异常                                                                                                                                                                                                                                                                                                                                                                                                                               | 属性 name 和 type，指定值后，则按照指定的进行匹配                                                                                                                                                                                                                                                                                                    |
+| 举例说明 | @Autowired<br>private IUserService userService;<br><br>例一<br>存在一个实现类：UserServiceImpl.java，则根据类型自动注入 UserServiceImpl 实现类<br><br>例二<br>存在多个实现类：UserServiceImpl.java、UserServiceImpl2.java，则抛异常<br><br>例三<br>存在多个实现类：UserServiceImpl.java、UserService.java，则根据名称注入 UserService.java 实现类<br><br>使用 @Qualifier 指定名称，例二则不会报错<br>@Autowired<br>@Qualifier("userServiceImpl")<br>private IUserService userService<br> | @Resource<br>private IUserService userService;<br><br>例一<br>存在一个实现类：UserServiceImpl.java，则根据类型自动注入 UserServiceImpl 实现类<br><br>例二<br>存在多个实现类：UserServiceImpl.java、UserServiceImpl2.java，则抛异常<br><br>例三<br>存在多个实现类：UserServiceImpl.java、UserService.java，则根据名称注入 UserService.java 实现类<br> |
 
 **@Import 详解**
 
 1. 直接导入 class 数组
 2. 实现 ImportSelector 接口的实现类
 
-   是 spring 导入外部配置的核心接口，在 springboot 的自动化配置和@Enablexxx（功能性注解）中起到了决定性的作用。  
+   是 spring 导入外部配置的核心接口，在 springboot 的自动化配置和@Enablexxx（功能性注解）中起到了决定性的作用。
    ImportSelector 接口中，selectImports()方法作用是：选择并返回需要导入的类的名称；返回一个字符串数组，当在@Configuration 标注的 Class 上使用@Import 引入了一个 ImportSelector 实现类后，
    会把实现类中返回的 Class 名称都定义为 DeferredImportSelector 接口集成 ImportSelector，延迟选择性导入，在装载 bean 时，需要等所有的@Configuration 都执行完毕后才会进行装载。
 

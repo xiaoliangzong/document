@@ -64,57 +64,65 @@ sudo systemctl restart docker
 ## 3. 基础命令
 
 ```shell
-# 1. 帮助命令
-docker verison/info/--help
+# 1. 帮助
+docker verison / info / --help
 
 # 2. 镜像
-docker search <name>     # 搜索
-# 默认情况下会从docker hub拉取镜像文件，也可以从私有仓库地址拉取镜像。私有仓库地址类似一个URL，但是没有协议头http:// （docker与各个仓库地址默认以https://来通信，除非该仓库地址允许以不安全的链接方式访问）
-docker pull <name>       # docker pull 192.168.100.79:5000/xxx:latest
-docker images            # 列出所有镜像，-a 包括隐藏的中间镜像
+# 默认情况下会从 docker hub 搜索、拉取、推送镜像；如果从私有仓库获取镜像，则需要指定地址 http://{ip}:{port}/{images}:{tag}
+# docker与各个仓库地址默认以https协议进行通信，除非该仓库地址允许以不安全的链接方式访问
+
+docker search <name>                  # 搜索
+docker pull <name>                    # docker pull 192.168.100.79:5000/xxx:latest
+docker images                         # 列出所有镜像，-a 包括隐藏的中间镜像
 docker rmi -f <imageId...>            # 删除指定镜像，可以多个
 docker rmi -f $(docker images -aq)    # 删除所有镜像
-docker history <imageId> 	            # 查看镜像分层信息
+docker history <imageId>              # 查看镜像分层信息
 docker login                          # 登录
 docker push                           # 推送
 docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]    # 创建一个引用原镜像的镜像，重命名，打tag
 
 # 3. 容器
 docker run -it --name=xxx -p xx:xx <images>
-	# --name='name' 容器名
-	# -d 后台方式运行，（常见的坑）后台运行时可以会导致服务停止，因为容器使用后台运行，就必须要有一个前台进程，docker发现没有应用，就会自动停止。
-	# -it 使用交互方式运行，进入容器查看分区
-	# -p 指定端口      格式： -p ip:主机端口:容器端口
-	# -P 随机分配端口
+  # --name='name' 容器名
+  # -d 后台方式运行，（常见的坑）后台运行时可以会导致服务停止，因为容器使用后台运行，就必须要有一个前台进程，docker发现没有应用，就会自动停止。
+  # -it 使用交互方式运行，进入容器查看分区
+  # -p 指定端口，格式：-p ip:主机端口:容器端口
+  # -P 随机分配端口
   # -e 环境配置，比如mysql设置密码 -e MYSQL_ROOT_PASSWORD=123456
-  # --restart  重启策略，重启是由Docker守护进程完成的；no默认策略，容器退出时不重启容器、on-failure容器非正常退出时才会重启（容器退出状态不为0）、on-failure:3 容器非正常退出时最多重启三次、always容器退出时总是重启、unless-stopped容器退出时总是重启，但不考虑Docker守护进程启动时就已经停止了的容器
-exit 			      	# 直接容器停止并退出
-Ctrl + P + Q      # 容器不停止退出
-docker ps 		  	# 列出所有运行的容器，-a 列出停止的容器，-n 显示最近创建的容器(包括所有状态)
-docker rm -f <containerId>       # 删除指定容器
-docker rm -f $(docker ps -aq)    # 删除所有容器，等同于 docker ps -aq | xargs docker rm
-docker start <containerId>       # 启动容器
-docker restart <containerId>     # 重启容器
-docker stop <containerId>        # 停止当前正在运行的容器
-docker kill <containerId>        # 强制停止当前容器
-docker exec -it <containerId> /bin/bash		# 进入容器后开启一个新的终端，可以在里面操作(常用)
-docker attach <containerId>				      	# 进入容器正在执行的终端，不会启动新的进程
+  # --restart  重启策略，重启是由Docker守护进程完成的；
+      # no默认策略，容器退出时不重启容器、
+      # on-failure容器非正常退出时才会重启（容器退出状态不为0）、
+      # on-failure:3 容器非正常退出时最多重启三次、
+      # always容器退出时总是重启、
+      # unless-stopped容器退出时总是重启，但不考虑Docker守护进程启动时就已经停止了的容器
 
-docker logs -f -t --tail 20 <container>	  # 查看日志 -f 滚动输出、-t 展示时间、--tail 最后的20行。
+docker exec -it <containerId> /bin/bash   # 进入容器后开启一个新的终端，可以在里面操作(常用)，使用exit退出时容器不会停掉
+docker attach <containerId>               # 进入容器正在执行的终端，不会启动新的进程，使用exit退出时容器会停掉
+exit / Ctrl + P + Q                       # 退出容器，exit 有可能会导致容器停止
+docker ps                                 # 列出所有运行的容器，-a 列出停止的容器，-n 显示最近创建的容器(包括所有状态)
+docker rm -f <containerId>                # 删除指定容器
+docker rm -f $(docker ps -aq)             # 删除所有容器，等同于 docker ps -aq | xargs docker rm
+docker start <containerId>                # 启动容器
+docker restart <containerId>              # 重启容器
+docker stop <containerId>                 # 停止当前正在运行的容器
+docker kill <containerId>                 # 强制停止当前容器
+
+docker logs -f -t --tail 20 <container>   # 查看日志 -f 滚动输出、-t 展示时间、--tail 最后的20行。
 docker logs <container> >> log_error.txt  # 日志写到文件中。
-docker inspect xxxx			                  # 查看容器/镜像元数据，比如日志文件路径等
-docker top 容器id 	                      # 查看容器中的进程信息
+docker inspect xxxx                       # 查看容器/镜像元数据，比如日志文件路径等
+docker top <containerId>                  # 查看容器中的进程信息
 
-docker cp [r] 容器id :容器内路径 目的地主机路径           # 容器内拷贝到宿主机上，-r 递归拷贝
-docker commit -m="描述信息" -a="作者" 容器id  镜像名:TAG	# 提交容器成为一个新的副本(镜像)
+docker cp [r] 容器id :容器内路径 目的地主机路径              # 容器内拷贝到宿主机上，-r 递归拷贝
+docker commit -m="描述信息" -a="作者" 容器id  镜像名:TAG    # 提交容器成为一个新的副本(镜像)
 
-docker save 镜像id xxx.tar  # 将仓库中的镜像导出成tar格式的文件
-docker load -i xxx.tar      # 将tar格式的镜像文件导入到本地镜像仓库
-docker image prune          # 删除所有未被 tag 标记和未被容器使用的镜像（既没有标签名也没有容器引用的镜像），-a 删除所有未被容器使用的镜像
+docker save -o xxx.tar 镜像    # 将仓库中的镜像导出成tar格式的文件
+docker load -i xxx.tar        # 将tar格式的镜像文件导入到本地镜像仓库
+docker image prune            # 删除所有未被 tag 标记和未被容器使用的镜像（既没有标签名也没有容器引用的镜像），-a 删除所有未被容器使用的镜像
+
 # 监控容器资源消耗
-docker stats [OPTIONS] [CONTAINER...]   # 默认情况下，每隔1s刷新一次输出内容，--no-stream 只输出当前状态（输出一次），--format 按照自定义格式输出，table或json
-docker stats --no-stream --format "table {{.Name}}\t{{.ID}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.MemPerc}}\t{{.PIDs }}"
-docker stats --no-stream --format "{\"container\":\"{{.Container}}\"}"
+docker stats <containerId>  # 每隔1s刷新一次输出内容，--no-stream 只输出当前状态（输出一次），--format 按照自定义格式（table或json）输出
+docker stats --format "table {{.Name}}\t{{.ID}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.MemPerc}}\t{{.PIDs }}"
+docker stats --format "{\"container\":\"{{.Container}}\"}"
 ```
 
 ## 4. 容器数据卷
@@ -136,29 +144,27 @@ docker run -d -P --name nginx05 -v juming:/etc/nginx:ro nginx
 -v /etc/local/nginx/logs:/var/log/nginx/
 ```
 
-## 5. dockerFile
+## 5. Dockerfile
 
-![dockerFile](../public/images/Linux/dockerfile.png)
+是用来构建镜像的文本文件，默认文件名为 Dockerfile，如果不是默认的，可通过 -f 指定。
 
-- 编写 dockerFile 文件，名字可以随便 建议 Dockerfile
-- docker build 构建成为一个镜像
-- docker run 运行镜像
-- docker push 发布镜像（dockerhub、阿里云仓库）
+<div style="color:red;font-size:20px">docker build -f Dockerfile -t [imageName]:[tag] .</div>
 
 ```shell
-FROM			    # 基础镜像，一切从这里开始构建
-MAINTAINER		# 镜像作者 dangbo<1456131152@qq.com>
-RUN				    # 镜像构建的时候需要运行的命令
-ADD				    # 步骤，tomcat镜像，这个tomcat压缩包！添加内容 添加同目录
-WORKDIR			  # 镜像的工作目录
-VOLUME		  	# 挂载的目录
-EXPOSE		  	# 保留端口配置
-CMD			    	# 指定这个容器启动的时候要运行的命令，只有最后一个会生效，可被替代。
-ENTRYPOINT		# 指定这个容器启动的时候要运行的命令，可以追加命令
-ONBUILD		  	# 当构建一个被继承 DockerFile 这个时候就会运行ONBUILD的指令，触发指令。
-COPY		    	# 类似ADD，将我们文件拷贝到镜像中
-ENV			    	# 构建的时候设置环境变量！
+FROM          # 基础镜像，一切从这里开始构建
+MAINTAINER    # 镜像作者 dangbo<1456131152@qq.com>
+RUN           # 镜像构建的时候需要运行的命令
+ADD           # 步骤，tomcat镜像，这个tomcat压缩包！添加内容 添加同目录
+WORKDIR       # 镜像的工作目录
+VOLUME        # 挂载的目录
+EXPOSE        # 暴露端口配置
+CMD           # 指定这个容器启动的时候要运行的命令，只有最后一个会生效，可被替代。
+ENTRYPOINT    # 指定这个容器启动的时候要运行的命令，可以追加命令
+ONBUILD       # 当构建一个被继承 DockerFile 这个时候就会运行ONBUILD的指令，触发指令。
+COPY          # 类似ADD，将我们文件拷贝到镜像中
+ENV           # 构建的时候设置环境变量！
 
+# 举个栗子
 FROM centos
 MAINTAINER dangbo<1456131152@qq.com>
 EMV MYPATH /usr/local
@@ -171,16 +177,9 @@ EXPOSE 80
 CMD echo $MYPATH
 CMD echo "-----end----"
 CMD /bin/bash
-
-# 2.通过这个文件构建镜像
-# 命令 docker build -f 文件路径 -t 镜像名:[tag] .
-docker build -f mydockerfile-centos -t mycentos:0.1 .
-
-Successfully built 4af56313b71a
-Successfully tagged mycentos:0.1
-
-# 3.测试运行
 ```
+
+![dockerFile](../public/images/Linux/dockerfile.png)
 
 ## 6. 网络
 
@@ -327,7 +326,7 @@ services:
       - back-tier
       - payment
     deploy:
-      replicas: 2
+      replicas: 2 # 副本数
       update_config:
         parallelism: 2
         failure_action: rollback
