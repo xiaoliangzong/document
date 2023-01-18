@@ -758,6 +758,30 @@ public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
 }
 ```
 
+## 8. thymeleaf
+
+Springboot 官方推荐的表现层模板引擎，有着动静分离、开箱即用等特点。
+
+static：用于存放静态资源，例如 html、JavaScript、css 以及图片等。
+templates：用来存放模板引擎 Thymeleaf(本质依然是.html 文件)
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+
+**常用标签**
+
+标签 作用 示例
+th:id 替换 id <input th:id="${user.id}"/>
+th:text 文本替换 <p text:="${user.name}">bigsai</p>
+th:utext 支持 html 的文本替换 <p utext:="${htmlcontent}">content</p>
+th:object 替换对象 <div th:object="${user}"></div>
+th:value 替换值 <input th:value="${user.name}" >
+th:each 迭代 <tr th:each="student:${user}" >
+th:href 替换超链接 <a th:href="@{index.html}">超链接</a>
+th:src 替换资源 <script type="text/javascript" th:src="@{index.js}"></script>
+
 ## 7. 常见问题
 
 #### 1. SpringBoot 切换版本后，Junit 报错

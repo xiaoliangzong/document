@@ -33,6 +33,9 @@ git checkout -t origin/dev
 git push origin --delete 分支名  # 6. 删除远端分支
 git branch -d 分支名             # 7. 删除分支
 git branch -D 分支名             # 8. 强制删除分支
+
+# 6. 切换空分支，使用git branch -a 不显示，需要提交个文件才可以查询到
+git ckeckout --orphan 分支名
 ```
 
 ### 2.2 克隆

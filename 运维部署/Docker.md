@@ -415,14 +415,14 @@ Docker 官方提供了公共的镜像仓库（Docker Hub），但是从安全和
 ```shell
 # 拉取、启动、测试
 docker pull registry
-docker run -it --name registry -p 5000:5000 -v /usr/local/registry/:/var/lib/registry registry:latest
+docker run -it --name registry --restart=always -p 5000:5000 -v /usr/local/registry/:/var/lib/registry registry:latest
 http://{ip}:5000/v2             # 正常情况时，会返回 {}
 http://{ip}:5000/v2/_catalog    # 所有的镜像
 docker tag <sourceImage:tag> <targerImage:tag> # 将原镜像重命名，因为如果要将镜像push到私有仓库，就必须按照格式命名：ip:port/imageName:tag
 docker push <targerImage:tag>
 # 使用hyper/docker-registry-web
 docker pull hyper/docker-registry-web
-docker run -d -p 5001:8080 --name regisry-web --link registry -e registry_url=http://registry:5000/v2 -e registry_name=localhost:5000 hyper/docker-registry-web:latest
+docker run -d -p 5001:8080 --name regisry-web --restart=always --link registry -e registry_url=http://registry:5000/v2 -e registry_name=localhost:5000 hyper/docker-registry-web:latest
 ```
 
 **harbor**

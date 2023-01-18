@@ -280,7 +280,7 @@ AOP（Aspect Oriented Programming），面向切面编程，通过预编译方�
     </tr>
 </table>
 
-### 4.1 专业术语
+**专业术语**
 
 - 目标类（target）：需要被代理的类；
 - 代理类（proxy）
@@ -291,7 +291,7 @@ AOP（Aspect Oriented Programming），面向切面编程，通过预编译方�
 - 引入（Introduction）：引入允许我们向现有的类添加新的方法或者属性。
 - 织入（Weaving）：将增强处理应用到目标对象中，并创建一个被增强的代理对象的过程。
 
-### 4.2 底层核心
+### 4.1 底层核心
 
 手动创建代理，ProxyCreatorSupport 类的三个实现类
 
@@ -307,7 +307,7 @@ AOP（Aspect Oriented Programming），面向切面编程，通过预编译方�
 
 - BeanNameAutoProxyCreator 方式
 
-### 4.3 aopalliance
+### 4.2 aopalliance
 
 AOP 联盟（aopalliance.jar），是 java 中对于面向切面提供了一系列标准化接口，通常 Spring 或其它具备动态织入功能的框架依赖此包。
 
@@ -333,7 +333,7 @@ Joinpoint   # 连接点
    |       ├── ConstructorInvocation    # 构造器调用连接点
 ```
 
-### 4.4 Spring AOP
+### 4.3 Spring AOP
 
 Spring AOP 是在 AOP 联盟（aopalliance）定义的一系列接口上，提供实现类或者进行封装。
 
@@ -363,7 +363,7 @@ Spring AOP 只支持方法的拦截。
 ```java
 private static final CustomAspect CUSTOM_ASPECT = new CustomAspect();
 
-// JDK 动态代理
+// JDK 动态代理，使用 JdkDynamicAopProxy 类，调用其 invoke 方法
 public static <T> T doCreateJdkProxy(T t) {
     return (T) Proxy.newProxyInstance(t.getClass().getClassLoader(), t.getClass().getInterfaces(),
             new InvocationHandler() {
@@ -378,7 +378,7 @@ public static <T> T doCreateJdkProxy(T t) {
             });
 }
 
-// Cglib
+// Cglib，使用 CglibAopProxy 类，调用其内部类的 DynamicAdvisedInterceptor 的 intercept 方法。
 public static  <T> T doCreateCglibProxy(T t) {
     // 核心类
     Enhancer enhancer = new Enhancer();
@@ -398,11 +398,11 @@ public static  <T> T doCreateCglibProxy(T t) {
 }
 ```
 
-### 4.5 AspectJ
+### 4.4 AspectJ
+
+> 此处不讨论 AspectJ 的编译时增强。
 
 Spring AOP 集成 AspectJ，主要是通过注解技术，允许直接在 Bean 类中定义切面；新版本 Spring 框架，建议使用 AspectJ 方式来开发 AOP
-
-此处不讨论 AspectJ 的编译时增强。
 
 **通知类型**
 
@@ -412,73 +412,69 @@ Spring AOP 集成 AspectJ，主要是通过注解技术，允许直接在 Bean �
 4. 异常通知（@AfterThrowing）： 仅当方法抛出异常退出时执行的通知
 5. 最终通知（@After）： 方法执行之后被调用，无论方法中是否出现异常
 
+各种通知的前后顺序问题：
+
+- 前置通知 和 环绕通知的前，没有先后顺序，谁先配置，谁先执行；
+- 后置通知、环绕通知的后、最终通知，没有先后顺序，比较乱。
+
 **切入点表达式**
 
 AspectJ 提供了一套自己的表达式语言即切入点表达式，切入点表达式可以标识切面织入到哪些类的哪些方法当中。只要把切面的实现配置好，再把这个切入点表达式写好就可以了，不需要一些额外的 xml 配置。
 
-```xml
-语法：execution(修饰符 返回值 包.类.方法名(参数) throws 异常)
+```java
+// 1. 标注在类上的注解，表示该类的任意方法
+@within(org.springframework.transaction.annotation.Transactional)
+@target(org.springframework.transaction.annotation.Transactional)
 
+// 2. 标注在方法上的注解
+@annotation(org.springframework.transaction.annotation.Transactional)
+
+// 3. execution
+execution(修饰符 返回值 包.类.方法名(参数) throws 异常)
 execution(
-    modifiers-pattern? //访问权限匹配 如 public、protected
-    ret-type-pattern //返回值类型匹配
-    declaring-type-pattern? //全限定性类名
-    name-pattern(param-pattern) //方法名(参数名)
-    throws-pattern? //抛出异常类型
+    修饰符                      // 访问权限，如 public、protected（可省略）
+    返回值                      // 返回值类型
+    全限定类名                  // 全限定性类名（可省略）
+    方法名(参数)                // 方法名和参数
+    throws 异常                // 抛出异常（可省略）
 )
-注意:
+/*
+  特殊符号说明：
+    1. _ 代表 0 到多个任意字符，通常用作某个包下面的某些类以及某些方法。
+    2. .. 放在方法参数中，代表任意个参数，放在包名后面表示当前包及其所有子包路径。
+    3. + 放在类名后，表示当前类及其子类，放在接口后，表示当前接口及其实现类。
+    4. * 任意
+*/
 
-1. 中间以空格隔开,有问号的属性表示可以省略。
-2. 表达式中特殊符号说明：
-
-a: _ 代表 0 到多个任意字符，通常用作某个包下面的某些类以及某些方法。
-b: .. 放在方法参数中，代表任意个参数，放在包名后面表示当前包及其所有子包路径。
-c: + 放在类名后，表示当前类及其子类，放在接口后，表示当前接口及其实现类。
-表 2 方法表达式
-表达式 含义
-java.lang.String 匹配 String 类型
-java._.String 匹配 java 包下的任何“一级子包”下的 String 类型，如匹配 java.lang.String，但不匹配 java.lang.ss.String
-java..* 匹配 java 包及任何子包下的任何类型,如匹配 java.lang.String、java.lang.annotation.Annotation
-java.lang.*ing 匹配任何 java.lang 包下的以 ing 结尾的类型
-java.lang.Number+ 匹配 java.lang 包下的任何 Number 的自类型，如匹配 java.lang.Integer，也匹配 java.math.BigInteger
-表 3 参数表达式
-参数 含义
-() 表示方法没有任何参数
-(..) 表示匹配接受任意个参数的方法
-(..,java.lang.String) 表示匹配接受 java.lang.String 类型的参数结束，且其前边可以接受有任意个参数的方法
-(java.lang.String,..) 表示匹配接受 java.lang.String 类型的参数开始，且其后边可以接受任意个参数的方法
-(_,java.lang.String) 表示匹配接受 java.lang.String 类型的参数结束，且其前边接受有一个任意类型参数的方法
-举个栗子：execution(public _ com.zhoujunwen.service._._(..))，该表达式表示 com.zhoujunwen.service 包下的 public 访问权限的任意类的任意方法。
-
-切入点表达式，用于描述方法
+// 举些栗子
+execution(* com.ruixi.aop.*.service..*.*(..))
 ```
 
-execution(修饰符 返回值 包.类.方法.(参数)throws 异常)
-execution(\* \* _._(..))
+**注解实现（常用）**
 
-**在 Spring 中启用 AspectJ 注解**
+```java
+@EnableAspectJAutoProxy
+@Aspect
+@Component
+public class LogAspect {
 
-```xml
-Bean 配置文件中定义元素 <aop:aspectj-autoproxy>
-<aop:aspectj-autoproxy proxy-target-class="true"></aop:aspectj-autoproxy>
+    /**
+     * 切入点，该注解修饰方法 private void xxx(){} 之后通过方法名获得切入点引用
+     */
+    @Pointcut(value = "@annotation(log)")
+    public void pointcut(Log log) {
+    }
 
-2.基于 xml 声明切面
-需要在<beans>根元素中导入<aop:Schema>
+    @AfterReturning(value = "pointcut(log)", returning = "result")
+    public void afterReturning(JoinPoint joinPoint, Log log, Object result) {
+        handleLog(joinPoint, log, null, result);
+    }
 
-前置通知的方法: value 属性值就是切入点表达式的配置
-切入点表达式有好多种,最常用的就是方法切入点表达式和类切入点表达式
-方法切入点表达式: @Before("execution(\* com.hxzy.spring.service.jsq.add(..))")
-
-后置通知的方法:
-JoinPoint-->程序执行的某个位置,就是连接点对象,可以使用该对象获取方法名称和参数列表
-类切入点表达式 within(类的全限定名称)
-@After("within(com.hxzy.spring.service..\*)")
-
-返回通知: 获取目标方法执行的返回结果
-@AfterReturning(pointcut="execution( public _._.\*(..))",returning="result")
-异常通知:
-
-环绕增强:
+    @AfterThrowing(value = "pointcut(log)", throwing = "e")
+    public void afterReturning(JoinPoint joinPoint, Log log, Exception e) {
+        handleLog(joinPoint, log, e, null);
+    }
+}
 ```
 
 ## 5. Spring 注解
@@ -496,6 +492,7 @@ JoinPoint-->程序执行的某个位置,就是连接点对象,可以使用该对
 | @Conditional                                         | 条件判断                                                                                                  | 大量应用于 Spring Boot 底层，比如@ConfitionalOnClass 等              |
 | @AliasFor                                            | 作用于自定义注解的两个属性上，表示这两个互为别名，含义一样                                                | 注解继承时，子注解想拥有父注解的属性值                               |
 | ~~@Required~~                                        | ~~作用于 Bean 中的属性的 setter 方法，表明该属性必须设置，否则抛异常 BeanInitializationException~~        | ~~Spring 5.1 版本已弃用~~                                            |
+| @Order                                               | 定义 Spring IOC 容器中 Bean 的执行顺序的优先级，而不是定义 Bean 的加载顺序                                | 等同于 Ordered 接口，值越小优先级越高                                |
 | @PropertySource                                      | 读取指定 properties 文件                                                                                  | 不常用，常用的是 Spring Boot 的@ConfigurationProperties              |
 | @Import                                              | 通过快速导入的方式将实例加入到 Spring IOC 容器中，导入组件的 id 为全路径，                                | 常用于其他框架整合 Spring                                            |
 | @Value                                               | 注入普通值                                                                                                |                                                                      |
@@ -546,14 +543,38 @@ public class ImportSee implements ImportSelector {
 
 事务指逻辑上的一组操作，组成这组操作的各个单元，要不全部成功，要不全部不成功。
 
-事务管理是应用系统开发中必不可少的一部分，Spring 为事务管理提供了丰富的功能支持；Spring 事务属性在 TransactionDefinition 类里面定义，包括传播行为、隔离级别、事务超时、是否只读。
-
-Spring 事务管理分为编程式和声明式两种方式；
+事务管理是应用系统开发中必不可少的一部分，Spring 为事务管理提供了丰富的功能支持。Spring 事务属性定义在 TransactionDefinition 类里面，包括传播行为、隔离级别、事务超时、是否只读。Spring 事务管理分为编程式和声明式两种方式；
 
 - 编程式事务管理：通过编程的方式管理事务，使用 TransactionTemplate 或直接使用底层的 PlatformTransactionManager，可以带来极大的灵活性，但是难维护；
-- 声明式事务管理：使用注解@Transactional 或 配置文件（XML） 配置来管理事务，是基于 AOP 实现的，将事务管理代码从业务方法中分离出来；在实际业务中经常使用该方式。声明式事务管理也有两种常用的方式，一种是在配置文件（xml）中做相关的事务规则声明，另一种是基于@Transactional 注解的方式。
+- 声明式事务管理：使用注解 @Transactional 或 配置文件（XML） 配置来管理事务，是基于 AOP 实现的，将事务管理代码从业务方法中分离出来；在实际业务中经常使用该方式。
 
-### 6.1 配置文件（XML）方式
+### 6.1 事务的隔离级别
+
+| 事务隔离级别     | 说明                                                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| DEFAULT          | 这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是 READ_COMMITTED                                                                                              |
+| READ_UNCOMMITTED | 该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据，该级别不能防止脏读和不可重复读，因此很少使用该隔离级别。                                                                   |
+| READ_COMMITTED   | 该隔离级别表示一个事务只能读取另一个事务已经提交的数据，该级别可以防止脏读，这也是大多数情况下的推荐值。                                                                                   |
+| REPEATABLE_READ  | 该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略，该级别可以防止脏读和不可重复读。 |
+| SERIALIZABLE     | 所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别。                       |
+
+### 6.2 事务的传播方式
+
+| 事务传播方式              | 说明                                                                                               |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| PROPAGATION_REQUIRED      | 如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。这是默认的传播方式     |
+| PROPAGATION_SUPPORTS      | 支持当前事务，如果当前没有事务，就以非事务方式执行                                                 |
+| PROPAGATION_MANDATORY     | 使用当前的事务，如果当前没有事务，就抛出异常                                                       |
+| PROPAGATION_REQUIRES_NEW  | 新建事务，如果当前存在事务，把当前事务挂起                                                         |
+| PROPAGATION_NOT_SUPPORTED | 以非事务方式执行操作，如果当前存在事务，就把当前事务挂起                                           |
+| PROPAGATION_NEVER         | 以非事务方式执行，如果当前存在事务，则抛出异常                                                     |
+| PROPAGATION_NESTED        | 如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与 PROPAGATION_REQUIRED 类似的操作。 |
+
+### 6.3 实现原理
+
+底层是基于 Spring AOP，AOP 又是通过动态代理实现，在代码运行时生成一个代理对象，根据@Transactional 的属性配置信息，代理对象决定该注解标注的目标方法是否由拦截器@TransactionInterceptor 来使用拦截，在拦截中，会在目标方法开始执行前创建并加入事务，并执行目标方法的逻辑，最后根据执行情况是否出现异常，利用抽象事务管理器 AbstractPlatformTransactionManager 操作数据源 DataSource 提交或回滚事务。
+
+### 6.3 配置文件（XML）方式
 
 ```xml
 <!-- 扫描组件 -->
@@ -595,37 +616,6 @@ Spring 事务管理分为编程式和声明式两种方式；
    - readOnly：是否为只读事务，默认为 false，为了忽略不需要事务的方法，比如读取数据，可以设置为 true
    - rollbackFor：指定能够触发事务回滚的异常类型，如果有多个异常类型需要指定，各类型之间使用逗号分隔
    - noRollbackFor：抛出指定的异常类型，不回滚
-
-### 6.3 事务的传播方式
-
-| 事务传播方式              | 说明                                                                                               |
-| ------------------------- | -------------------------------------------------------------------------------------------------- |
-| PROPAGATION_REQUIRED      | 如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。这是默认的传播方式     |
-| PROPAGATION_SUPPORTS      | 支持当前事务，如果当前没有事务，就以非事务方式执行                                                 |
-| PROPAGATION_MANDATORY     | 使用当前的事务，如果当前没有事务，就抛出异常                                                       |
-| PROPAGATION_REQUIRES_NEW  | 新建事务，如果当前存在事务，把当前事务挂起                                                         |
-| PROPAGATION_NOT_SUPPORTED | 以非事务方式执行操作，如果当前存在事务，就把当前事务挂起                                           |
-| PROPAGATION_NEVER         | 以非事务方式执行，如果当前存在事务，则抛出异常                                                     |
-| PROPAGATION_NESTED        | 如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与 PROPAGATION_REQUIRED 类似的操作。 |
-
-### 6.4 事务的隔离级别
-
-| 事务隔离级别     | 说明                                                                                                                                                                                       |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| DEFAULT          | 这是默认值，表示使用底层数据库的默认隔离级别。对大部分数据库而言，通常这值就是 READ_COMMITTED                                                                                              |
-| READ_UNCOMMITTED | 该隔离级别表示一个事务可以读取另一个事务修改但还没有提交的数据，该级别不能防止脏读和不可重复读，因此很少使用该隔离级别。                                                                   |
-| READ_COMMITTED   | 该隔离级别表示一个事务只能读取另一个事务已经提交的数据，该级别可以防止脏读，这也是大多数情况下的推荐值。                                                                                   |
-| REPEATABLE_READ  | 该隔离级别表示一个事务在整个过程中可以多次重复执行某个查询，并且每次返回的记录都相同。即使在多次查询之间有新增的数据满足该查询，这些新增的记录也会被忽略，该级别可以防止脏读和不可重复读。 |
-| SERIALIZABLE     | 所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别。                       |
-
-### 6.5 实现原理
-
-@Transactional 原理是基于 Spring AOP，AOP 又是通过动态代理实现，在代码运行时生成一个代理对象，根据@Transactional 的属性配置信息，代理对象决定该注解标注的目标方法是否由拦截器@TransactionInterceptor 来使用拦截，在拦截中，会在目标方法开始执行前创建并加入事务，并执行目标方法的逻辑，最后根据执行情况是否出现异常，利用抽象事务管理器 AbstractPlatformTransactionManager 操作数据源 DataSource 提交或回滚事务。
-
-Spring AOP 代理有 CglibAopProxy 和 JdkDynamicAopProxy 两种
-
-- 对于 CglibAopProxy，需要调用其内部类的 DynamicAdvisedInterceptor 的 intercept 方法。
-- 对于 JdkDynamicAopProxy，需要调用其 invoke 方法。
 
 ### 6.6 使用事务的注意事项及常见问题
 
