@@ -2,8 +2,8 @@
 
 ```bash
 # 1. 设置用户密码邮箱
-git config --global user.name = 'dangbo'
-git config --global user.email = '1456131152@qq.com'
+git config --global user.name 'dangbo'
+git config --global user.email '1456131152@qq.com'
 # 2. 配置公钥
 ssh-keygen -t rsa -C 'email 地址'
 # 3. 查看配置，配置都是保存在本地配置文件（.gitconfig）中，默认在当前用户的根目录，如果是项目配置，则在项目的.git/config文件中
