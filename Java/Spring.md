@@ -238,8 +238,8 @@ AbstractAutowireCapableBeanFactory 的 doCreateBean() 方法创建 bean，包括
 
 <span style="color:red">额外说明：@PostConstruct 和 @PreDestroy 注解，都不是 Spring 的，而是 java 自带的</span>
 
-- @PostConstruct：修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被该注解修饰的方法会在构造函数之后，init()方法之前运行。
-- @PreDestroy：修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被该注解修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
+- @PostConstruct：用于指定初始化方法，修饰的方法会在服务器加载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 init()方法。被该注解修饰的方法会在构造函数之后，init()方法之前运行。
+- @PreDestroy：用于指定销毁方法，修饰的方法会在服务器卸载 Servlet 的时候运行，并且只会被服务器调用一次，类似于 Servlet 的 destroy()方法。被该注解修饰的方法会在 destroy()方法之后运行，在 Servlet 被彻底卸载之前。
 
 ### 3.5 循环依赖解决方案
 
@@ -486,6 +486,8 @@ public class LogAspect {
 | @Qualifier                                           | 针对存在多个同类型 bean 的情况，明确指定需要装配的 bean，否则抛异常 NoUniqueBeanDefinitionException       | 常与 @Bean、@Autowire 搭配使用                                       |
 | @Primary                                             | 指定默认情况下应该注入特定类型的 Bean，@Qualifier 和 @Primary 同时存在， @Qualifier 优先级高              | 常与 @Bean 搭配使用                                                  |
 | @Lazy                                                | @Lazy(value = true)，默认为 true，表示延迟加载，调用某个 bean 的时候才去初始化（针对单例）                | 延迟加载，常与 @Bean 搭配使用                                        |
+| @DependsOn                                           |   用来表示一个bean A的实例化依赖另一个bean B的实例化， 但是A并不需要持有一个B的对象，如果需要的话就不用depends-on，直接用依赖注入就可以了或者ref标签      
+                       |                                                                    |
 | @Configuration                                       | 声明该类为配置类，可以被 @Component 替代，不过使用@Configuration 声明配置类更加语义化                     | 常与 @Bean 一起使用                                                  |
 | @Repository<br>@Service<br>@Controller<br>@Component | 标识在类上，表示该类被 Spring IOC 容器管理，                                                              | 持久层、业务层、表现层、组件                                         |
 | @ComponentScan                                       | 扫描特定包下的组件                                                                                        | 等同于 xml 中的 <context:component-scan>                             |

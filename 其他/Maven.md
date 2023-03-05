@@ -369,3 +369,15 @@ maven clean deploy
     <activeProfile>jdk-1.8</activeProfile>
 </activeProfiles>
 ```
+
+## 6. 插件
+
+### 6.2 maven-resources-plugin
+
+1. 默认占位符有两种，分别是 ${*} 和 @*@
+
+2. 配置项 useDefaultDelimiters，可以控制是否使用默认占位符
+
+3. 配置项 delimiter，既可以写默认占位符，也可以自定义占位符
+
+4. spring-boot-starter-parent中，将useDefaultDelimiters设置成false，然后只定义了@*@。
