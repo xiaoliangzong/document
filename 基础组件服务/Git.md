@@ -14,48 +14,43 @@ git config core.ignorecase true
 
 ## 2. 基本操作
 
-### 2.1 分支
-
-![查看分支](../public/images/git-branch.png)
-
 ```bash
-git branch 分支名称        # 1. 创建分支
-git checkout 分支名称      # 2. 切换分支
-# 3. 本地分支和远端分支相关联，当远端新建分支时，本地也有分支时，相关联
-git branch --set-upstream-to=origin/<远端分支名> 本地分支名
+################################ 克隆 ################################
 
-# 4. 创建并切换分支，远端新建（已有）分支，本地创建不同名的分支开发
-git checkout -b 分支名称
+git clone <remote_url> <文件夹名>           # 1. 克隆所有分支到指定文件夹
+git clone -b 远端分支名 <remote_url>        # 2. 克隆指定分支
 
-# 5. 远端新建（已有）分支，本地创建同名的分支开发任务，如果本地没有远程仓库对应的分支，但是又想拉取，就需要使用该命令，而不能使用git checkout -b 分支名
-git checkout -t origin/dev
+################################ 分支 ################################
+git branch -a              # 查看所有（本地和远端）分支，等同于查看本地分支 git branch 和查看远端分支 git branch -r
+git branch -vv             # 查看本地和远端分支关联关系，并展示最后一次提交信息
 
-git push origin --delete 分支名  # 6. 删除远端分支
-git branch -d 分支名             # 7. 删除分支
-git branch -D 分支名             # 8. 强制删除分支
+git branch 分支名                   # 1. 创建分支
+git checkout 分支名                 # 2. 切换分支
+git checkout -b 分支名              # 3. 创建并切换分支（等同于步骤1、2）
+git branch -d 分支名                # 4. 删除分支，-D表示强制删除分支
+git push origin --delete 分支名     # 5. 删除远端分支
+git branch --set-upstream-to=origin/<远端分支名> <本地分支名>     # 6. 本地分支和远端分支相关联，--set-upstream-to等同于-u
 
-# 6. 切换空分支，使用git branch -a 不显示，需要提交个文件才可以查询到
+
+# 6. 在本地创建一个新的分支，并将其切换到该分支，同时将该分支与指定的远程分支关联起来。常用于本地没有远程仓库对应的分支，且需要从其他人的 fork 或远程仓库拉取分支进行协作开发。如果本地分支名不写，则默认和远端分支同名。
+git checkout -b <本地分支> [<远程分支>]                            
+
+# 7. 在指定的起点创建一个新的分支，并将 HEAD 指向新分支。通常用于从旧的提交中创建新的分支。例如，如果你需要基于某次提交创建一个新的分支，可以使用该命令。
+git branch -t <new_branch_name> <start_point>                    
+
+# 8. 从指定的远程分支拉取最新的更改，并创建一个本地分支，与远程分支相对应。这个命令通常用于当你需要从其他人的 fork 或远程仓库（如 GitHub）拉取分支进行协作开发时。
+git checkout -t/--track <remote>/<branch_name>
+
+
+# 8. 本地创建分支，并推送到远端仓库
+git checkout -b 分支名称                     # 创建并切换分支（等同于步骤1、2）
+git push --set-upstream origin 分支名称      # 推送到远端仓库，--set-upstream等同于-u
+
+# 9. 切换空分支，使用git branch -a 不显示，需要提交个文件才可以查询到
 git ckeckout --orphan 分支名
-```
 
-### 2.2 克隆
 
-```bash
-# 1. 克隆所有分支
-git clone <remote_url> 文件夹名
-# 2. 克隆指定分支
-git clone -b 远端分支名称 <remote_url>
-# 3. idea 工具(http 协议)克隆
-点击 VCS -> 选择 Get from version control
-# 4. 远端新建（已有）分支，本地创建不同名的分支开发
-git checkout -b 本地分支 远端分支
-# 5. 远端新建（已有）分支，本地创建同名的分支开发任务，如果本地没有远程仓库对应的分支，但是又想拉取，就需要使用该命令，而不能使用git checkout -b 分支名
-git checkout -t origin/dev
-```
 
-### 2.3 远端仓库
-
-```bash
 git remote -h           # 1. 查看远程的所有操作命令
 git remote -v           # 2. 查看详情verbose：包括远程仓库名和url
 git remote show origin  # 3. 查看配置的远程仓库信息
@@ -82,7 +77,7 @@ git remote set-url --add <name> <url>
 git remote rename <old> <new>
 ```
 
-### 2.4 标签
+## 2.4 标签
 
 tag 是 git 版本库的一个标记，指向某个 commit 的指针；主要用于发布版本的管理，比如一个版本发布之后，可以打上 v.1.0-Release 这样的标签。git 有两种主要类型的标签：轻量标签（lightweight）与附注标签（annotated）。
 
@@ -116,7 +111,7 @@ git push origin :refs/tags/<tagname>   # 删除远程分支
 git checkout <tagname>
 ```
 
-### 2.5 查看改动
+## 2.5 查看改动
 
 ```bash
 git diff fileName  	# 对比工作目录和缓存区之间的不同
@@ -176,6 +171,12 @@ git add 冲突文件
 git commit
 # 8.本地仓库代码提交到远程仓库
 git push
+
+
+# 场景：dev合并到master
+git rebase -i master \  git merge dev # 可以尽可能保持 master 分支干净整洁，并且易于识别 author
+git merge --squash dev # 可以保持 master 分支干净，但是 master 中 author 都是 maintainer，而不是原 owner（创建一个单独的提交记录，需要主动提交修改）
+git merge dev    # 不能保持 master 分支干净，但是保持了所有的 commit history，大多数情况下都是不好的，个别情况挺好
 ```
 
 ### 3.3 版本回退
@@ -209,6 +210,41 @@ git log 						# 找到误提交之前的版本号
 git revert -n 版本号			  # 恢复
 git commit -m "提交"
 git push 推送到远程
+```
+
+### 3.3 cherry-pick
+
+使用场景：不想merge整个分支的代码到当前分支，而是只针对一次提交，就可以使用cherry-pick了。
+
+```shell
+git chery-pick <commit>...   # 挑选，它会获取某一个分支的单笔提交，并作为一个新的提交引入到你当前分支上。
+git cherry-pick <commit_id_0>^..<commit_id_n>  # 符号^标识前闭，默认前开后闭
+
+-e 打开外部编辑器，编辑提交信息
+-n 只更新工作区和暂存区，不产生新的提交，如果没有出现冲突，默认自动提交
+-x 在提交信息的末尾追加一行(cherry picked from commit …)，方便以后查到这个提交是如何产生的
+-s 在提交信息的末尾追加一行操作者的签名，表示是谁进行了这个操作
+
+当cherry-pick时，没有成功自动提交，这说明存在冲突，因此首先需要解决冲突，解决冲突后需要git commit手动进行提交；或者git add .后直接使用git cherry-pick --continue继续。
+
+
+如果在执行git cherry-pick时遇到冲突，一般会有下面的几种提示：
+
+git cherry-pick --continue 继续cherry-pick，则首先需要解决冲突，通过git add .将文件标记为已解决，然后可以使用git cherry-pick --continue命令，继续进行cherry-pick操作。
+git cherry-pick --quit  中断这次cherry-pick，则使用git cherry-pick --quit，这种情况下当前分支中未冲突的内容状态将为modified，
+git cherry-pick --abort 取消这次cherry-pick，则使用git cherry-pick --abort，这种情况下当前分支恢复到cherry-pick前的状态，没有改变。
+```
+
+### 3.5 Squash 多个commit
+
+多个commit合并成一个；它不是一个命令；相反，它是一个关键词，git交互式rebases下提供给你的许多选项之一
+
+```shell
+
+把多个commit合并成一个。可以采用rebase命令附带的squash操作
+
+git rebase -i HEAD ~3 # Squash最后的提交。
+
 ```
 
 ## 4. 常用问题
@@ -262,3 +298,12 @@ git config core.ignore false
    > git push -u origin master -f 强制推送
 
 2. 设置 upStream：git push --set-upstream 远端名称 远端分支
+
+
+Merge节点
+Git有两种合并：一种是”直进式合并”（fast forward），不生成单独的合并节点；另一种是”非直进式合并”（none fast-forword），会生成单独节点。
+
+前者不利于保持commit信息的清晰，也不利于以后的回滚，建议总是采用后者（即使用—no-ff参数）。只要发生合并，就要有一个单独的合并节点。
+
+5.5 Squash 多个commit
+为了便于他人阅读你的提交，也便于cherry-pick或撤销代码变化，在发起Pull Request之前，应该把多个commit合并成一个。（前提是，该分支只有你一个人开发，且没有跟master合并过。）

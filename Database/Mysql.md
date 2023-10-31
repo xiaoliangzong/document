@@ -394,12 +394,19 @@ on delete set null on update set null    -- 设置为 null
   如果未启用限制模式，MySQL 会将值截断到列数据类型范围的相应端点，并存储结果值，并产生一个警告。
 - binary 和 varbinary 用于保存较短的二进制，enum 用于保存枚举，set 用于保存集合
 - 较长的文本：text、blob(较大的二进制)
-- 较短得文本：char、varchar
+- 较短的文本：char、varchar
 
 | 类型       | M 值含义                     | 定长           | 空间消耗 | 效率 |
 | ---------- | ---------------------------- | -------------- | -------- | ---- |
 | char(M)    | 最大字符数，可省略，默认为 1 | 固定长度的字符 | 比较耗费 | 高   |
 | varchar(M) | 最大字符数，不可以省略       | 可变长度的字符 | 比较节省 | 低   |
+
+- 日期 datetime 和 timestamp
+
+| 类型       | 字节 | 范围           | 自动更新 | 时区 |
+| ---------- | --- | -------------- | -------- | ---- |
+| datetime   | 8 | 范围更广，可支持的时间范围是从 1000 年到 9999 年 | 5.6.5低版本不支持 | 不会自动进行时区转换，存储的是具体的日期和时间，无关时区   |
+| timestamp  | 4 | 范围较小，仅支持从 1970 年到 2038 年。这是由于 TIMESTAMP 类型使用的是 32 位整数存储。 |DEFAULT CURRENT_TIMESTAMP 和 ON UPDATE CURRENT_TIMESTAMP 来实现自动填充和更新时间戳字段  | 自动进行时区转换，并将存储的时间转换为 UTC 时间   |
 
 ### 3.4 变量
 
@@ -732,6 +739,7 @@ set [session | global] transaction isolation level {read uncommitted | read comm
 set [session | global] transaction_isolation = 'read-uncommitted';
 -- 查询当前有多少事务正在运行
 select * from information_schema.innodb_trx;
+
 
 start transaction;    -- 开启事务
 rollback;             -- 回滚

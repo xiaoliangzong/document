@@ -427,6 +427,17 @@ systemctl enable httpd
 systemctl kill httpd
 ```
 
+## 11 
+
+
+netstat 显示协议统计信息和当前 TCP/IP 网络连接，是一个监控TCP/IP网络的非常有用的工具
+
+-a或--all：显示所有连线中的Socket；
+-l或--listening：显示监控中的服务器的Socket；
+-n或--numeric：直接使用ip地址，而不通过域名服务器；
+-p或--programs：显示正在使用Socket的程序识别码和程序名称；
+
+
 ## 11. 实战案例
 
 ### 11.1 查看用户、查看文件

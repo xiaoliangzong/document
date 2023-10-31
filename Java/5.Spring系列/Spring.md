@@ -664,6 +664,70 @@ public class ImportSee implements ImportSelector {
 
 ThreadPoolTaskExecutor，是对 ThreadPoolExecutor（java.util.concurrent）进行了封装处理
 
+**异步线程traceId如何传递**
+
+本质是通过Mdc来进行异步线程间的traceId同步，可以看下Mdc的源码，最终还是通过InheritableThreadLocal来实现子线程获取父线程信息
+
+```java
+public class TaskDecoratorForMdc implements TaskDecorator {
+    @Override
+    public Runnable decorate(Runnable runnable) {
+        try {
+            Optional<Map<String, String>> contextMapOptional =ofNullable(MDC.getCopyOfContextMap());
+            return () -> {
+                try {
+                    contextMapOptional.ifPresent(MDC::setContextMap);
+                    runnable.run();
+                } finally {
+                    MDC.clear();
+                }
+            };
+        } catch (Exception e) {
+            return runnable;
+        }
+    }
+}
+
+
+@Bean(name = "callBackExecutorConfig")
+public Executor callBackExecutorConfig() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor ();
+    // 配置核心线程数
+    executor.setCorePoolSize(10);
+    // 配置最大线程数
+    executor.setMaxPoolSize(20);
+    // 配置队列大小
+    executor.setQueueCapacity(200);
+    // 配置线程池中的线程的名称前缀
+    executor.setThreadNamePrefix("async-Thread-");
+    // rejection-policy：当pool已经达到max size的时候，如何处理新任务
+    // abort：在调用executor执行的方法中抛出异常 RejectedExecutionException
+    executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+    //线程池增强
+    threadPoolTaskExecutor.setTaskDecorator(new TaskDecoratorForMdc());
+    // 执行初始化
+    executor.initialize();
+    return executor;
+}
+```
+
+日志追踪（链路追踪编号）
+
+实现方式1：自己写代码实现，使用logback日志框架的MDC实现；
+
+- 添加拦截器并配置，TraceLogInterceptor
+- springcloud，一般都是用feign，需要拦截feign，RequestInterceptor 
+- dubbo，Apache的dubbo（老版的是阿里的，阿里已将dubbo加入apache），写过滤器
+- 注解 + AOP切面，针对定时任务@Scheduled
+- 异步线程获取主线程traceId
+- 远程调用，增加拦截器
+- logback.xml配置文件
+
+实现方式2：使用开源工具，安装费点事，功能强大，适合大项目；支持的开发语言和框架较多。
+
+- 推荐 skywalking。
+
+
 ## valid、validated
 
 > 区别只要体现在分组，注解标注位置，嵌套验证等功能上
@@ -1015,3 +1079,32 @@ jar -jar xxx.jar --server.port=8080
 
 @JsonUnwrapped 对象扁平化
 被 @JsonAnyGetter 注解的方法必须是非静态的、无参数的，且返回值必须为 java.util.Map。序列化时，Map 的条目会被扁平化（与对象其他的属性位于同一级别，与 @JsonUnwrapped 的处理方式相同），而不是作为嵌套属性被序列化。
+
+
+
+RequestBodyAdvice是一个Spring框架中的拦截器接口，它可以用于在请求体被处理之前或之后对请求进行修改或处理。它通常被用于以下场景：
+
+请求日志：通过RequestBodyAdvice，您可以在请求体被处理之前记录请求的内容，以便进行日志记录或调试。
+
+请求解密：如果您的请求体是加密的，您可以使用RequestBodyAdvice来解密请求体并在处理请求之前对其进行解密。
+
+请求数据验证：RequestBodyAdvice可以用于在处理请求之前对请求体进行验证和处理，以确保请求体符合应用程序的要求。
+
+请求数据转换：如果请求体包含了特殊格式的数据，例如XML或Protobuf格式，您可以使用RequestBodyAdvice来将请求体转换为应用程序所需的格式。
+
+请求数据加密：如果您的应用程序需要对请求体进行加密，RequestBodyAdvice可以用于对请求体进行加密并在处理请求之前对其进行加密。
+
+总之，RequestBodyAdvice提供了一个灵活的机制，让开发人员能够在请求体被处理之前或之后对请求进行处理和修改，从而实现更高级的功能。
+
+
+HandlerInterceptor和RequestBodyAdvice都是Spring框架中的拦截器接口，但是它们的作用有所不同：
+
+HandlerInterceptor：HandlerInterceptor用于拦截处理程序执行过程中的请求和响应，并对其进行修改或处理。它可以用于对请求进行权限验证、日志记录、请求时间测量、缓存等处理。
+
+RequestBodyAdvice：RequestBodyAdvice用于在请求体被处理之前或之后对请求进行修改或处理。它通常被用于请求数据的验证、转换、加密等处理。
+
+从使用场景来看，HandlerInterceptor主要用于对请求的拦截和处理，而RequestBodyAdvice则主要用于对请求体的处理和修改。
+
+另外，HandlerInterceptor可以用于拦截所有类型的请求，而RequestBodyAdvice只能用于对请求体进行处理。此外，HandlerInterceptor的三个方法（preHandle、postHandle和afterCompletion）在请求处理过程中的不同阶段都会被调用，而RequestBodyAdvice只有一个方法（beforeBodyRead）用于在请求体被处理之前进行拦截和处理。
+
+因此，在使用时需要根据具体的需求和场景来选择使用HandlerInterceptor还是RequestBodyAdvice。

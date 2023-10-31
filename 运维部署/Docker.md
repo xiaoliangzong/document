@@ -225,9 +225,9 @@ docker-compose version
 ```shell
 # 执行命令，是针对项目工程而言的，必须在对应的目录下执行
 docker-compose config [SERVICE]                   # 验证Compose文件格式是否正确
-docker-compose build [options] [SERVICE...]				# 基于docker-compose.yml文件构建或重新构建服务，而不是运行，--no-cache当构建镜像时，不使用缓存
+docker-compose build [options] [SERVICE...]				# 基于docker-compose.yml文件构建或重新构建镜像，而不是运行，--no-cache当构建镜像时，不使用缓存
 docker-compost up -d [options] [SERVICE...]	      # 创建并运行容器，也就是部署一个Compose应用，如果之前已经构建了镜像，则它只会运行它。默认读取 docker-compose.yaml/yml 文件，-f 指定其他文件名，-d 应用在后台启动
-docker-compose up -d --build .                    # 上两条命令的集合体，构建并运行，如果docker-compose文件修改，则需要先构建，在运行
+docker-compose up -d --build .                    # 上两条命令的集合体，构建并运行
 
 docker-compose ls                                 # 列出所有项目
 docker-compose ps	[SERVICE...]				            # 列出项目中目前的所有容器

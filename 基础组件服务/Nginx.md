@@ -1,9 +1,21 @@
-## 概念及特点
+# Nginx
 
-1. 是一个高性能的 HTTP 和反向代理服务器，
-2. 占用内存小，专为性能优化而开发，
-3. 可以作为静态页面的 web 服务器，
-4. 反向代理，负载均衡，动静分离，高可用集群
+
+
+## 概念
+
+[Nginx](http://nginx.org/) 是一个高性能的 HTTP （web服务器）和反向代理服务器，其特点是占用内存小，能够同时处理大量的并发连接。
+
+## 使用场景
+
+Web服务器、反向代理服务器、负载均衡器、防火墙、缓存服务器、HTTP/HTTPS代理服务器
+Nginx可以作为Web服务器来处理静态资源文件，如HTML、CSS、JavaScript、图片等，提供高效的HTTP服务。
+Nginx可以作为反向代理服务器，接收客户端请求并将其转发给后端的多台应用服务器，实现负载均衡、故障转移、动态增删应用服务器等功能。
+Nginx可以根据不同的负载均衡策略，将来自客户端的请求分发到多台应用服务器上，实现请求的平均分配。
+Nginx可以通过限制客户端访问速率、拒绝恶意请求等方式，提供基本的安全防护，减轻被攻击的风险。
+Nginx可以将请求结果缓存在内存中或硬盘上，提高Web应用程序的性能。
+Nginx可以作为HTTP/HTTPS代理服务器，对客户端和后端服务进行转发和代理，提供数据传输的加密和身份认证。
+
 
 ## 反向代理
 
@@ -17,15 +29,17 @@
 
 ## Linux 安装
 
-官网：<http://nginx.org/en/download.html>
-
 1. 安装 PCRE 包：PCRE 作用是让 Nginx 支持 Rewrite 功能
 
 2. 安装 openssl、zlib：安装编译工具和库文件
 
-   yum -y install make zlib zlib-devel gcc-c++ libtool openssl openssl-devel
+   yum install -y make zlib zlib-devel gcc-c++ libtool openssl openssl-devel pcre pcre-devel 
 
-3. 安装 nginx：拷包、解压 tar -xvf \*\*\*、./configure、make && make install
+3. 解压 tar -zxvf nginx-1.18.0.tar.gz
+
+4. ./configure
+
+5. make && make install （安装完成后的路径为：/usr/local/nginx）
 
 ## Linux 防火墙
 
@@ -51,33 +65,132 @@ cd /usr/local/nginx/sbin    # 安装路径
 upstream        # 配置负载均衡
 ```
 
+
+## root和alias区别
+
+在 Nginx 配置中，alias 和 root 都用于指定 web 服务器的根目录。区别在于如何处理 URI
+
+1. root 指令定义了文件在文件系统中的基本路径，并将与请求 URI 的匹配部分组合起来构成实际的文件路径。例如，如果请求的 URI 是 /images/logo.png，并且 root 指令设置为 /var/www/html，则 Nginx 会在文件系统上寻找 /var/www/html/images/logo.png。如果请求的 URI 包含斜杠结尾，则 Nginx 会将其视为目录，而不是文件，例如，/images/ 将在 /var/www/html/images/ 目录下查找。
+
+2. alias 指令也定义了文件在文件系统中的基本路径，但与 root 不同，它将 URI 中的匹配部分替换为指定路径。例如，如果请求的 URI 是 /images/logo.png，并且 alias 指令设置为 /var/www/data，则 Nginx 会在文件系统上寻找 /var/www/data/logo.png。
+
+使用 root 指令可以将请求 URI 映射到文件系统上的路径，而使用 alias 指令可以将请求 URI 映射到不同的文件系统路径，从而提供更大的灵活性。
+
+
+root读取的是根目录。可以在server或location指令中使用。
+alias只能在location指令中使用。
+
+两者何时用？
+如果位置与别名路径的末尾匹配，最好使用root。
+如果从与 root 指定的目录不同的位置读取数据时，最好使用alias。
+
+
 ## 配置文件
 
-1. 全局块：设置一些影响 nginx 服务器整体运行的配置指令
-2. event 块
-3. http 块(server 部分)
+```shell
+# 全局块，配置影响 nginx 服务器整体运行的配置指令
+# 1. 配置运行 Nginx 服务器的用户（组）
+# 2. 允许的 worker process 数
+# 3. 日志存放路径和类型
+# 4. 进程pid存放路径
+# 5. 一个Nginx进程打开的最多文件描述符数目
+
+# event块，配置影响Nginx服务器或与用户的网络连接
+# 1. 最大连接数的配置
+# 2. 事件驱动模型的选择
+events {}
+
+# http块，配置代理、缓存、日志定义等绝大多数功能和第三方模块的配置
+http {
+    # server块，配置虚拟主机的相关参数
+    server {
+        listen       80; #配置监听端口
+        server_name  localhost; #配置服务名
+        charset utf-8; #配置字符集
+        access_log  logs/host.access.log  main; #配置本虚拟主机的访问日志
+        
+        location / {
+            root html; #root是配置服务器的默认网站根目录位置，默认为Nginx安装主目录下的html目录
+            index index.html index.htm; #配置首页文件的名称
+        }
+        
+        error_page 404             /404.html; #配置404错误页面
+        error_page 500 502 503 504 /50x.html; #配置50x错误页面
+
+        listen       443 ssl;
+        server_name  localhost;
+
+        ssl_certificate      cert.pem;
+        ssl_certificate_key  cert.key;
+
+        ssl_session_cache    shared:SSL:1m;
+        ssl_session_timeout  5m;
+
+        ssl_ciphers  HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers  on;
+
+
+        # location块
+        location / {
+            
+            root html; #root是配置服务器的默认网站根目录位置，默认为Nginx安装主目录下的html目录
+            index index.html index.htm; #配置首页文件的名称
+
+            proxy_pass http://127.0.0.1:88; #反向代理的地址
+            proxy_redirect off; #是否开启重定向
+            #后端的Web服务器可以通过X-Forwarded-For获取用户真实IP
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $host;
+            #以下是一些反向代理的配置，可选。
+            client_max_body_size 10m; #允许客户端请求的最大单文件字节数
+            client_body_buffer_size 128k; #缓冲区代理缓冲用户端请求的最大字节数，
+            proxy_connect_timeout 90; #nginx跟后端服务器连接超时时间（代理连接超时）
+            proxy_send_timeout 90; #后端服务器数据回传时间（代理发送超时）
+            proxy_read_timeout 90; #连接成功后，后端服务器响应时间（代理接收超时）
+            proxy_buffer_size 4k; #设置代理服务器（Nginx）保存用户头信息的缓冲区大小
+            proxy_buffers 4 32k; #proxy_buffers缓冲区，网页平均在32k以下的设置
+            proxy_busy_buffers_size 64k; #高负荷下缓冲大小（proxy_buffers*2）
+            proxy_temp_file_write_size 64k;  #设定缓存文件夹大小
+
+        }
+    }
+}
+```
+location的URI，用于匹配URL
+
+通配符：
+
+=：用于不含正则表达式的uri前，要求请求字符串与uri严格匹配，如果匹配成功，就停止继续向下搜索并立即处理该请求。
+
+~：用于表示uri包含正则表达式，并且区分大小写。
+
+~*：用于表示uri包含正则表达式，并且不区分大小写。
+
+^~：用于不含正则表达式的uri前，要求Nginx服务器找到标识uri和请求字符串匹配度最高的location后，立即使用此location处理请求，而不再使用location块中的正则uri和请求字符串做匹配。
+
+
 
 ```shell
-# 全局块：会设置一些影响 nginx 服务器整体运行的配置指令，主要包括配置运行 Nginx 服务器的用户（组）、允许生成的 worker process 数，进程 PID存放路径、日志存放路径和类型以及配置文件的引入等。
-#user  nobody;
-# 服务器并发处理服务的关键配置，不考虑硬件软件设备的制约，值越大，并发处理量越多。
-worker_processes  1;
+user  nobody;       # 配置worker进程运行用户（和用户组），nobody也是一个Linux用户，一般用于启动程序，没有密码
+worker_processes  1;       # 服务器并发处理服务的关键配置，不考虑硬件软件设备的制约，值越大，并发处理量越多；根据硬件调整，通常等于CPU数量或者2倍的CPU数量
 
-#error_log  logs/error.log;
+error_log  logs/error.log;      # 配置全局错误日志及类型，[debug | info | notice | warn | error | crit]，默认是error
 #error_log  logs/error.log  notice;
 #error_log  logs/error.log  info;
 
-#pid        logs/nginx.pid;
+pid        logs/nginx.pid;      # 配置进程pid文件
+worker_rlimit_nofile 1024;      # 一个进程打开的最多文件描述符数目，理论值应该是最多打开文件数（系统的值ulimit -n）与Nginx进程数相除，但是Nginx分配请求并不均匀，所以建议与ulimit -n的值保持一致。
 
 events {
- # 每个word process可以同时支持的最大连接数
-    worker_connections  1024;
+    use epoll;                  # 参考事件模型，use [ kqueue | rtsig | epoll | /dev/poll | select | poll ]; epoll模型是Linux 2.6以上版本内核中的高性能网络I/O模型，如果跑在FreeBSD上面，就用kqueue模型
+    worker_connections  1024;   # 每个worker_process可以同时支持的最大连接数
 }
 
-
 http {
-    include       mime.types;
-    default_type  application/octet-stream;
+    include       mime.types;                       # 文件扩展名与文件类型映射表
+    default_type  application/octet-stream;         # 默认文件类型
+    charset utf-8;                                  # 默认编码
 
     #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
     #                  '$status $body_bytes_sent "$http_referer" '
@@ -91,6 +204,7 @@ http {
     #keepalive_timeout  0;
     keepalive_timeout  65;
 
+    #压缩设置
     #gzip  on;
     #开启gzip压缩
     gzip on;
@@ -110,6 +224,42 @@ http {
     gzip_vary on;
     #反向代理时使用
     gzip_proxied off;
+
+    client_max_body_size 20M; #上传文件大小限制
+    fastcgi_connect_timeout 800;#原设置为300s
+    fastcgi_send_timeout 800;#原设置为300s
+    fastcgi_read_timeout 800;#原设置为300s
+
+
+    charset utf-8; #默认编码
+    server_names_hash_bucket_size 128; #服务器名字的hash表大小
+    client_header_buffer_size 32k; #上传文件大小限制
+    large_client_header_buffers 4 64k; #设定请求缓冲
+    client_max_body_size 8m; #设定请求缓冲
+    sendfile on; #开启高效文件传输模式，对于普通应用设为on，如果用来进行下载等应用磁盘IO重负载应用，可设置为off，以平衡磁盘与网络I/O处理速度，降低系统的负载。注意：如果图片显示不正常把这个改成off。
+    autoindex on; #开启目录列表访问，合适下载服务器，默认关闭。
+    tcp_nopush on; #防止网络阻塞
+    tcp_nodelay on; #防止网络阻塞
+    keepalive_timeout 120; #长连接超时时间，单位是秒
+
+    #FastCGI相关参数是为了改善网站的性能：减少资源占用，提高访问速度。
+    fastcgi_connect_timeout 300;
+    fastcgi_send_timeout 300;
+    fastcgi_read_timeout 300;
+    fastcgi_buffer_size 64k;
+    fastcgi_buffers 4 64k;
+    fastcgi_busy_buffers_size 128k;
+    fastcgi_temp_file_write_size 128k;
+
+    #gzip模块设置
+    gzip on; #开启gzip压缩输出
+    gzip_min_length 1k; #最小压缩文件大小
+    gzip_buffers 4 16k; #压缩缓冲区
+    gzip_http_version 1.0; #压缩版本（默认1.1，前端如果是squid2.5请使用1.0）
+    gzip_comp_level 2; #压缩等级
+    gzip_types text/plain application/x-javascript text/css application/xml; #压缩类型
+    gzip_vary on; #增加响应头'Vary: Accept-Encoding'
+    limit_zone crawler $binary_remote_addr 10m; #开启限制IP连接数的时候需要使用
 
  # 配置负载均衡
  upstream myserver{
@@ -192,30 +342,16 @@ http{
     server {
         listen 8080;
         server_name localhost;
-        location /user { # 可以填其他的, 可以是正则等, 这个没有细看(自行百度~)
-            # 路径要和对应服务的路径相同, 比如localhost:8001/user
-            # 通过8080/user端口访问的这个路径, 会一直对应在8001/user这个路径下,
-            # 再比如, 想访问8080/user/login的时候, 对应8001/user/login
+        location /user {
             proxy_pass http://localhost:8001;
-            # 如果8001后边不加/，默认转发到http://localhost:8081/user;
-            # 如果8001后边加/，默认代理到http://localhost:8081/  -> 相当于绝对跟路径，则nginx不会把location中匹配的路径部分代理走。
         }
     }
 }
 
 # 分析：
-location后边的path路径     proxy_pass 代理的url
- 后边有/      port/                   代理到port/，且path（后边不带/）无法访问，404，页面可以自动加上/
- 后边有/      port(后边没有/)   访问path/或者path都会报失败
- #后边有/      port/xxx/      代理到prot/xxx{/}     正确
- 后边有/      port/xxx       代理到port/xxx      报错，404
- 后边无/      port/       http://localhost:8081/
- #后边无/      port        代理到port/path/    目前使用最多的。
- 后边无/      port/xxx/      代理到port/xxx{/}  正确
- 后边无/      port/xxx       代理到port/xxx     正确。
+proxy_pass ip + port 后边有斜杆\ 或路径，新的路径是：proxy_pass + 访问路径除去lacation相同部分路径
+proxy_pass ip + port 后边啥都没有，新的路径：proxy_pass + location + 访问路径除去location相同路径
 ```
-
-[proxy_pass 反向代理配置中 url 后面加不加/的说明](https://www.cnblogs.com/kevingrace/p/6566119.html)
 
 [Nginx 反向代理和缓存服务器功能说明和简单实现](https://www.cnblogs.com/kevingrace/p/5839698.html)
 
@@ -228,6 +364,53 @@ location后边的path路径     proxy_pass 代理的url
 3. ip_hash 每个请求按访问 ip 的 hash 结果分配，这样每个访客固定访问一个后端服务器
 
 4. fair（第三方） 按后端服务器的响应时间来分配请求，响应时间短的优先分配。
+
+## 日志
+
+设置nginx日志格式
+默认变量格式：log_format combined '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"';
+
+$remote_addr变量：记录了客户端的IP地址（普通情况下）。
+
+$remote_user变量：当nginx开启了用户认证功能后，此变量记录了客户端使用了哪个用户进行了认证。
+
+$time_local变量：记录了当前日志条目的时间。
+
+$request变量：记录了当前http请求的方法、url和http协议版本。
+
+$status变量：记录了当前http请求的响应状态，即响应的状态码，比如200、404等响应码，都记录在此变量中。
+
+$body_bytes_sent变量：记录了nginx响应客户端请求时，发送到客户端的字节数，不包含响应头的大小。
+
+$http_referer变量：记录了当前请求是从哪个页面过来的，比如你点了A页面中的超链接才产生了这个请求，那么此变量中就记录了A页面的url。
+
+$http_user_agent变量：记录了客户端的软件信息，比如，浏览器的名称和版本号。
+
+增加变量：
+
+'"$http_host" "$request_time" "$upstream_response_time" "$upstream_connect_time" "$upstream_header_time"';
+
+$http_host 请求地址，即浏览器中你输入的地址（IP或域名）
+
+$request_time：处理请求的总时间,包含了用户数据接收时间
+
+$upstream_response_time：建立连接和从上游服务器接收响应主体的最后一个字节之间的时间
+
+$upstream_connect_time：花费在与上游服务器建立连接上的时间
+
+$upstream_header_time：建立连接和从上游服务器接收响应头的第一个字节之间的时间
+
+修改后的自定义格式：
+
+ log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+
+        '$status $body_bytes_sent "$http_referer" '
+
+        '"$http_user_agent" "$http_x_forwarded_for" '
+
+        '"$http_host" "$request_time" "$upstream_response_time" "$upstream_connect_time" "$upstream_header_time"';
+
+
 
 ## 动静分离
 
@@ -291,6 +474,32 @@ location ~* ^(/v2|/webjars|/swagger-resources|/swagger-ui.html){
 > 6. nginx: [emerg] "proxy_pass" cannot have URI part in location given by regular expression, or inside named location, or inside "if" statement, or inside "limit_except" block in D:\nginx-1.18.0\nginx-1.18.0/conf/nginx.conf:95
 >
 > nginx: [emerg] "proxy_pass"不能有 URI 部分在正则表达式给出的位置中，或在 named location 中，或在"if"语句中，或在"limit_except"块中
+>
+> 7. js 文件 net::ERR_ABORTED 503
+>
+> location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_pass http://1.1.1.1:81/;
+        limit_req  zone=one burst=10 nodelay;   
+    }
+>
+> limit_req 参数在 Nginx 中是请求次数限制，上面配置的是一个周期最多10次请求，但是这个页面上请求的 js 文件远远超过10个，所以出现了服务不可用错误
+>
+> 8. 504超时，默认1分钟，需要将proxy_read_timeout 改大点
+>
+> proxy_connect_timeout 60000;
+> proxy_read_timeout 60000;
+> proxy_send_timeout 60000;
+>
+> 9. 413 Request Entity Too Large
+>
+> nginx 配置文件中的client_max_body_size是控制请求body的大小限制的参数，默认为1MB，如果超过这个数值，则会直接返回413状态码
+
+http {
+    ...
+    client_max_body_size 20M;
+ }  
 
 ## 实例 1：代理前端静态页面
 
@@ -327,6 +536,8 @@ Keepalived 高可用对之间是通过 VRRP 进行通信的， VRRP 是遑过竞
 - 作为系统网络服务的高可用性（failover）
 
 ### 4. 修改 Keepalived 配置文件
+
+> 安装：yum install -y keepalived
 
 (1) MASTER 节点配置文件（192.168.50.133）
 

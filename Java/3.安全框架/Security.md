@@ -1,9 +1,9 @@
-# spring-boot-starter-security
+# Spring Security
 
-用户填入用户名密码后，与数据库里存储的用户信息进行比对，如果通过，则认证成功，传统的方法是在认证通过后，创建 sesstion，并给客户端返回 cookie。
-我们采用 JWT 来处理用户名密码的认证。区别在于，认证通过后，服务器生成一个 token，将 token 返回给客户端，客户端以后的所有请求都需要在 http 头中指定该 token。 服务器接收的请求后，会对 token 的合法性进行验证。
+Spring Security 是一个功能强大且高度可定制的身份验证和访问控制框架。它是用于保护基于 Spring 的应用程序。
+Spring Security 是一个框架，侧重于为 Java 应用程序提供身份验证和授权。与所有 Spring 项目一样，Spring 安全性的真正强大之处，在于它很容易扩展以满足定制需求。
 
-## 一、Maven 依赖
+## 1. Maven 依赖包
 
 ```xml
 <dependency>
@@ -12,6 +12,96 @@
     <version>${spring-boot.version}</version>
 </dependency>
 ```
+
+
+## 2. starter入门分析
+
+1. starter 中默认配置属性类为 SecurityProperties，配置项的前缀为 spring.security
+
+2. starter 中默认自动化配置类为  UserDetailsServiceAutoConfiguration，会创建一个内存级别的 InMemoryUserDetailsManager Bean 对象，提供认证的用户信息
+
+3. 在未认证的情况下直接访问接口，就会跳转到登录页面，如果没有自定义登录界面，默认会使用 DefaultLoginPageGeneratingFilter 类创建 html 页面
+
+4. 用户填入用户名密码后，发送url为 /login 的请求，然后与内存中的做对比，进行认证
+
+## 3. 实际项目中的用法
+
+1. 增加配置 SecurityConfig 类，继承 WebSecurityConfigurerAdapter 抽象类，实现在 Web 场景下的自定义配置
+
+2. 注入 AuthenticationManager 类，使用 authenticate() 方法，该方法会去调用 UserDetailsService.loadUserByUsername() 方法；（由于 Spring Security 创建 AuthenticationManager 对象时，没声明 @Bean 注解，导致无法被注入；）
+
+3. 自定义 UserDetailsService 实现类，重写 loadUserByUsername() 方法，实现认证的用户信息的读取和认证校验逻辑
+
+4. 注入密码编码器 BCryptPasswordEncoder 类
+
+
+认证失败处理类
+退出处理类
+
+token过滤器 验证token有效性
+
+跨域过滤器
+
+```java
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    // 配置PasswordEncoder
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new CryptPasswordEncoder();
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.formLogin() // 表单登录
+                .loginPage("/login.html")        // 自定义登录页面，（注：重写后，默认的登录页面就不存在了）
+                .loginProcessingUrl("/login")    // 处理登录请求的URL，必须和from表单的请求一致，不走controller，而是使用默认的登录逻辑，然后走到自定义的UserDetailsService的实现类！！！
+                .successForwardUrl("/toIndex")   // 登录成功后调转的页面，POST请求，无法直接跳转到静态页面。（前后端分离的项目，需要在前台处理）
+                .successHandler(new xxxHandle("aaa.html"))
+                .failureForwardUrl("/toError");     // 登录失败后调转的页面，POST请求，要放行，因为未认证
+                .usernameParameter("userName")      // 自定义用户密码名称
+                .passwordParameter("passWord");
+                .and()
+                .authorizeRequests()                            // 过滤请求
+                .antMatchers("/login.html").permitAll()         // 登录页面不需要认证（常用） 重点：antMachers()必须放在anyRequest()前边，要不然不生效
+                .antMatchers("/page1/**").hasRole("LEVEL1")     // 基于角色认证
+                .antMatchers("/page2/**").access("hasRole('LEVEL12')");
+                .anyRequest().authenticated()                   // 任何请求，都需要身份认证
+                .and()
+                .csrf().disable();                              // 暂时将防护跨站请求伪造的功能置为不可用，
+
+        http.exceptionHandling().accessDeniedHandler("注入的handler");
+        http.logout.logoutSuccessUrl("/login.html")
+    }
+}
+// permitAll()            允许所有【常用】
+// dengAll()              禁止所有【常用】
+// authenticated()        认证，登录用户可访问【常用】
+// anonymous()            匿名，无需登录，和permitAll差不多，很少用，常用于电商，商品详情等不需要登录可以查看的
+// rememberMe()           记住我，remember me 登录的用户可访问
+// fullyAuthenticated()   全认证（用户密码必须输入的登录，也就是非 remember me 登录的用户可访问）
+// hasIpAddress("192.168.100.167")  基于ip认证
+
+// hasRole(String role);                     基于角色认证，不需要加ROLE_开头【常用】
+// hasAnyRole(String... roles)               基于角色认证，任一角色的用户可访问【常用】
+// hasAuthority(String authority)            基于权限认证【常用】
+// hasAnyAuthority(String... authorities)    基于权限认证，任一权限的用户可访问【常用】
+// access(String attribute)                  基于access的权限控制，是上边的底层实现，也可以自定义access()，当 Spring EL 表达式的执行结果为 true 时，可以访问【常用】
+
+// 举例
+// antMatchers("/page1/**").hasRole("LEVEL1")      需要 LEVEL1 角色才可以访问
+```
+
+
+
+
+
+用户填入用户名密码后，与数据库里存储的用户信息进行比对，如果通过，则认证成功，传统的方法是在认证通过后，创建 sesstion，并给客户端返回 cookie。
+我们采用 JWT 来处理用户名密码的认证。区别在于，认证通过后，服务器生成一个 token，将 token 返回给客户端，客户端以后的所有请求都需要在 http 头中指定该 token。 服务器接收的请求后，会对 token 的合法性进行验证。
+
+
 
 ## 二、流程分析
 
@@ -33,51 +123,7 @@
   > ![403页面显示](E:\Document\image\自定义403页面显示.png)
 - 自定义配置类，实现 WebSecurityConfigurerAdapter
 
-```java
-@Configuration
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    // 配置PasswordEncoder
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new CryptPasswordEncoder();
-    }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        System.out.println("BrowserSecurityConfig");
-        http.formLogin() // 表单登录，
-                .loginPage("/login.html") //  自定义登录页面，（注：重写后，默认的登录页面就不存在了）
-                .loginProcessingUrl("/login") // 处理登录请求的URL，必须和from表单的请求一致，不走controller，而是使用默认的登录逻辑，然后走到自定义的UserDetailsService的实现类！！！
-                .successForwardUrl("/toIndex")      // 登录成功后调转的页面，POST请求，无法直接跳转到静态页面。（前后端分离的项目，需要在前台处理）
-                .successHandler(new xxxHandle("aaa.html"))
-                .failureForwardUrl("/toError");     // 登录失败后调转的页面，POST请求,要放行，因为未认证
-                .usernameParameter("userName")      // 自定义用户密码名称
-                .passwordParameter("passWord");
-                .and()
-                .authorizeRequests() // 对请求做授权，所有请求必须认证之后才能访问，必须登录
-                .antMatchers("/login.html").permitAll() // 登录页面不需要认证（常用） 重点：antMachers()必须放在anyRequest()前边，要不然不生效
-                .antMatchers("/page1/**").hasRole("LEVEL1")     // 基于角色认证
-                .antMatchers("/page2/**").hasRole("LEVEL2")
-                .antMatchers("/page3/**").hasRole("LEVEL3");
-                .anyRequest().authenticated() // 任何请求，都需要身份认证
-                .and().csrf().disable(); // 暂时将防护跨站请求伪造的功能置为不可用，
-        http.exceptionHandling().accessDeniedHandler("注入的handler");
-        http.logout.logoutSuccessUrl("/login.html")
-    }
-}
-// permitAll()  允许所有
-// dengAll()    禁止所有
-// anonymous    匿名，和permitAll差不多，很少用，电商，商品详情不需要登录可以查看的
-// rememberMe   记住我
-// authenticated    认证
-// fullyAuthenticated   全认证（用户密码必须输入的登录）
-// .antMatchers("/page1/**").hasRole("LEVEL1")
-// hasAuthority("admin")   基于权限认证
-// hasAnyAuthority("admin"，"ddd")  多个
-// hasRole("LEVEL3");       基于角色认证，不需要加ROLE_开头
-// hasIpAddress("192.168.100.167")  基于ip认证
-// access(hasRole('abc'))     基于access的权限控制，是上边的底层实现，也可以自定义access()
-```
 
 ### 2. 基于注解的实现
 
