@@ -1,17 +1,14 @@
-# Openapi
+# OpenAPI 规范
 
-[个人源代码](https://gitee.com/nanbo-one/openapi-swagger.git)
+[OpenAPI 规范中文版：https://openapi.apifox.cn/](https://openapi.apifox.cn/)
 
-### 1. 概念
+[个人源代码：https://gitee.com/ruyi-xlz/db-springboot-modules.git](https://gitee.com/ruyi-xlz/db-springboot-modules.git)
 
-OpenAPI 规范是 Linux 基金会的一个项目，试图通过定义一种用来描述 API 格式或 API 定义的语言，来规范 RESTful（是一种网络应用程序的设计风格和开发方式） 服务开发过程。OpenAPI 规范帮助我们描述一个 API 的基本信息，比如：
+## 1. 概念
 
-- 有关该 API 的一般性描述
-- 可用路径（/资源）
-- 在每个路径上的可用操作（获取/提交...）
-- 每个操作的输入/输出格式
+OpenAPI 规范（OpenAPI Specification，简称 OAS）是 Linux 基金会的一个项目，是定义一个标准的、与具体编程语言无关的RESTful API（RESTful 是一种网络应用程序的设计风格和开发方式） 的规范。
 
-### 2. 为啥要使用 OpenAPI 规范？
+## 2. 为啥要使用 OpenAPI 规范？
 
 OpenAPI 规范这类 API 定义语言能够帮助你更简单、快速的表述 API，尤其是在 API 的设计阶段作用特别突出；根据 OpenAPI 规范编写的二进制文本文件，能够像代码一样用任何 VCS 工具管理起来；一旦编写完成，API 文档可以作为：
 
@@ -20,38 +17,40 @@ OpenAPI 规范这类 API 定义语言能够帮助你更简单、快速的表述 
 - 部分或者全部代码自动生成的根据
 - 其他重要的作用，比如开放平台开发者的手册...
 
-### 3. OpenAPI 2.0 规范
-
-**OpenApi 2.0 规范，开头以 swagger: "2.0" 开头。但是要清楚 swagger 2.0 不是 swagger 规范，swagger 只是一个强大的 api 工具，OpenAPI 才是规范**
-
-[参考链接：https://huangwenchao.gitbooks.io/swagger/content/](https://huangwenchao.gitbooks.io/swagger/content/)
-
-**编写方式**
+## 3. 编写方式
 
 - yaml（推荐）
 - json
 
-**编辑器工具**
+## 4. 规范示例
 
-- [Swagger Editor](https://editor.swagger.io/)
+java 中 swagger1.x 对应 Swagger2、swagger2.x 对应 OpenAPI3
 
-**编写规范说明**
+| OpenAPI 2.0 / Swagger2               | OpenAPI 3.x 规范                             | 说明        |
+| ------------------------------------ | -------------------------------------------- | ----------- |
+| io.swagger:swagger-annotations:1.6.9 | io.swagger.core.v3:swagger-annotations:2.2.3 | Java 注解包 |
+| io.swagger:swagger-models:1.6.9      | io.swagger.core.v3:swagger-models:2.2.3      | Java 模型库 |
 
-1.  "" 或者 '' 都可以表示值，但是"" 不进行 特殊字符转义 ，'' 进行特殊字符转义
+![OpenAPI 2.0和OPenAPI 3.0对比](OpenAPI%202.0和OPenAPI%203.0对比.png)
+
+### 4.1 OpenAPI 2.0 规范示例
+
+OpenApi 2.0 规范，开头以 swagger: "2.0" 开头。但是要清楚 swagger 2.0 不是 swagger 规范，swagger 只是一个强大的 api 工具，OpenAPI 才是规范。
+
+io.swagger:swagger-models:1.6.9 是Swagger 2.0规范的Java模型库，提供了一组Java模型类，用于表示Swagger规范文件。
+
+**编写说明**
+
+1.  "" 或者 '' 都可以表示值，但是"" 不进行特殊字符转义 ，'' 进行特殊字符转义
 2.  有时候读取资源信息的内容会比我们写入资源信息的内容（属性）更多，这很常见,可以使用 readOnly: true
 3.  allOf，在嵌套实体时，需要使用该属性，确保实体中的嵌套对象的级别正确
 4.  required ，表示参数是否为必选，默认为 false，也可以是一个字符串列表，列表中包含各必带参数名
 5.  default，定义一个参数的默认值，设定了某个参数的默认值后，它是否 required 就没意义了
-
 6.  数据的校验
-
-- 字符串 String （type 字段）
-
-  minLength number 字符串最小长度
-
-  maxLength number 字符串最大长度
-
-  pattern string 正则表达式 (如果你暂时还不熟悉正则表达式，可以看看 Regex 101)
+  - 字符串 String （type 字段）
+    - minLength number 字符串最小长度
+    - maxLength number 字符串最大长度
+    - pattern string 正则表达式 (如果你暂时还不熟悉正则表达式，可以看看 Regex 101)
 
 ```yaml
 # 第一部分：版本号，swagger: "2.0"
@@ -205,18 +204,20 @@ responses:
       $ref: '#/definitions/ResultVo'
 ```
 
-### 4. OpenAPI 3.0 规范
+### 4.2 OpenAPI 3.0 规范示例
 
-[参考链接：https://blog.csdn.net/weixin_40326107/article/details/106016454](https://blog.csdn.net/weixin_40326107/article/details/106016454)
+io.swagger.core.v3:swagger-models:2.2.3 是Swagger 3.x规范的Java模型库，提供了一组Java模型类，用于表示OpenAPI规范文件。它包含了OpenAPI规范中的所有数据模型，例如PathItem、Operation、Parameter、Components等。
 
 ```yaml
+# 使用的 OpenAPI 规范版本
 openapi: '3.0.0'
+# 表示API的基本信息，包括标题、版本号、描述、联系人等。
 info:
   title: '用户模块'
   description: '用户模块'
   version: 1.0.0
 
-# servers 代码块，用于定义 API 服务器的地址。在swagger 2.0规范中，用的是 host代码块
+# servers 代码块，用于定义 API 服务器的地址。每个URL模板可以包含占位符，这些占位符可以被路径参数或者查询参数替换。
 servers:
   - url: http://localhost/api
     variables:
@@ -226,7 +227,7 @@ servers:
           - https
         default: https
     description: Main (production) server
-
+# 表示API的所有路径和操作信息
 paths:
   /user:
     get:
@@ -242,6 +243,7 @@ paths:
       responses:
         200:
           description: '查询成功'
+# 表示API的组件信息，比如响应模板、请求模板和安全方案等。          
 components:
   schemas:
     SysUser:
@@ -343,3 +345,4 @@ components:
     </executions>
 </plugin>
 ```
+

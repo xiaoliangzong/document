@@ -940,6 +940,40 @@ like    -- like "%xxx%" 不会使用索引，而like "xxx%"会使用索引
 
 > 是查看优化器如何决定执行查询的主要方法
 
+1. id：标识一个 SELECT 查询的唯一标识符，如果查询中有子查询或联接操作，则会有多个 id
+2. select_type：表示查询的类型，包括以下几种类型：
+
+  - SIMPLE：简单 SELECT 查询，不包含子查询或联接操作
+  - PRIMARY：最外层的 SELECT 查询
+  - SUBQUERY：子查询，作为其他查询操作的一部分
+  - DERIVED：派生表，作为其他查询操作的一部分
+  - UNION：UNION 操作的第二个或后续 SELECT 查询
+  - UNION RESULT：UNION 操作的结果集合并
+
+3. table：表示查询的表名或派生表名
+4. partitions：表示查询的分区信息，如果表没有被分区，则该值为空
+5. type：表示查询的访问类型，MySQL 根据查询条件、索引等因素来选择访问方式，常见的访问类型有：
+
+  - ALL：全表扫描
+  - index：遍历索引树
+  - range：范围查询
+  - ref：使用非唯一索引进行查询
+  - eq_ref：使用唯一索引进行查询
+  - const/system：基于常量或系统表中的行数进行查询
+
+6. possible_keys：表示 MySQL 可以使用哪些索引来优化查询
+7. key：表示 MySQL 实际使用的索引，如果为 NULL，则表示没有使用索引
+8. key_len：表示 MySQL 在使用索引时使用的字节数，可以根据此值来判断索引使用的效率
+9. ref：表示 MySQL 在进行索引访问时使用的列或常量，可以帮助判断是否使用了索引
+10. rows：表示 MySQL 估计需要扫描的行数，可以帮助判断查询效率
+11. filtered：表示 MySQL 根据 WHERE 条件过滤掉的行数百分比，该值越小，表示过滤效率越高
+12. Extra：包含其他的执行信息，包括：
+
+  - Using where：MySQL 使用了 WHERE 子句进行筛选
+  - Using index：MySQL 使用了覆盖索引进行查询，不需要回表操作
+  - Using temporary/table：MySQL 创建了临时表或使用了外部临时表
+  - Using filesort：MySQL 需要对结果集进行排序操作，可能会影响查询效率  
+
 #### 11、面试必问
 
 ```shell
@@ -997,5 +1031,7 @@ kill connection [id]    -- 杀死连接
 show variables like 'max_connections';   -- 查看mysql允许最大的连接数
 -- MySQL 5.7 版本实现了 mysql_reset_connection() 函数的接口，注意这是接口函数不是命令，那么当客户端执行了一个很大的操作后，在代码里调用 mysql_reset_connection 函数来重置连接，达到释放内存的效果。
 ```
+
+SHOW ENGINE INNODB STATUS  是 MySQL 操作数据库时常用的一条命令，它可以用于查看 InnoDB 存储引擎的详细状态信息，包括当前正在执行的事务、锁信息、死锁信息等。
 
 ### 12.2

@@ -1,10 +1,11 @@
 # MapStruct
 
-MapStruct是一个Java注解处理器，用于生成类型安全的映射代码。它能够自动生成POJO之间的映射代码，减少手动编写重复的映射代码的工作量。
+MapStruct是一个Java注解处理器，用于在Java Bean之间执行对象映射，生成类型安全的映射代码。它可简化在不同类型的对象之间进行转换的过程，避免了手动编写大量的映射代码。
 
 MapStruct通过使用注解来标记源对象和目标对象之间的映射关系，并生成相应的映射实现代码。它支持各种映射关系，包括简单的属性映射、集合映射、嵌套对象映射等。
 
 MapStruct映射是在编译期间实现的，因此相比运行期的映射框架，它的优点是安全性高、速度快。
+
 
 ## 1. 底层实现原理
 
@@ -42,14 +43,14 @@ IntelliJ IDEA 中下载 MapStruct Support 插件，安装完后重启Idea。插�
 <dependencies>
     <!-- MapStruct 核心 -->
     <!--
-        mapstruct-jdk8
+        mapstruct-jdk8，它提供了对Java 8特性的支持。具体来说，MapStruct-JDK8允许您在映射过程中使用Java 8的新特性，如Java 8的日期时间API（例如LocalDate、LocalDateTime）和函数式接口（例如函数式映射、条件映射等）。但是好像高版本都支持Java8，不需要单独引用。
     -->
     <dependency>
         <groupId>org.mapstruct</groupId>
         <artifactId>mapstruct</artifactId>
         <version>${mapstruct.version}</version>
     </dependency>
-    <!-- 注解处理器 -->
+    <!-- 注解处理器，用来处理和生成映射代码的注解处理器。需要在项目的构建配置中添加MapStruct-Processor作为依赖，以便在编译过程中触发注解处理器的执行。 -->
     <dependency>
         <groupId>org.mapstruct</groupId>
         <artifactId>mapstruct-processor</artifactId>
@@ -111,7 +112,16 @@ IntelliJ IDEA 中下载 MapStruct Support 插件，安装完后重启Idea。插�
 - nullValueMappingStrategy：指定如何处理 null 值，默认值为 NullValueMappingStrategy.RETURN_NULL，表示返回 null。
 - mappingControl：指定映射控制策略，用于控制某些字段的映射行为。
 
+**说明**
+
+uses 和 import 属性有相似的作用，但它们在使用方式和作用范围上存在一些差异。
+
+- uses 属性用于指定其他映射器类，这些映射器类中定义的映射方法可以在当前的映射器类中直接使用。通过使用 uses 属性，我们可以在当前映射器类中调用其他映射器类中定义的映射方法。这种方式主要用于处理映射器类之间的依赖关系。
+- import 属性用于指定需要在生成的映射器实现类中导入的类型。该属性允许我们在生成的映射器实现类中引入所需的类型，以确保生成的代码可以正常编译和执行。import 属性通常用于处理生成的代码中的类型引用，而不是处理映射器类之间的关系。
+
 @Named 注解，用于标识自定义的转换方法或其他方法。它可以与 @Mapping 注解中的 qualifiedByName 属性一起使用。如果是外部其他映射器，也可以与 @Mapper 注解中的 uses 属性一起使用。
+
+@InheritInverseConfiguration 注解， 是 MapStruct 中的一个注解，用于指定反向映射配置的继承。
 
 @Mapping 注解属性：
 
@@ -256,6 +266,50 @@ Mapstruct有些场景不能完成，可以自定义转化方法。
 
 - expression：当需要对源对象和目标对象进行复杂的转换或计算时，可以使用expression来定义自定义的转换逻辑。例如，将多个字段的值合并到一个字段中，或者使用正则表达式筛选出满足特定条件的字段。
 - qualifiedByName：当需要对某一类型的属性进行特殊转换时，可以使用qualifiedByName来指定一个自定义转换器。例如，当需要将一个字符串类型的属性值转换为日期类型时，可以使用qualifiedByName来指定一个专门的日期转换器。通常和 @Named 注解一起使用。
+
+```java
+// 方式一： 使用 expression 表达式
+public class CommonConverter {
+    public static String listToStr(List<String> list) {
+        if (CollUtil.isEmpty(list)) {
+            return null;
+        }
+        return String.join(Constant.COMMA_SEPARATOR, list);
+    }
+}
+
+@Mapper(imports = {CommonConverter.class})
+public interface ArchiveEnterpriseInfoAssembler {
+    ArchiveEnterpriseInfoAssembler INSTANCE = Mappers.getMapper(ArchiveEnterpriseInfoAssembler.class);
+    
+    // 使用 imports 导入后，编写 expression 表达式时，就不需要指定全路径。如果没有使用 imports，则需要指定全路径。
+    @Mapping(target = "resourceType", expression = "java(com.fengpin.vpp.converter.CommonConverter.listToStr(archiveEnterpriseInfo.getResourceType()))")
+    @Mapping(target = "resourceType", expression = "java(CommonConverter.listToStr(archiveEnterpriseInfo.getResourceType()))")
+    ArchiveEnterpriseInfoVO toVO(ArchiveEnterpriseInfo archiveEnterpriseInfo);
+}
+
+// 方式二：使用 @Named 注解
+
+public class CommonConverter {
+    @Named("listToStr")
+    public static String listToStr(List<String> list) {
+        if (CollUtil.isEmpty(list)) {
+            return null;
+        }
+        return String.join(Constant.COMMA_SEPARATOR, list);
+    }
+}
+
+@Mapper(uses = {CommonConverter.class})
+public interface ArchiveEnterpriseInfoAssembler {
+    ArchiveEnterpriseInfoAssembler INSTANCE = Mappers.getMapper(ArchiveEnterpriseInfoAssembler.class);
+    
+    // 引入其他自定义转换器，则需要使用 uses 属性引入，然后使用。常用于一个字段的类型转换。
+    // @Named 注解是否可以省略？？？不行，否则就找不到。
+    @Mapping(target = "resourceType", source = "resourceType", qualifiedByName  = "listToStr")
+    ArchiveEnterpriseInfoVO toVO(ArchiveEnterpriseInfo archiveEnterpriseInfo);
+}
+```
 
 ## 6. 常见问题
 
