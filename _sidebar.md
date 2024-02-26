@@ -1,3 +1,44 @@
+- **计算机基础**
+
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">操作系统</span>](01-计算机基础知识/)
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">网络</span>](01-计算机基础知识/网络/)
+   - [<span style="font-weight:normal; font-size:15px; color:#364149">Window</span>](01-计算机基础知识/Windows.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">Linux（CentOS）</span>](01-计算机基础知识/Linux（CentOS）.md)
+
+- **Database**
+
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">README</span>](02-数据库/)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">Mysql</span>](02-数据库/01-Mysql.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">Redis</span>](02-数据库/02-Redis.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">InfluxDB</span>](02-数据库/03-InfluxDB.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">TDengine</span>](02-数据库/04-TDengine.md)
+  
+- **前端**
+
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">README</span>](前端开发/基础/)
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">HTML</span>](前端开发/基础/HTML.md)
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">CSS</span>](前端开发/基础/CSS.md)
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">JavaScript</span>](前端开发/基础/JavaScript.md)
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">ES6</span>](前端开发/基础/ES6.md)
+
+  - **Vue**
+    - [<span style="font-weight:normal; font-size:13px; color:#364149">前言</span>](前端开发/Vue/1-前言.md)
+    - [<span style="font-weight:normal; font-size:13px; color:#364149">打包工具</span>](前端开发/Vue/2-打包工具.md)
+    - [<span style="font-weight:normal; font-size:13px; color:#364149">基础语法</span>](前端开发/Vue/3-基础语法.md)
+    - [<span style="font-weight:normal; font-size:15px; color:#364149">router</span>](前端开发/Vue/4-router.md)
+    - [<span style="font-weight:normal; font-size:15px; color:#364149">axios</span>](前端开发/Vue/5-axios.md)
+    - [<span style="font-weight:normal; font-size:15px; color:#364149">vuex</span>](前端开发/Vue/6-vuex.md)
+
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">**ElementUI**</span>](前端开发/ElementUI.md)
+
+
+- **运维**
+
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">Shell</span>](运维部署/shell.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">bat</span>](运维部署/bat.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149">Docker</span>](运维部署/Docker.md)
+  - [<span style="font-weight:normal; font-size:13px; color:#364149">部署踩坑问题汇总</span>](运维部署/部署踩坑问题汇总.md)
+
 - **Java**
 
   - <span style="font-weight:normal; font-size:13px; color:#364149">1. 开发基础必备</span>
@@ -48,11 +89,7 @@
   - [<span style="font-weight:normal; font-size:15px; color:#364149">MybatisPlus</span>](Java/MybatisPlus.md)
   - [<span style="font-weight:normal; font-size:13px; color:#364149">基础功能解决方案</span>](Java/基础功能解决方案.md)
 
-- **Database**
 
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Mysql</span>](Database/Mysql.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Oracle</span>](Database/Oracle.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Redis</span>](Database/Redis.md)
 
 - **开发软件**
 
@@ -81,38 +118,6 @@
   - [<span style="font-weight:normal; font-size:13px; color:#364149">软件开发流程</span>](架构设计/软件开发流程.md)
   - [<span style="font-weight:normal; font-size:13px; color:#364149">架构图</span>](架构设计/架构图.md)
 
-- **运维部署**
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Linux（CentOS）</span>](运维部署/Linux（CentOS）.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Shell</span>](运维部署/shell.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">bat</span>](运维部署/bat.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Docker</span>](运维部署/Docker.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">部署踩坑问题汇总</span>](运维部署/部署踩坑问题汇总.md)
-
-- **计算机知识**
-
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">基础</span>](计算机知识/)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">网络</span>](计算机知识/网络.md)
----
-
-- **前端三大件**
-
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">README</span>](前端开发/基础/)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">HTML</span>](前端开发/基础/HTML.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">CSS</span>](前端开发/基础/CSS.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">JavaScript</span>](前端开发/基础/JavaScript.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">ES6</span>](前端开发/基础/ES6.md)
-
-- **Vue**
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">前言</span>](前端开发/Vue/1-前言.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">打包工具</span>](前端开发/Vue/2-打包工具.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">基础语法</span>](前端开发/Vue/3-基础语法.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">router</span>](前端开发/Vue/4-router.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">axios</span>](前端开发/Vue/5-axios.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">vuex</span>](前端开发/Vue/6-vuex.md)
-
-- [<span style="font-weight:normal; font-size:15px; color:#364149">**ElementUI**</span>](前端开发/ElementUI.md)
----
-
-- **视频剪辑**
+- **其他**
 
   - [<span style="font-weight:normal; font-size:15px; color:#364149">PS</span>](视频剪辑/ps.md)
