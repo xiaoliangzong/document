@@ -1,123 +1,125 @@
 - **计算机基础**
 
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">操作系统</span>](01-计算机基础知识/)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">网络</span>](01-计算机基础知识/网络/)
-   - [<span style="font-weight:normal; font-size:15px; color:#364149">Window</span>](01-计算机基础知识/Windows.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Linux（CentOS）</span>](01-计算机基础知识/Linux（CentOS）.md)
+  - [操作系统](01-计算机基础知识/操作系统/)
+  - [Window](01-计算机基础知识/操作系统/Windows.md)
+  - [Linux（CentOS）](01-计算机基础知识/操作系统/Linux（CentOS）.md)
+  - [网络](01-计算机基础知识/网络/)
+  - [数据结构](01-计算机基础知识/数据结构/)
 
-- **Database**
+- [<span style="font-weight:normal; font-size:15px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">**数据库**</span>](02-数据库/)
 
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">README</span>](02-数据库/)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Mysql</span>](02-数据库/01-Mysql.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Redis</span>](02-数据库/02-Redis.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">InfluxDB</span>](02-数据库/03-InfluxDB.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">TDengine</span>](02-数据库/04-TDengine.md)
+  - [Mysql](02-数据库/01-Mysql.md)
+  - [Redis](02-数据库/02-Redis.md)
+  - [InfluxDB](02-数据库/03-InfluxDB.md)
+  - [TDengine](02-数据库/04-TDengine.md)
   
-- **前端**
+- [<span style="font-weight:normal; font-size:15px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">**前端**</span>](03-前端/)
 
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">README</span>](前端开发/基础/)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">HTML</span>](前端开发/基础/HTML.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">CSS</span>](前端开发/基础/CSS.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">JavaScript</span>](前端开发/基础/JavaScript.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">ES6</span>](前端开发/基础/ES6.md)
+  - [HTML](03-前端/HTML.md)
+  - [CSS](03-前端/CSS.md)
+  - [JavaScript](03-前端/JavaScript.md)
+  - [Vue](03-前端/Vue/)
 
-  - **Vue**
-    - [<span style="font-weight:normal; font-size:13px; color:#364149">前言</span>](前端开发/Vue/1-前言.md)
-    - [<span style="font-weight:normal; font-size:13px; color:#364149">打包工具</span>](前端开发/Vue/2-打包工具.md)
-    - [<span style="font-weight:normal; font-size:13px; color:#364149">基础语法</span>](前端开发/Vue/3-基础语法.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">router</span>](前端开发/Vue/4-router.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">axios</span>](前端开发/Vue/5-axios.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">vuex</span>](前端开发/Vue/6-vuex.md)
+    - [前言](03-前端/Vue/1-前言.md)
+    - [打包工具](03-前端/Vue/2-打包工具.md)
+    - [基础语法](03-前端/Vue/3-基础语法.md)
+    - [router](03-前端/Vue/4-router.md)
+    - [axios](03-前端/Vue/5-axios.md)
+    - [vuex](03-前端/Vue/6-vuex.md)
 
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">**ElementUI**</span>](前端开发/ElementUI.md)
-
+  - [Docsify](03-前端/JavaScript的文档生成工具docsify.md)  
 
 - **运维**
 
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Shell</span>](运维部署/shell.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">bat</span>](运维部署/bat.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Docker</span>](运维部署/Docker.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">部署踩坑问题汇总</span>](运维部署/部署踩坑问题汇总.md)
+  - [Nginx](04-运维/Nginx.md)
+  - [Docker](04-运维/Docker.md)
+  - [GitLab](04-运维/GitLab.md)
+  - [shell](04-运维/shell.md)
+  - [bat](04-运维/bat.md)
+  - [部署踩坑问题汇总](04-运维/部署踩坑问题汇总.md)
 
 - **Java**
 
-  - <span style="font-weight:normal; font-size:13px; color:#364149">1. 开发基础必备</span>
+  - 1.JVM
 
-    - [<span style="font-weight:normal; font-size:13px; color:#364149">基础</span>](Java/1.开发基础必备/常用基础知识.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">JVM</span>](Java/1.开发基础必备/JVM.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">JUC</span>](Java/1.开发基础必备/JUC.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">Java8 </span></span><span style="font-weight:normal; font-size:13px; color:#364149">新特性</span></span>](Java/1.开发基础必备/Java8新特性.md)
+    - [JVM](05-Java/1.JVM/JVM.md)
 
-  - <span style="font-weight:normal; font-size:13px; color:#364149">2. 开发提升必备</span>    
+  - 2.Java基础
 
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">MapStruct</span>](Java/2.开发提升必备/MapStruct.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">Activiti</span>](Java/2.开发提升必备/Activiti.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">Quartz</span>](Java/2.开发提升必备/Quartz.md)
-    - [<span style="font-weight:normal; font-size:13px; color:#364149">手写连接池</span>](Java/2.开发提升必备/手写连接池.md)
+    - [基础](05-Java/2.Java基础/基础.md)
+    - [Java8 新特性](05-Java/2.Java基础/Java8新特性.md)
+    - [JUC](05-Java/2.Java基础/JUC.md)
 
-  - <span style="font-weight:normal; font-size:13px; color:#364149">3. 认证鉴权</span>
+  - 3.Spring系列
 
-    - [<span style="font-weight:normal; font-size:13px; color:#364149">前言</span>](Java/3.安全框架/README.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">Spring Security</span>](Java/3.安全框架/Security.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">OAuth2</span>](Java/3.安全框架/OAuth2.md)
+    - [Spring](05-Java/3.Spring系列/Spring.md)
+    - [SpringBoot](05-Java/3.Spring系列/SpringBoot.md)
 
-  - <span style="font-weight:normal; font-size:13px; color:#364149">4. 接口文档</span>    
+  - 4.项目管理工具
 
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">Swagger</span>](Java/4.接口文档/Swagger.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">Swagger3</span>](Java/4.接口文档/Swagger3.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">OpenAPI</span>](Java/4.接口文档/OpenAPI.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">Knife4j</span>](Java/4.接口文档/Knife4j.md)
+    - [Maven](05-Java/4.项目管理工具/Maven.md)
+    - [Git](05-Java/4.项目管理工具/Git.md)
 
-  - <span style="font-weight:normal; font-size:13px; color:#364149">5. Spring系列</span>
+  - 5.持久层框架
 
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">Spring</span>](Java/5.Spring系列/Spring.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">SpringBoot</span>](Java/5.Spring系列/SpringBoot.md)
-
-  - <span style="font-weight:normal; font-size:13px; color:#364149">6. 微服务</span>
-
-    - [<span style="font-weight:normal; font-size:13px; color:#364149">前言</span>](Java/6.微服务/README.md) 
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">SpringCloudNetflix</span>](Java/6.微服务/SpringCloudNetflix.md) 
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">SpringCloudAlibaba</span>](Java/6.微服务/SpringCloudAlibaba.md) 
+    - [Mybatis](05-Java/5.持久层框架/Mybatis.md)
+    - [MybatisPlus](05-Java/5.持久层框架/MybatisPlus.md)
   
-  - <span style="font-weight:normal; font-size:13px; color:#364149">7. 消息队列</span>
+  - [<span style="font-weight:normal; font-size:15px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">**6.认证鉴权**</span>](05-Java/6.安全框架/)
 
-    - [<span style="font-weight:normal; font-size:13px; color:#364149">README</span>](消息队列/)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">RabbitMQ</span>](Java/7.消息队列/RabbitMQ.md)
-    - [<span style="font-weight:normal; font-size:15px; color:#364149">Kafka</span>](Java/7.消息队列/Kafka.md)
+    - [Spring Security](05-Java/6.安全框架/Security.md)
+    - [OAuth2](05-Java/6.安全框架/OAuth2.md)
 
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Mybatis</span>](Java/Mybatis.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">MybatisPlus</span>](Java/MybatisPlus.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">基础功能解决方案</span>](Java/基础功能解决方案.md)
+  - 7.接口文档    
 
+    - [Swagger](05-Java/7.接口文档/Swagger.md)
+    - [Swagger3](05-Java/7.接口文档/Swagger3.md)
+    - [OpenAPI](05-Java/6.接口文档/OpenAPI.md)
+    - [Knife4j](05-Java/7.接口文档/Knife4j.md)
 
+  - [<span style="font-weight:normal; font-size:15px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">**8.消息队列**</span>](05-Java/8.消息队列/)
 
-- **开发软件**
+    - [RabbitMQ](05-Java/8.消息队列/RabbitMQ.md)
+    - [Kafka](05-Java/8.消息队列/Kafka.md)  
 
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">IntelliJ IDEA</span>](组件服务/IntelliJ%20IDEA.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Visual Studio Code</span>](组件服务/Visual%20Studio%20Code.md)
+  - [<span style="font-weight:normal; font-size:15px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">**9.架构**</span>](05-Java/9.架构/)
 
-- **组件服务**
+    - [<span style="font-weight:normal; font-size:15px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">**设计模式**</span>](05-Java/9.架构/设计模式/)
 
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Markdown</span>](组件服务/markdown.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Maven</span>](组件服务/Maven.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Git</span>](组件服务/Git.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">GitLab</span>](组件服务/GitLab.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Nginx</span>](组件服务/Nginx.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">Sonar</span>](组件服务/Sonar.md)
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">docsify</span>](组件服务/docsify.md)
+      - [创建型](05-Java/9.架构/设计模式/创建型.md)
+      - [结构型](05-Java/9.架构/设计模式/结构型.md)
+      - [行为型](05-Java/9.架构/设计模式/行为型.md)
 
-- **设计模式**
+    - [<span style="font-weight:normal; font-size:15px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">**微服务组件**</span>](05-Java/9.架构/微服务/)
 
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">前言</span>](设计模式/)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">创建型</span>](设计模式/创建型.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">结构型</span>](设计模式/结构型.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">行为型</span>](设计模式/行为型.md)
+      - [SpringCloudNetflix](05-Java/9.架构/SpringCloudNetflix.md) 
+      - [SpringCloudAlibaba](05-Java/9.架构/SpringCloudAlibaba.md) 
 
-- **架构设计**
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">README</span>](架构设计/README.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">软件开发流程</span>](架构设计/软件开发流程.md)
-  - [<span style="font-weight:normal; font-size:13px; color:#364149">架构图</span>](架构设计/架构图.md)
+    - [软件开发流程](05-Java/9.架构/软件开发流程.md)
+    - [架构图](05-Java/9.架构/架构图.md)    
+
+  - **其他**
+
+    - 三方包
+      - [获取接口访问信息](05-Java/其他/三方包/获取接口访问信息.md)
+      - [Activiti](05-Java/其他/三方包/Activiti.md)
+      - [Apache相关](05-Java/其他/三方包/Apache相关.md)
+      - [Lombok](05-Java/其他/三方包/Lombok.md)
+      - [MapStruct](05-Java/其他/三方包/MapStruct.md)
+
+    - 开发工具
+      - [IntelliJ IDEA](05-Java/其他/开发工具/IntelliJ%20IDEA.md)
+      - [Visual Studio Code](05-Java/其他/开发工具/Visual%20Studio%20Code.md)
+      - [Markdown](05-Java/其他/开发工具/markdown.md)
+      - [Sonar](05-Java/其他/开发工具/Sonar.md)
+
+    - 定时器
+      - [Quartz](05-Java/其他/定时器/Quartz.md)
+      - [PowerJob](05-Java/其他/定时器/PowerJob.md)
+
+    - [手写连接池](05-Java/其他/手写连接池.md)
+    - [图片识别技术](05-Java/其他/图片识别技术.md)
 
 - **其他**
 
-  - [<span style="font-weight:normal; font-size:15px; color:#364149">PS</span>](视频剪辑/ps.md)
+  - [PS](其他/PS/)
