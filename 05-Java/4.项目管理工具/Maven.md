@@ -17,9 +17,9 @@
 - artifactId：一个项目或者是项目中的一个模块Id
 - version：版本号，比如 SNAPSHOT 表示快照版本，RELEASE 表示正式版本
 
-** **
+**工作机制**
 
-
+![工作机制](./images/Maven-工作机制.png)
 
 ## 1. 常用命令
 
@@ -184,7 +184,7 @@ project
 
 ### 3.2 依赖原则（传递依赖的规则）
 
-![Maven-依赖原则](Maven-依赖原则.png)
+![Maven-依赖原则](./images/Maven-依赖原则.png)
 
 1. 路径最短者优先
 2. 路径相同时先声明者优先

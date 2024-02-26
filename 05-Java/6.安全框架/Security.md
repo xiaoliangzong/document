@@ -107,8 +107,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 ### 1. 登录和权限控制基础逻辑
 
-<!-- - LoginSession
-    > 登录Session; 提供基础的登录能力和退出能力。登录能力调用后会返回用户唯一token标志 -->
+<!-- - LoginSession，登录Session; 提供基础的登录能力和退出能力。登录能力调用后会返回用户唯一token标志 -->
 
 - UserDetailsService
   > 处理用户信息获取逻辑，默认登录逻辑，自定义时，需要实现该接口，然后数据库查询用户信息做比较，处理自定义登录逻辑。
@@ -120,7 +119,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   > 实现 AuthenticationSuccessHandler 接口，重写方法，方法中有个变量，重写即可
 - 自定义 403 页面
   > 实现 accessDeniedHandler 接口
-  > ![403页面显示](E:\Document\image\自定义403页面显示.png)
 - 自定义配置类，实现 WebSecurityConfigurerAdapter
 
 
@@ -304,7 +302,7 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
 1. 通过 UserDetail 的 getAuthorities()，将对应用户的权限返回给 security。通过 security 的 access 表达式进行权限认证
 2.
 
-![security原理流程图](../../public/images/Java/security.png)
+![security原理流程图](./images/security.png)
 
 退出原理:Spring Security 的退出请求（默认为/logout）由 LogoutFilter 过滤器拦截处理。
 清除 Cookie

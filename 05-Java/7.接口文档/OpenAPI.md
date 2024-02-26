@@ -31,7 +31,7 @@ java 中 swagger1.x 对应 Swagger2、swagger2.x 对应 OpenAPI3
 | io.swagger:swagger-annotations:1.6.9 | io.swagger.core.v3:swagger-annotations:2.2.3 | Java 注解包 |
 | io.swagger:swagger-models:1.6.9      | io.swagger.core.v3:swagger-models:2.2.3      | Java 模型库 |
 
-![OpenAPI 2.0和OPenAPI 3.0对比](OpenAPI%202.0和OPenAPI%203.0对比.png)
+![OpenAPI 不同版本模型对比](./images/OpenAPI%20模型对比.png)
 
 ### 4.1 OpenAPI 2.0 规范示例
 

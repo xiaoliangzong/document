@@ -61,6 +61,11 @@ java 中 swagger1.x 对应 Swagger2、swagger2.x 对应 OpenAPI3
 | dataType 属性                    |                                                              | 参数类型，可传基本类型、类、泛型类等                         |
 | ParamType 属性：                 |                                                              | 表示参数放在哪个位置<br />  header-->请求参数的获取：@RequestHeader(代码中接收注解) query-->请求参数的获取：@RequestParam(代码中接收注解) path（用于 restful 接口）-->请求参数的获取：@PathVariable(代码中接收注解) body-->请求参数的获取：@RequestBody(代码中接收注解) form（不常用） |
 
+
+![Swagger 注解对比](./images/Swagger注解对比.png)
+
+Swagger2 的注解以易用性切入、全是Api开头，在培养出使用者依赖注解的习惯后，Swagger3 将注解名称规范化，工程化。
+
 由于Swagger2.0规范已过时。此处只列Open API 3.0规范的注解
 
 ### 3.1 @Tag

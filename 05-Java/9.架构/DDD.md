@@ -44,7 +44,7 @@
 
 在DDD中，通常将应用程序分为四个层次，分别为用户接口层（Interface Layer），应用层（Application Layer）， 领域层（Domain Layer），基础设施层（Infrastructure Layer），每个层次承担着各自的职责和作用。
 
-<img src="image-1.png" alt="image-1.png" style="zoom:20%;" />
+<img src="./images/DDD-四层结构.png" alt="DDD-四层结构" style="zoom:20%;" />
 
 
 ### 3.1 接口层（Interface Layer）
@@ -211,6 +211,4 @@ Infrastructure
 
 答案是在聚合根中，一般不会加在大量的关联实体对象。如果确实需要查询关联对象而关联对象又比较多怎么办呢？在 DDD 中有一个 CQRS (Command-Query Responsibility Segregation) 模式，是一种读写分离模式，在此场景中需要将查询操作放到查询命令中分页查询。
 
-当然 CQRS 也是一个很复杂模式，不应照搬他人方案，而是根据自己的业务场景选择适合自己的方案，以下列举了 CQRS 的几种应用模式：
-
-![image-20230822094756900](C:\Users\15129\Desktop\优化.assets\image-20230822094756900.png)
+当然 CQRS 也是一个很复杂模式，不应照搬他人方案，而是根据自己的业务场景选择适合自己的方案。

@@ -1,6 +1,6 @@
 ## 1. 启动流程源码解析
 
-![SpringBoot启动流程图](SpringBoot启动流程图.png)
+![SpringBoot 启动流程图](./images/SpringBoot-启动流程图.png)
 
 ### 1.1 **创建 SpringApplication 对象**
 
@@ -162,11 +162,11 @@ SpringBoot 启动时，加载主配置类，会扫描引用 jar 包中的 META-I
 
 **注解详情**
 
-![SpringBootApplication](../public/images/Java/SpringBoot/SpringBootApplication.png)
+![SpringBootApplication](./images/SpringBoot-@SpringBootApplication注解.png)
 
 ` springboot 查看自动配置是否生效：通过在配置文件启用 debug=ture 属性，在控制台打印自动配置报告，这样子就可以看到哪些自动配置生效。`
 
-![conditionxxx](../public/images/Java/SpringBoot/conditionxxx.png)
+![@Conditional派生注解](./images/SpringBoot-@Conditional派生注解.png)
 
 **SpringFactoriesLoader 详解**
 
@@ -361,15 +361,15 @@ private String uploadPicUrl;
 }
 ```
 
-![configurationProperties](../public/images/Java/SpringBoot/configurationProperties.png)
+![ConfigurationProperties](./images/SpringBoot-ConfigurationProperties.png)
 
 ## 3. 日志
 
 `SpringBoot选用SLF4j和logback，而底层Spring框架，默认是用JCL`
 
-![SLF4J](../public/images/Java/SpringBoot/SLF4J.png)
+![SLF4J](./images/SpringBoot-SLF4J.png)
 
-![SLF4Jconstruction](../public/images/Java/SpringBoot/SLF4Jconstruction.png)
+![SLF4Jconstruction](./images/SpringBoot-SLF4Jconstruction.png)
 
 ## 4. 自定义 starter
 
@@ -392,7 +392,7 @@ RestTemplate 是 Spring 提供的，用于访问 Rest 服务的同步客户端�
 
 如果向查看所有的 http 客户端类库，可以找下 ClientHttpRequestFactory 接口的实现类：
 
-![restTemplate1](../public/images/Java/SpringBoot/restTemplate/image-20210717124034829.png)
+![restTemplate1](./images/restTemplate/image-20210717124034829.png)
 
 **RestTemplate、Apache 的 HttpClient、OkHttp 比较：**
 
@@ -408,7 +408,7 @@ RestTemplate 是 Spring 提供的，用于访问 Rest 服务的同步客户端�
 
 **说明：** 除了 getForEntity 和 getForObject 外，使用 exchange()也可以，前两个是基于它实现的，此处不做介绍
 
-![restTemplate2](..\images\Java\springboot\restTemplate\image-20210717133413370.png)
+![restTemplate2](./images/restTemplate/image-20210717133413370.png)
 
 参数包括请求 url、响应类型的 class、请求参数
 
@@ -443,7 +443,7 @@ ResponseEntity<Object> result = restTemplate.getForObject(uri, Object.class);
 
 ###### 2.2. post 请求
 
-![restTemplate3](../public/images/Java/SpringBoot/restTemplate/image-20210717160611447.png)
+![restTemplate3](./images/restTemplate/image-20210717160611447.png)
 
 参数和 get 请求的相比，就多了第二个参数（Object request），如果使用最后一个参数传参时，和 get 请求类似，request 设置为 null 就可以，如果使用第二个参数传参时，就需要考虑 request 的类型，request 参数类型必须是实体对象、MultiValueMap、HttpEntity 对象的的一种，其他不可以！！！
 
@@ -538,21 +538,21 @@ public class TestService implements ITestService {
 
 1. 依次进入方法：postForEntity() -> httpEntityCallback -> HttpEntityRequestCallback
 
-![restTemplate5](../public/images/Java/SpringBoot/restTemplate/image-20210717165644382.png)
+![restTemplate5](./images/restTemplate/image-20210717165644382.png)
 
-![restTemplate6](../public/images/Java/SpringBoot/restTemplate/image-20210717165827241.png)
+![restTemplate6](./images/restTemplate/image-20210717165827241.png)
 
 2. requestBody 参数，会判断类型是否是 HttpEntity，如果不是，则创建一个 HttpEntity 类将 requestBody 参数传入，然后查看 HttpEntity 构造器，具体做了什么？
 
-![restTemplate7](../public/images/Java/SpringBoot/restTemplate/image-20210717165927874.png)
+![restTemplate7](./images/restTemplate/image-20210717165927874.png)
 
 3. 可以看到，三个构造方法，上边两个调用的是最下边一个；第一个传入的是泛型，也就是传入的 Object 对象，第二个传入的是 MultiValueMap，这个值是存放 Headers 的，所有只需要关注这个泛型，在哪块使用的
 
-![restTemplate8](../public/images/Java/SpringBoot/restTemplate/image-20210717170358763.png)
+![restTemplate8](./images/restTemplate/image-20210717170358763.png)
 
 4. 回到 postForEntity()方法中，找到调用请求的方法 execute，点进去发现是调用方法 doExecute(...)；
 
-![restTemplate9](../public/images/Java/SpringBoot/restTemplate/image-20210717171852497.png)
+![restTemplate9](./images/restTemplate/image-20210717171852497.png)
 
 5. 在 doExecute()中
    - 首先使用请求的 url 和 method(post 或者 get)构造出一个 ClientHttpRequest
@@ -561,11 +561,11 @@ public class TestService implements ITestService {
    - 使用 ResponseExtractor 的 extraData 方法将返回的 response 转换为某个特定的类型；
    - 最后关闭 ClientHttpResponse 资源，这样就完成了发送请求并获得对应类型的返回值的全部过程。
 
-![restTemplate10](../public/images/Java/SpringBoot/restTemplate/image-20210717171914777.png)
+![restTemplate10](./images/restTemplate/image-20210717171914777.png)
 
 6. 进入方法 getRequestFactory() -> getRequestFactory()可以发现，通过 this.requestFactory 初始化了 SimpleClientHttpRequestFactory();通过方法 createRequest(url, method) -> openConnection()发现创建了 HttpURLConnection 连接，因此默认使用的 restTemplate 是无法访问 Https 接口的
 
-![restTemplate11](../public/images/Java/SpringBoot/restTemplate/image-20210718224627598.png)
+![restTemplate11](./images/restTemplate/image-20210718224627598.png)
 
 7. 进入方法 doWithRequest(request)可以发现，程序会执行第一个 else 中的逻辑，根据传入的参数，判断 requestBodyClass、requestBodyType 和 MediaType；
    - 如果第二个参数为 HashMap 或者 MultiValueMap 时，MediaType 为 null；
@@ -573,7 +573,7 @@ public class TestService implements ITestService {
 
 接下来会遍历所有的 HttpMessageConverter，这些对象在 RestTemplate 的构造函数中被初始化
 
-![restTemplate12](../public/images/Java/SpringBoot/restTemplate/image-20210718125745189.png)
+![restTemplate12](./images/restTemplate/image-20210718125745189.png)
 
 8. 在遍历过程中判断是否可以写入，如果能写入则执行写入操作并返回；判断 MessageConvertor 是否为 GenericHttpMessageConverter 的子类，是因为写入的方式不同；在这些 MessageConvertor 中只有 GsonHttpMessageConverter 是 GenericHttpMessageConverter 的子类，且排在最后；因此，遍历过程中会先判断前六个 convertor，能写入则执行写入，最后才是 GsonHttpMessageConvertor。分析所有的 HTTPMessageConvertor，可以发现
 
@@ -581,11 +581,11 @@ public class TestService implements ITestService {
 
    - HashMap 类型的数据会被 GsonHTTPMessageConvertor 处理，将 MediaType 置为 application/json;charset=UTF-8、将 request 转成 json 并写入到 body 中，==因此，第二个参数设置为 HashMap 时，无法设置 ContentType 值，所有第二个参数无法使用 HashMap！但是可以使用 HttpEntity 对象，将 HashMap 存放在 HttpEntity 对象里边，接收参数时，使用@RequestBody==
 
-![restTemplate13](../public/images/Java/SpringBoot/restTemplate/image-20210718125937670.png)
+![restTemplate13](./images/restTemplate/image-20210718125937670.png)
 
 <br>
 
-![restTemplate14](../public/images/Java/SpringBoot/restTemplate/image-20210718132008639.png)
+![restTemplate14](./images/restTemplate/image-20210718132008639.png)
 
 ##### 5. restTemplate 访问 Https 接口
 
@@ -833,7 +833,190 @@ th:each 迭代 <tr th:each="student:${user}" >
 th:href 替换超链接 <a th:href="@{index.html}">超链接</a>
 th:src 替换资源 <script type="text/javascript" th:src="@{index.js}"></script>
 
-## 7. 常见问题
+## 9. valid、validated
+
+> 区别只要体现在分组，注解标注位置，嵌套验证等功能上
+
+**区别**
+
+1.  @Valid 是 javax.validation.Valid 包下的；@Validated 是 javax.validation 包下的，是@Valid 的一次封装，是 Spring 提供的校验机制使用。
+
+2.  分组：@Validated 提供了分组功能，在入参验证时，根据不同的分组采用不同的验证机制。@valid 没有
+
+    - 定义一个分组类（或接口）
+    - 在校验注解上添加 groups 属性指定分组
+    - Controller 方法的@Validated 注解添加分组类
+
+3.  使用位置:
+
+    - @validated 可以用在类型、方法和方法参数上。但是不能用在成员属性字段上
+    - @valid 可以用在方法、构造函数、方法参数和成员属性（字段）上；`两者是否能用于成员属性（字段）上直接影响能否提供嵌套验证的功能`
+
+4.  嵌套验证:
+
+    - @Validated：用在方法入参上无法单独提供嵌套验证功能。不能用在成员属性（字段）上，也无法提示框架进行嵌套验证。能配合嵌套验证注解@Valid 进行嵌套验证。
+    - @Valid：用在方法入参上无法单独提供嵌套验证功能。能够用在成员属性（字段）上，提示验证框架进行嵌套验证。能配合嵌套验证注解@Validation 进行嵌套验证。
+
+5.  Service 层校验：需要两个注解一起使用，@Validation 标注在方法上，@Valid 标注在参数上；
+
+**使用问题汇总**
+
+1. 如果参数比较少，没有封装对象，用单个参数接受参数时，需要在 Controller 上增加@Validaiton。否则不生效！
+
+   - `在类级别上标注@Validated注解告诉Spring需要校验方法参数上的约束。`
+
+2. 如果只在一个字段上指定了自定义的 Group，并且在验证参数的时候，那除了 自定义的 Group 标注的字段，其它的都不会被验证。
+
+   - `使用 Validation 验证时如果 Group 不写，默认为 Default.class（接口），如果其他字段想使用默认的验证，则需要自定义的Group继承Default接口，或者每个都写清楚`
+
+![validation](./images/SpringBoot-validation.png)
+
+**快速失败 Fail Fast 模式配置**
+
+```java
+import org.hibernate.validator.HibernateValidator;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
+
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+
+/**
+ * validate参数校验默认的是一个参数校验失败后，还会继续校验后面的参数
+ * 增加了这个配置类后，校验参数时只要出现校验失败的情况，就立即抛出对应的异常，结束校验，不再进行后续的校验；也可以在全局异常处理时，获取第一个message即可
+ */
+@Configuration
+public class ValidationConfig {
+    @Bean
+    public Validator validator() {
+        ValidatorFactory validatorFactory = Validation.byProvider(HibernateValidator.class)
+                .configure()
+                //failFast的意思只要出现校验失败的情况，就立即结束校验，不再进行后续的校验。
+                .failFast(true)
+                .buildValidatorFactory();
+        return validatorFactory.getValidator();
+    }
+
+    @Bean
+    public MethodValidationPostProcessor methodValidationPostProcessor() {
+        MethodValidationPostProcessor methodValidationPostProcessor = new MethodValidationPostProcessor();
+        methodValidationPostProcessor.setValidator(validator());
+        return methodValidationPostProcessor;
+    }
+}
+```
+
+**自定义验证**
+
+1. 自定义注解
+
+```java
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * IpAddress
+ *
+ * @Author dangbo
+ * @Date 2021/9/3 17:16
+ **/
+@Target(value = ElementType.FIELD)
+@Retention(value = RetentionPolicy.RUNTIME)
+@Documented
+@Constraint(validatedBy = IpaddressValidator.class)
+public @interface IpAddress {
+    String message() default "";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
+}
+```
+
+2. 实现 ConstraintValidator<>接口
+
+```java
+import com.fp.checking.annotation.IpAddress;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * IpaddressValidator
+ *
+ * @Author dangbo
+ * @Date 2021/9/3 17:19
+ **/
+public class IpaddressValidator implements ConstraintValidator<IpAddress, String> {
+
+    private static final Pattern PATTREN = Pattern.compile("^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})$");
+
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        Matcher matcher = PATTREN.matcher(value);
+        return matcher.matches();
+    }
+}
+```
+
+**校验注解说明**
+
+1.  空检查
+
+    - @NotEmpty：用在集合类上面；不能为 null，而且长度必须大于 0
+    - @NotBlank： 用在 String 上面；只能作用在 String 上，不能为 null，而且调用 trim()后，长度必须大于 0
+    - @NotNull：用在基本类型上；不能为 null，但可以为 empty。
+
+2.  长度检查
+
+    - @Size(min=,max=)：验证对象（Array,Collection,Map,String）长度是否在给定的范围之内，不能错用异常类型，比如在 int 上不可用@size
+    - @Length(min=, max=) ： 只适用于 String 类型
+    - @PositiveOrZero 正数或 0
+
+3.  Booelan 检查
+
+    - @AssertTrue： 验证 Boolean 对象是否为 true
+    - @AssertFalse： 验证 Boolean 对象是否为 false
+
+4.  日期检查
+
+    - @Past： 验证 Date 和 Calendar 对象是否在当前时间之前
+    - @Future： 验证 Date 和 Calendar 对象是否在当前时间之后
+    - @Pattern： 验证 String 对象是否符合正则表达式的规则
+    - @Past 必须是过去的时间
+    - @PastOrPresent 必须是过去的时间，包含现在
+
+5.  其他验证：
+
+    - @Vaild 递归验证，用于对象、数组和集合，会对对象的元素、数组的元素进行一一校验
+    - @Email 用于验证一个字符串是否是一个合法的右键地址，空字符串或 null 算验证通过
+    - @URL(protocol=,host=,port=,regexp=,flags=) 用于校验一个字符串是否是合法 URL
+
+6.  数值检查
+
+    - @Min: 验证 Number 和 String 对象是否大等于指定的值
+    - @Max: 验证 Number 和 String 对象是否小等于指定的值
+    - @DecimalMax: 被标注的值必须不大于约束中指定的最大值. 这个约束的参数是一个通过 BigDecimal 定义的最大值的字符串表示.小数存在精度
+    - @DecimalMin: 被标注的值必须不小于约束中指定的最小值. 这个约束的参数是一个通过 BigDecimal 定义的最小值的字符串表示.小数存在精度
+    - @Digits: 验证 Number 和 String 的构成是否合法
+    - @Digits(integer=,fraction=): 验证字符串是否是符合指定格式的数字，interger 指定整数精度，fraction 指定小数精度。
+
+## 10. SprintBoot 精简打包
+
+打包时，可以不打包依赖，部署时把依赖放在固定目录，启动时 classpath指定就行。
+
+每次更换依赖包或者组件就不需要重新打包工程了，只更新对应的 jar 就行。
+
+## 10. 常见问题
 
 #### 1. SpringBoot 切换版本后，Junit 报错
 
