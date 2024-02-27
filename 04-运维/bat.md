@@ -20,6 +20,28 @@ taskkill /f /pid 值
 ## 3. bat 脚本
 
 
+```bat
+set obj[0]= 8887
+
+set port=0
+set pid=0
+
+for /f "usebackq delims== tokens=1-2" %%a in (`set obj`) do (
+  set port=%%b
+  for /f "tokens=5" %%m in ('netstat -aon ^| findstr ":%%b"') do (
+    set pid=%%m
+  )
+  if "!pid!"=="0" (
+    echo =========port[!port!]not used !=========
+  ) else (
+    echo =========port[!port!] process has killed !============
+   
+  )
+  set pid=0
+)
+pause
+
+```
 
 ## 4. 命令
 

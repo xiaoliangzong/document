@@ -365,6 +365,60 @@ http {
 }
 ```
 
+### stream 模块概要
+
+> Nignx 可以作为四层（传输层）和七层（应用层）代理来进行流量转发和负载均衡。这两种代理方式有不同的工作原理和适用场景：
+>
+> 四层代理：
+>
+> - 四层代理是在 OSI 模型的传输层（第四层）进行操作的代理，主要基于 IP 地址、端口号等信息来进行转发。
+> - Nginx 作为四层代理可以实现 TCP 和 UDP 数据包的转发和负载均衡，但无法解析 HTTP 协议的内容。
+> - 四层代理适用于直接将数据包转发到后端服务器，适合处理对传输层信息有要求的场景，如负载均衡、TCP 代理等。
+>
+> 七层代理：
+>
+> - 七层代理是在 OSI 模型的应用层（第七层）进行操作的代理，可以解析 HTTP/HTTPS 协议的内容，实现更精细的请求转发控制。
+> - Nginx 作为七层代理可以实现 HTTP 请求的转发、反向代理、缓存控制、SSL 终端等功能。
+> - 七层代理适用于需要对 HTTP 请求进行深度处理和分发的场景，如反向代理、内容缓存、请求转发等。
+
+stream 模块是用于处理 TCP 和 UDP 协议的四层数据，它允许 NGINX 作为**反向代理**或**负载均衡器**，将 TCP/UDP 请求转发到后端服务器。相对于 HTTP，TCP/UDP 流量的负载均衡和处理更接近底层。
+
+ngx_stream_core_module 模块由1.9.0版提供。 默认情况下，没有构建此模块。 必须使用-with stream配置参数启用。 也就是说，必须在使用./configure --with-stream 编译时添加流模块。
+
+需要注意的是，在 stream 模块中，不能使用 location 指令，它只能使用 server 指令。每个 server 块都代表一个独立的服务端口，可以在其中定义代理规则，将请求转发到不同的后端服务器。
+
+原理：
+
+NGINX stream 模块通过拦截 TCP 和 UDP 数据包，进行数据包分析和处理，实现四层的代理和负载均衡功能。在配置文件中，我们可以定义一组 upstream 服务器，然后通过 stream 模块将来自客户端的连接请求转发给这些 upstream 服务器，从而实现负载均衡和高可用性。
+
+
+```conf
+# stream 模块和 http 模块是并列级别
+stream {
+
+    log_format basic '$remote_addr [$time_local] '
+                 '$protocol $status $bytes_sent $bytes_received '
+                 '$session_time';
+    access_log /var/log/nginx/stream-access.log basic buffer=32k;
+
+    # 负载均衡配置（TCP长连接配置），端口号在前面的端口号前要进行偏置1000
+    upstream nacos {
+        server 192.168.2.188:9848;      
+    }
+
+    server {
+        listen 13345;
+        proxy_pass nacos;       # 定义后端服务器群组名
+    }
+
+    # 为了让这个配置文件简单一些，将配置stream放入到/etc/nginx/conf.d，并以.stream做后缀名。
+    # 需要为每个端口创建一个.stream做后缀名的配置文件
+    include /etc/nginx/conf.d/*.stream;
+}
+```
+
+
+
 ### 负载均衡
 
 nginx 分配服务器的负载均衡策略包括：
