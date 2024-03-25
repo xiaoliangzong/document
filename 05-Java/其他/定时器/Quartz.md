@@ -1,29 +1,110 @@
-## Quartz
+# Quartz
 
-### 1. 前言（定时执行的实现方案）
+## 1. 概述
 
-1.  while 循环执行 thread 线程，线程调用 sleep 睡眠
-2.  Timer 和 TimerTask， 简单无门槛，一般也没人用
-3.  线程池，Executors.newScheduledThreadPool，底层 ScheduledThreadPoolExecutor；
-4.  spring 自带的 springtask（@Schedule），一般集成于项目中，小任务很方便
-5.  Quartz，开源工具 Quartz，分布式集群开源工具，以下两个分布式任务应该都是基于 Quartz 实现的，可以说是中小型公司必选，当然也视自身需求而定
-6.  分布式任务 XXL-JOB，是一个轻量级分布式任务调度框架，支持通过 Web 页面对任务进行 CRUD 操作，支持动态修改任务状态、暂停/恢复任务，以及终止运行中任务，支持在线配置调度任务入参和在线查看调度结果。
-7.  分布式任务 Elastic-Job，是一个分布式调度解决方案，由两个相互独立的子项目 Elastic-Job-Lite 和 Elastic-Job-Cloud 组成。定位为轻量级无中心化解决方案，使用 jar 包的形式提供分布式任务的协调服务。支持分布式调度协调、弹性扩容缩容、失效转移、错过执行作业重触发、并行调度、自诊。
-8.  分布式任务 Saturn，Saturn 是唯品会在 github 开源的一款分布式任务调度产品。它是基于当当 elastic-job 来开发的，其上完善了一些功能和添加了一些新的 feature。目前在 github 上开源大半年，470 个 star。Saturn 的任务可以用多种语言开发比如 python、Go、Shell、Java、Php。其在唯品会内部已经发部署 350+个节点，每天任务调度 4000 多万次。同时，管理和统计也是它的亮点。
+Quartz是 OpenSymphony 开源组织在 Job scheduling 领域的一个开源项目。
 
-### 2. API 描述说明
 
-- Scheduler：调度任务的主要 API，用于与调度程序交互的主程序接口
-- ScheduleBuilder：用于构建 Scheduler，例如其简单实现类 SimpleScheduleBuilder
-- Job：被调度程序执行的任务类，也即定时任务执行的方法
-- JobDetail：使用 JobDetail 来定义定时任务的实例
-- JobBuilder：用于声明一个任务实例，也可以定义关于该任务的详情比如任务名、组名等。
-- Trigger：触发器，定义调度执行计划的组件，表明任务在什么时候会执行，即定时执行
-  - SimpleTrigger 是根据 Quartz 的一些 api 实现的简单触发行为
-  - CronTrigger 用的比较多，使用 cron 表达式进行触发
-- TriggerBuilder：触发器创建器，用于创建触发器 trigger
+**特性**
 
-### 3. 依赖 jar 包
+1. 支持多任务调度和管理，Quartz可以在数据库中存储多个定时任务进行作业调度，可以实现定时任务的增删改查等管理。
+2. 纯Java实现，可以作为独立的应用程序，也可以嵌入在另一个独立式应用程序运行。
+3. 强大的调度功能，Spring默认的调度框架，灵活可配置。
+4. 作业持久化，调度环境持久化机制，可以保存并恢复调度现场。系统关闭数据不会丢失；灵活的应用方式，可以任意定义触发器的调度时间表，支持任务和调度各种组合，组件式监听器、各种插件、线程池等功能，多种存储方式等。
+5. 分布式和集群能力，可以被实例化，一个Quartz集群中的每个节点作为一个独立的Quartz使用，通过相同的数据库表来感知到另一个Quartz应用。
+
+## 2. 核心
+
+Quartz 主要包括 JobDetail、Trigger 和 Scheduler 三部分。
+
+- JobDetail 包含了任务的实现类和任务的描述信息，
+- Trigger 决定了任务什么时候执行，
+- Scheduler 是调度器，将 JobDetail 和 Trigger 结合起来，定时定频率的执行任务。
+
+核心组成部分详细说明：
+
+### Job
+
+表示一个需要定时执行的任务，只需要实现 Job 接口的 execute() 方法，该方法就是定时执行的操作。Quartz 每次调度 Job 时，都重新创建一个 Job 实例，因此它不接受多个 Job 的实例。
+
+```java
+public interface Job {
+    void execute(JobExecutionContext var1) throws JobExecutionException;
+}
+```
+
+### JobDetail
+
+JobDetail 用来定义定时任务的实例。主要由 JobKey（job 的名字 name 和分组 group）、JobClass、JobDataMap（任务相关的数据）、JobBuilder 组成。他实际保存了 Job 的描述信息，以便运行时通过 newInstance() 的反射机制实例化 Job。
+
+JobBuilder 用于构建一个任务实例，可以定义关于该任务的详情比如任务名、组名等。
+
+### Trigger
+
+Trigger 触发器，定义调度执行计划的组件，表明任务在什么时候会执行。主要有 SimpleTrigger 和 CronTrigger 两个实现类。 SimpleTrigger 是根据 Quartz 的一些 api 实现的简单触发行为，CronTrigger 用的比较多，使用 cron 表达式进行触发。
+
+TriggerBuilder 用于构建触发器。
+
+Trigger 由以下部分组成：
+
+- TriggerKey：包括 job 的名字 name 和分组 group
+- JobDataMap：Trigger 相关的数据，同 JobDetail 中 JobDataMap，存相同key，若value不同，会覆盖前者。
+- ScheduleBuilder：调度构建器，常用的有 CronScheduleBuilder、SimpleScheduleBuilder。
+
+### Scheduler
+
+Scheduler 调度器就是为了读取触发器 Trigger 从而触发定时任务 JobDetail。可以通过 SchedulerFactory 进行创建调度器，分为 StdSchedulerFactory（常用）和 DirectSchedulerFactory 两种。
+
+- StdSchedulerFactory 使用一组属性（放在配置文件中）创建和初始化调度器，然后通过getScheduler()方法生成调度程序。
+- DirectSchedulerFactory不常用，容易硬编码。
+
+```java
+public static void main(String[] args) {
+    // 创建调度器
+    SchedulerFactory scheduleFactory = new org.quartz.impl.StdSchedulerFactory(); 
+    Scheduler scheduler = scheduleFactory.getScheduler(); 
+
+    scheduler.start(); 
+
+    JobKey jobKey = JobKey.jobKey(jobName, jobGroup);
+    JobDetail jobDetail = JobBuilder.newJob(jobClass).withIdentity(jobKey).build();
+
+    CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule("* * 2 * * ?");
+    CronTrigger trigger = TriggerBuilder
+            .newTrigger()
+    
+            .withIdentity(TriggerKey.triggerKey(jobName, jobGroup))
+            .withSchedule(cronScheduleBuilder)
+            .build();
+
+    // 放入参数，运行时的方法可以获取
+    JobDataMap jobDataMap = jobDetail.getJobDataMap();
+    jobDataMap.put(Constants.TASK_JOB_PROPERTIES, job);
+    jobDataMap.put(Constants.TASK_INTERFACE_PROPERTIES, scheduleInterfaceInfo);
+
+    scheduler.scheduleJob(jobDetail, trigger);
+}
+```
+
+## 3. 数据库表说明
+
+|           表名           |                             描述                             |
+| :----------------------: | :----------------------------------------------------------: |
+|    qrtz_blob_triggers    |                  Trigger 作为 Blob 类型存储                  |
+|      qrtz_calendars      |                 存储 Quartz 的 Calendar 信息                 |
+|    qrtz_cron_triggers    |         存储 CronTrigger，包括 Cron 表达式和时区信息         |
+|   qrtz_fired_triggers    | 存储与已触发的 Trigger 相关的状态信息，以及相关联的 Job 的执行信息 |
+|     qrtz_job_details     |              存储每一个已配置的 Job 的详细信息               |
+|        qrtz_locks        |                    存储程序的悲观锁的信息                    |
+| qrtz_paused_trigger_grps |                存储已暂停的 Trigger 组的信息                 |
+|   qrtz_scheduler_state   |  存储少量的有关 Scheduler 的状态信息，和别的 Scheduler 实例  |
+|   qrtz_simple_triggers   |   存储简单的 Trigger，包括重复次数、间隔、以及已触发的次数   |
+|  qrtz_simprop_triggers   |                                                              |
+
+
+## 4. 实践
+
+### 4.1 POM 中引入依赖
 
 ```xml
 <!--spring-boot 2.x提供了starter依赖，可以直接使用-->
@@ -54,7 +135,7 @@ org.springframework.scheduling.quartz-->
 </dependency>
 ```
 
-### 4. 配置文件
+### 4.2 编写配置文件
 
 ```yml
 # 配置调度器信息
@@ -111,11 +192,25 @@ org.quartz.dataSource.myDS.validationQuery=select RAND()
 
 ```
 
-### 5. springboot 整合
+### 4.3 SpringBoot 整合 Quartz
 
-1. 导入依赖
-2. 增加自定义任务 Job，实现 Job 接口或者继承抽象类 QuartzJobBean，重写 execute()方法
-3. 获取 JobDetail、Trigger、Scheduler
+1. 增加自定义任务 Job，实现 Job 接口或者继承抽象类 QuartzJobBean，重写 execute()方法
+
+```java
+// 禁止并发执行多个相同定义的 JobDetail, 这个注解是加在 Job 类上的, 但意思并不是不能同时执行多个 Job, 而是不能并发执行同一个 Job Definition(由 JobDetail 定义), 但是可以同时执行多个不同的 JobDetail。
+// 即对于同一个 Job 任务不允许并发执行，但对于不同的 job 任务不受影响。
+@DisallowConcurrentExecution
+// 保存在 JobDataMap 传递的参数。加在 Job 上，表示当正常执行完 Job 后，JobDataMap 中的数据应该被改动，以被下一次调用时用。
+@PersistJobDataAfterExecution
+public class Job1 implements Job {
+
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+    }
+}
+```
+
+2. 获取 JobDetail、Trigger
 
 ```java
 JobDetail jobDetail = JobBuilder.newJob(SimpleJob.class)
@@ -138,20 +233,21 @@ SimpleTrigger simpleTrigger = TriggerBuilder.newTrigger()
         // 一直执行
         .repeatForever()
         ).build();
+```
 
-// spring-boot自动注入Scheduler实例，可以通过@AutoWired依赖进来。
+3. 自动注入Scheduler实例，可以通过@AutoWired依赖进来。
 
+我们通常是通过 quartz.properties 属性配置文件(默认情况下均使用该文件)结合 StdSchedulerFactory 来使用 Quartz 的。StdSchedulerFactory 会加载属性配置文件并实例化一个 Scheduler。
 
+默认情况下，Quartz 会加载 classpath 下的 quartz.properties 文件作为配置属性，如果找不到则会使用 quartz 框架自己 jar 下 org/quartz 包底下的 quartz.properties 文件。当然你也可以指定 org.quartz.properties 属性指向你自定义的属性配置文件。或者，你也可以在调用 StdSchedulerFactory 的 getScheduler()方法之前调用 initialize(xx)初始化 factory 配置。
+
+```java
 @Configuration
 public class QuartzConfiguration {
 
     @Autowired
     private DataSource dataSource;
-    /**
-     * 创建调度器， 可以省略的。
-     * @return
-     * @throws Exception
-     */
+
     @Bean
     public Scheduler scheduler() throws Exception {
         Scheduler scheduler = schedulerFactoryBean().getScheduler();
@@ -160,90 +256,41 @@ public class QuartzConfiguration {
     }
 
     /**
-     * 创建调度器工厂bean对象。
+     * 创建调度器工厂bean对象。SchedulerFactoryBean 实现了 InitializingBean 接口，因此在初始化 Bean 的时候会执行 afterPropertiesSet，该方法会调用 SchedulerFactory(DirectSchedulerFactory 或者 StdSchedulerFactory，通常用 StdSchedulerFactory)创建 Scheduler，SchedulerFactory 在创建 quartzScheduler 的过程中，将会读取配置参数，初始化各个组件
      * @return
      * @throws IOException
      */
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean() throws IOException {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
-
-        factory.setSchedulerName("Cluster_Scheduler");
+        // 设置数据源
         factory.setDataSource(dataSource);
-        factory.setApplicationContextSchedulerContextKey("applicationContext");
-        // 设置调度器中的线程池。
-        factory.setTaskExecutor(schedulerThreadPool());
-        // 设置触发器
-        factory.setTriggers(trigger().getObject());
         // 设置quartz的配置信息
         factory.setQuartzProperties(quartzProperties());
+        // 延时启动
+        factory.setStartupDelay(10);
+        factory.setApplicationContextSchedulerContextKey("applicationContextKey");
+        // 启动时更新己存在的Job，这样就不用每次修改targetObject后删除qrtz_job_details表对应记录了
+        factory.setOverwriteExistingJobs(true);
         return factory;
     }
 
     /**
      * 读取quartz.properties配置文件的方法。
-     * @return
-     * @throws IOException
      */
     @Bean
     public Properties quartzProperties() throws IOException {
-        PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
-        propertiesFactoryBean.setLocation(new ClassPathResource("/quartz.properties"));
-
+        PropertiesFactoryBean prop = new PropertiesFactoryBean();
+        prop.setLocation(new ClassPathResource("/quartz.properties"));
         // 在quartz.properties中的属性被读取并注入后再初始化对象
-        propertiesFactoryBean.afterPropertiesSet();
-        return propertiesFactoryBean.getObject();
-    }
-
-    /**
-     * 创建Job对象的方法。
-     * @return
-     */
-    @Bean
-    public JobDetailFactoryBean job() {
-        JobDetailFactoryBean jobDetailFactoryBean = new JobDetailFactoryBean();
-
-        jobDetailFactoryBean.setJobClass(SpringBootQuartzJobDemo.class);
-        // 是否持久化job内容
-        jobDetailFactoryBean.setDurability(true);
-        // 设置是否多次请求尝试任务。
-        jobDetailFactoryBean.setRequestsRecovery(true);
-
-        return jobDetailFactoryBean;
-    }
-
-    /**
-     * 创建trigger factory bean对象。
-     * @return
-     */
-    @Bean
-    public CronTriggerFactoryBean trigger() {
-        CronTriggerFactoryBean cronTriggerFactoryBean = new CronTriggerFactoryBean();
-
-        cronTriggerFactoryBean.setJobDetail(job().getObject());
-        cronTriggerFactoryBean.setCronExpression("0/2 * * * * ?");
-
-        return cronTriggerFactoryBean;
-    }
-
-    /**
-     * 创建一个调度器的线程池。
-     * @return
-     */
-    @Bean
-    public Executor schedulerThreadPool() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-
-        executor.setCorePoolSize(15);
-        executor.setMaxPoolSize(25);
-        executor.setQueueCapacity(100);
-
-        return executor;
+        prop.afterPropertiesSet();
+        return prop.getObject();
     }
 }
 ```
 
-4. 动态操作定时任务- 都是通过 scheduler 对象的方法进行操作
+
+4. 动态操作定时任务，都是通过 scheduler 对象的方法进行操作
 
 - 4.1 创建任务
 - 4.2 暂停任务
@@ -255,49 +302,13 @@ public class QuartzConfiguration {
 
 Quartz 默认使用 RAMJobStore 存储方式将任务存储在内存中，除了这种方式还支持使用 JDBC 将任务存储在数据库，为了防止任务丢失，我们一般会将任务存储在数据库中；官网找 quartz 的源码包，里边有不同类型的数据库的 sql 文件，然后在客户端进行运行 sql 文件
 
-- 5.1 增加依赖
-
-- 5.2 指定使用 jdbc 存储
-
 ```yaml
 spring:
   quartz:
     job-store-type: jdbc
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/simple_fast
+    url: jdbc:mysql://localhost:3306/test
     username: root
     password: root
 ```
-
-- 5.3 创建任务
-
-6. 分布式 Quartz
-
-- 6.1 引入依赖
-- 6.2 创建数据库和数据库表
-- 6.3 定义任务实现类
-- 6.4 实现主程序
-
-SchedulerFactoryBean 实现了 InitializingBean 接口，因此在初始化 Bean 的时候会执行 afterPropertiesSet，该方法会调用 SchedulerFactory(DirectSchedulerFactory 或者 StdSchedulerFactory，通常用 StdSchedulerFactory)创建 Scheduler，SchedulerFactory 在创建 quartzScheduler 的过程中，将会读取配置参数，初始化各个组件
-
-如果你在 spring 的配置文件中使用 SchedulerFactoryBean 配置了 datasoucrce，即使用 spring 托管的 datasource，则 spring 会强制使用这个 jobstore、LocalDataSourceJobStore
-
-使用了 Spring+Quartz 之后，发现启动日志里并没有使用 JobStoreTX, 而是使用了 LocalDataSourceJobStore，因为 Quartz 的{@link JobStoreCMT}类的子类，该类委托给一个 spring 管理的
-{@link DataSource}，而不是使用 quartz 管理的 JDBC 连接池。
-
-我们通常是通过 quartz.properties 属性配置文件(默认情况下均使用该文件)结合 StdSchedulerFactory 来使用 Quartz 的。StdSchedulerFactory 会加载属性配置文件并实例化一个 Scheduler。
-
-默认情况下，Quartz 会加载 classpath 下的”quartz.properties”文件作为配置属性，如果找不到则会使用 quartz 框架自己 jar 下 org/quartz 包底下的”quartz.properties”文件。当然你也可以指定”org.quartz.properties”属性指向你自定义的属性配置文件。或者，你也可以在调用 StdSchedulerFactory 的 getScheduler()方法之前调用 initialize(xx)初始化 factory 配置。
-
-在配置文件中你可以使用”$@”引用其他属性配置。
-
-@DisallowConcurrentExecution
-
-禁止并发执行多个相同定义的 JobDetail, 这个注解是加在 Job 类上的, 但意思并不是不能同时执行多个 Job, 而是不能并发执行同一个 Job Definition(由 JobDetail 定义), 但是可以同时执行多个不同的 JobDetail。
-
-即对于同一个 Job 任务不允许并发执行，但对于不同的 job 任务不受影响。
-
-@PersistJobDataAfterExecution
-
-保存在 JobDataMap 传递的参数。加在 Job 上,表示当正常执行完 Job 后, JobDataMap 中的数据应该被改动, 以被下一次调用时用。

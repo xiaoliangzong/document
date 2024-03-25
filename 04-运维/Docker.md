@@ -137,6 +137,7 @@ docker run -it --name=xxx -p xx:xx --restart=always <images>
   # -P 随机分配端口
   # -e 环境配置，比如mysql设置密码 -e MYSQL_ROOT_PASSWORD=123456
   # --env-file 指定环境变量文件
+  # --link --link <container_name>:<alias> ，第一个参数为链接到的另一个容器的名称或 ID，第二个参数为链接的别名，可省略。原理就是在/etc/hosts里面添加了一个alias的名称
   # --restart  重启策略，重启是由Docker守护进程完成的；
       # no默认策略，容器退出时不重启容器、
       # on-failure容器非正常退出时才会重启（容器退出状态不为0）、
@@ -246,31 +247,98 @@ CMD /bin/bash
 
 ## 6. 网络
 
+Docker 容器每次重启后容器 ip 是会发生变化的。这也意味着如果容器间使用 ip 地址来进行通信的话，一旦有容器重启，重启的容器将不再能被访问到。而 Docker 网络就能够解决这个问题。
+
+**作用**
+
+1. 容器间的互联和通信以及端口映射
+2. 容器 IP 变动的时候，可以通过服务名直接网络通信而不受到影响
+
+因此只要是处于同一个Docker 网络下的容器就可以使用服务名进行直接访问，而无需担心重启。
+
+**网络模式**
+
+scope 参数用于指定网络的作用范围，可以是 local 或 swarm。
+
+- local，适用于单个 Docker 守护程序主机上的容器。在 local 范围内创建的网络仅限于当前宿主机上的容器之间进行通信。这意味着该网络不会跨越宿主机边界，只能在单个宿主机上使用。
+- swarm，适用于 Docker Swarm 中的服务和任务。在 swarm 范围内创建的网络可以跨越多个 Docker 守护程序主机，允许 Swarm 集群中的服务之间进行通信。可以实现在整个 Swarm 集群中的不同宿主机上运行的容器之间建立网络连接。
+
+桥接模式–bridge
+
+Docker 服务启动时，默认会创建一个名称为 docker0 网桥（其上有一个名称为 docker0 内部接口）。
+
+该桥接网络的名称为 docker0，它在内核层连通了其他的物理或虚拟网卡，这就将所有容器和本地主机都放到同一个物理网络。
+
+Docker 会默认指定docker0 的 ip 地址和子网掩码，让主机和容器之间可以通过网桥相互通信。
+
+docker0 特点：默认，域名不能访问，--link 可以打通连接。
+
+| 网络模式  | SCOPE | 描述                                                         |
+| --------- | ----- | ------------------------------------------------------------ |
+| bridge    | local | 桥接模式，是 Docker 默认采用的网络模式。每个容器都会分配一个独立的 IP 地址，并将容器连接到 docker0 虚拟网桥上，可以通过主机的 IP 地址进行访问。同时，桥接模式允许容器之间相互通信。 |
+| host      | local | 主机模式。容器将不会获得独立的网络命名空间，而是直接使用宿主机的网络。这意味着容器可以直接访问宿主机上的网络接口，从而获得更高的网络性能，但也失去了网络隔离的好处。 |
+| container | local | container 模式。和已经存在的一个容器共享一个 Network Namespace，而不是和宿主机共享 |
+| none      | local | 无网络模式。拥有自己的 Network Namespace，但并不为Docker容器进行任何网络配置。也就是说，容器没有网卡、IP、路由等信息。这种模式适用于特殊情况，例如只需要文件系统隔离而不需要网络连接的场景。 |
+| overlay   | swarm | Overlay 模式。用于跨多个 Docker 守护进程的容器通信，通常与 Docker Swarm 或者 Kubernetes 等集群管理工具一起使用。 |
+
+
 ```shell
-# 我们直接启动的命令
-docker run -d -P --name tomcat01 tomcat
-docker run -d -P --name tomcat01 --net bridge tomcat
+docker network --help     # 帮助
 
-# docker0特点：默认，域名不能访问，--link可以打通连接
+# 创建网络，--driver指定网络模式，默认bridge，--subnet 192.168.0.0/16 子网，--gateway 192.168.0.1 网关 
+docker network create --driver bridge --subnet 192.168.0.0/16 --gateway 192.168.0.1 <network_name> 
+docker network create --dirver overlay --attachable --scope swarm app_net   # 创建网络，网络模式为overlay时，scope只能为swarm，--attachable 启用手动连接容器
 
-# 我们可以自定义一个网络
-# --driver bridge
-# --subnet 192.168.0.0/16    子网
-# --gateway 192.168.0.1      网关
-[root@AlibabaECS ~]# docker network create --driver bridge --subnet 192.168.0.0/16 --gateway 192.168.0.1 mynet
-dd7c8522864cb87c332d355ccd837d94433f8f10d58695ecf278f8bcfc88c1fc
-[root@AlibabaECS ~]# docker network ls
-NETWORK ID          NAME                DRIVER              SCOPE
-04038c2f1d64        bridge              bridge              local
-81476375c43d        host                host                local
-dd7c8522864c        mynet               bridge              local
-64ba38c2cb2b        none                null                local
+docker network inspect <network_name>         # 显示网络的详细信息
+docker network ls                             # 列出所有网络
+docker network rm <network_name>              # 删除网络
+docker network prune                          # 删除所有没有使用的网络
+docker network connect <network_name> <container>        # 连接容器到网络
+docker network disconnect <network_name> <container>     # 断开网络中的容器
+
+# 举例
+docker run -d -P --name tomcat01 --network bridge tomcat  # 启动容器时指定网络
+docker network connect my-network my-container            # 将容器加入到网络
+```
+
+**使用网络**
+
+```yml
+# 手动创建网络或者已存在的网络。然后在配置文件加入外部网络
+networks:
+  dev:
+    external: true
+
+# 配置文件中直接定义网络，在启动时，会自动创建，常用于将所有的服务放在一个compose文件的场景。
+networks:
+  dev-net:
+    driver: overlay
+networks:
+  dev-net:
+    driver: bridge  
+
+version: '3'
+services:
+  nacos:
+    restart: always    
+
+version: '3'
+services:
+  mysql:
+    restart: always
+    image: mysql:5.7.31
+    ports:
+      - 13306:3306
+    networks:
+      - dev-net  
 
 ```
 
 ## 7. docker-compose
 
 Docker Compose 负责实现对 Docker 容器集群的快速编排。将所管理的容器分为三层，分别是工程（project）、服务（service）、容器（container），运行目录下的所有文件（docker-compose.yml）组成一个工程，一个工程包含多个服务，每个服务中定义了容器运行的镜像、参数、依赖，一个服务可包括多个容器实例。
+
+使用 docker-compse 编排的一组容器时会默认创建一个网络，并且这组容器全部都会加入到网络当中。容器之间可以直接使用服务名去直接通信。
 
 **安装**
 
@@ -309,6 +377,12 @@ docker-compose port SERVICE PRIVATE_PORT          # 显示某个容器端口所�
 
 **区别**
 
+Docker Compose 是用于在单个主机上定义和运行多个容器应用程序的工具，通常情况下，它并不直接支持不同宿主机上容器之间的通信。Docker Compose 主要用于本地开发、测试和部署单个主机上的应用程序。
+
+如果你需要在不同宿主机上运行的容器之间进行通信，可以考虑使用 Docker Swarm 或 Kubernetes 等容器编排工具来实现跨主机通信。这些工具提供了跨主机的网络功能，使不同主机上的容器能够相互通信。
+
+在 Docker Swarm 中，你可以创建 overlay 网络来连接不同节点上的容器，从而实现跨主机通信。通过在 Swarm 集群中部署服务，并将容器加入到同一个 overlay 网络中，即可实现不同宿主机上容器之间的通信。
+
 |          | docker stack                                                                                                                | docker-compose                                                                                                                    |
 | -------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | 开发语言 | go 语言                                                                                                                     | python 语言                                                                                                                       |
@@ -318,33 +392,55 @@ docker-compose port SERVICE PRIVATE_PORT          # 显示某个容器端口所�
 | 作用     | 适合于迭代开发、测试和 快速验证原型                                                                                         | 适用于开发、测试环境的容器编排工具                                                                                                |
 | 区别     | 通过 deploy，构建服务，不支持 build，无法使用 stack 命令构建 build 新镜像，它是需要镜像是预先已经构建好的。                 | 通过 build，构建服务;更适合于开发场景，不支持 deploy，所以在 yml 中使用 deploy 就会报错，可以是镜像，也可以和 Dockerfile 配合使用 |
 
+```yml
+version: '3'
+services:
+  mysql:
+    image: mysql:8.0.20
+    restart: always         # stack 没有该参数，使用 --update-delay、--update-parallelism、--update-failure-action 等参数来定义服务更新时的行为，以及容器失败时的处理方式。
+    container_name: mysql   # stack 没有该参数
+    ports:
+      - 3306:3306
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=db123456
+    volumes:
+      - "./data:/var/lib/mysql"                 # 挂载数据
+      - "./conf/my.cnf:/etc/my.cnf"             # 挂载配置文件
+      - "./init:/docker-entrypoint-initdb.d/"   # 挂载初始化sql
+    command:
+      --default-authentication-plugin=mysql_native_password
+    networks:
+      - dev-net
+
+# 同一个网络下，可以直接使用容器名称来代替ip地址进行访问。
+networks:
+  dev-net:
+    external: true
+```
+
 ## 8. docker stack
 
-stack 和 compose 作用大体相同，都能操纵 compose.yml 文件中定义的 services、volumes 、networks 资源
+docker stack 被定义为适用于生产环境的编排工具，强化了（复制集、 容器重启策略、回滚策略、服务更新策略）等生产特性；docker stack 几乎能做 docker-compose 所有的事情 （生产部署 docker stack 表现还更好），docker stack 是进阶 docker swarm 的必经之路，docker stack 可认为是单机上的负载均衡部署； 可认为是多节点集群部署（docker swarm）的特例。
 
-- docker-compose 更像是被定义为单机容器编排工具；
-
-- docker stack 被定义为适用于生产环境的编排工具，强化了（复制集、 容器重启策略、回滚策略、服务更新策略）等生产特性；docker stack 几乎能做 docker-compose 所有的事情 （生产部署 docker stack 表现还更好），docker stack 是进阶 docker swarm 的必经之路，docker stack 可认为是单机上的负载均衡部署； 可认为是多节点集群部署（docker swarm）的特例。
+其中，stack为项目名/栈名，组织和管理一组相互关联的服务，service为服务名，每个服务由一个或多个任务（task）组成，每个任务对应着运行中的容器。
 
 **常用命令**
 
 ```bash
-# 部署stack
-docker stack deploy -c stackFile路径 service名 --with-registry-auth  # -c 路径，--with-registry-auth 向swarm代理发送Registry认证详细信息
-# 查询stack列表
-docker stack ls
-# 查询stack服务列表
-docker stack services <stack_name>
-# 查询某个服务中的容器运行状态
-docker service ps <service_name>
-# 查询日志
-docker service logs --tail 1000 -f <service_name>
-# 删除stack
-docker stack rm <stack_name>
-# 重启某个服务
-docker service update --force <service_name>
-# 移除stack(下面所有的service会被移除)
-docker stack down xxx
+docker stack deploy -c stackFile路径 service名 --with-registry-auth  # 部署 stack，-c 路径，--with-registry-auth 向swarm代理发送Registry认证详细信息
+docker stack ls                       # 列出所有 stack
+docker stack services <stack_name>    # 查询 stack 的服务列表
+docker stack rm <stack_name>          # 删除 stack
+docker stack ps <stack_name>          # 查询 stack 的任务运行状态，和 docker service ps <service_name> 类似，它会将 stack 下的 所有 service 的任务状态列出来
+
+docker service create --name <service_name> --network <network_name> <image>      # 基于某个镜像创建一个服务，比如将服务添加到该网络中，实现使用服务名访问。
+docker service ls                     # 列出所有服务
+docker service ps <service_name>      # 查询服务中的任务运行状态。说明：任务和容器不是一回事，每个服务由一个或多个任务（task）组成，每个任务对应着运行中的容器。
+docker service logs --tail 1000 -f <service_name>   # 查询日志
+docker service update --force <service_name>        # 重启某个服务
+docker service rm <service_name>                    # 删除某个服务
+docker service inspect <service_name>               # 展示某个服务的详细信息
 ```
 
 ![image-20210517182851579](images/docker-stack.png)
@@ -353,104 +449,62 @@ docker stack down xxx
 
 ```yaml
 version: '3.2'
-
 services:
-  reverse_proxy:
-    image: dockersamples/atseasampleshopapp_reverse_proxy
-    ports:
-      - '80:80'
-      - '443:443'
-    secrets:
-      - source: revprox_cert
-        target: revprox_cert
-      - source: revprox_key
-        target: revprox_key
-    networks:
-      - front-tier
-
   database:
-    image: dockersamples/atsea_db
-    environment:
-      POSTGRES_USER: gordonuser
-      POSTGRES_DB_PASSWORD_FILE: /run/secrets/postgres_password
-      POSTGRES_DB: atsea
-    networks:
-      - back-tier
-    secrets:
-      - postgres_password
-    deploy:
-      placement:
-        constraints:
-          - 'node.role == worker'
-
-  appserver:
-    image: dockersamples/atsea_app
-    networks:
-      - front-tier
-      - back-tier
-      - payment
-    deploy:
-      replicas: 2 # 副本数
-      update_config:
-        parallelism: 2
-        failure_action: rollback
-      placement:
-        constraints:
-          - 'node.role == worker'
-      restart_policy: # 重启策略
-        condition: on-failure # 三个选项：none 、on-failure、any；默认为any，on-failure指以非0返回值退出，会重启
-        delay: 5s # 尝试重启的等待时间，默认为 0
-        max_attempts: 3 # 尝试重启的次数，默认一直重启，直到成功；如果重新启动在配置中没有成功 window，则此尝试不计入配置max_attempts 值。例如，如果 max_attempts 值为 2，并且第一次尝试重新启动失败，则可能会尝试重新启动两次以上。
-        window: 120s # 在确定一个重启是否成功前需要等待的窗口时间，指持续时间
-    secrets:
-      - postgres_password
-
-  visualizer:
-    image: dockersamples/visualizer:stable
+    image: mysql:5.7.31
     ports:
-      - '8001:8080'
-    stop_grace_period: 1m30s
+      - 3306:3306
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=db123456
     volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock'
+      - "./data:/var/lib/mysql"                 # 挂载数据
+      - "./conf/my.cnf:/etc/my.cnf"             # 挂载配置文件
+      - "./init:/docker-entrypoint-initdb.d/"   # 挂载初始化sql
+    command:
+      --default-authentication-plugin=mysql_native_password
     deploy:
+      replicas: 1                   # 制定容器数量
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "8"                 # 20%的内存可用处理时间
+          memory: 21024M            # 内存不超过1024M
       update_config:
-        failure_action: rollback
-      placement:
-        constraints:
-          - 'node.role == manager'
-
-  payment_gateway:
-    image: dockersamples/atseasampleshopapp_payment_gateway
-    secrets:
-      - source: staging_token
-        target: payment_token
+        parallelism: 1              # 每次启动一个容器一份服务
+        delay: 5s                   # 更新一组容器之间的等待时间
+        monitor: 10s                # 单次更新多长时间后没有结束则判定更新失败
+        max_failure_ratio: 0.1      # 更新时能容忍的最大失败率
     networks:
-      - payment
+      dev-net:
+        aliases:
+          - mysql   # 在该网络下，给服务起别名，同一个网络下的服务，可以直接通过别名来访问，如果不起别名，默认为服务名。
+  redis:
+    image: redis:5.0.7
+    ports:
+      - "6379:6379"
+    volumes:
+      - "/usr/local/redis/redis.conf:/etc/redis/redis.conf"
+      - "/usr/local/redis/data:/data"
+    command:
+      redis-server /etc/redis/redis.conf
     deploy:
-      update_config:
-        failure_action: rollback
-      placement:
-        constraints:
-          - 'node.role == worker'
-          - 'node.labels.pcidss == yes'
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          memory: 500M
+        reservations:
+          memory: 200M
+    networks:
+      dev-net:
+        aliases:
+          - redis.host
 
 networks:
-  front-tier:
-  back-tier:
-  payment:
+  dev-net:
     driver: overlay
-    driver_opts:
-      encrypted: 'yes'
-
-secrets:
-  postgres_password:
-    external: true
-  staging_token:
-    external: true
-  revprox_key:
-    external: true
-  revprox_cert:
-    external: true
 ```
 
 ## 9. 私有仓库（registry）

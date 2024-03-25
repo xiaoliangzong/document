@@ -822,6 +822,19 @@ show grants
 revoke privileges on databasename.tablename from 'username'@'host'
 ```
 
+### 8.1 解决密码错误的终极方案
+
+1. 修改配置文件，在 [mysqld] 后添加 skip-grant-tables，表示登录时跳过权限检查，此时登录不需要密码
+2. 重启 MySQL 服务：sudo systemctl restart mysqld
+3. 修改密码：set password for 'root'@'localhost'='password'; 如果报：ERROR 1290 (HY000): The MySQL server is running with the --skip-grant-tables option so it cannot execute this statement。则输入 flush privileges; 
+4. 然后再次输入修改密码命令
+5. 设置远程访问：GRANT ALL PRIVILEGES ON *.* TO 'root'@'%'IDENTIFIED BY 'password' WITH GRANT OPTION;
+6. 刷新权限，授权结束后，需要刷新权限：flush privileges;
+7. exit;
+8. 再把 my.ini 的 skip-grant-tables 删除或者注释掉
+9. 重启 MySQL：sudo systemctl restart mysqld
+10. 再次用新密码连接，成功！
+
 ## 10. 三大范式和 er 图
 
 **关系型数据库设计原则**
@@ -840,8 +853,6 @@ Entity-Relation 实体关系图；在需求当中，抽离出该项目当中所�
 - 使用矩形表示实体
 - 使用椭圆表示属性
 - 使用菱形表示实体之间关系 n\m 表示多,1 表示 1
-
-常用绘制 E-R 图的工具：微软 visio、亿图、EDraw、Smind
 
 ## 11. 索引
 

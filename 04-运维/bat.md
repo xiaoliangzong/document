@@ -4,6 +4,9 @@
 net stop 服务名
 
 net start 服务名
+
+# 删除服务（管理员身份运行）
+sc delete 服务名 
 ```
 
 ## 2. 解决端口占用

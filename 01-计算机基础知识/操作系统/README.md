@@ -2,6 +2,27 @@
 
 ## 1. OS介绍
 
+Windows x64
+
+Amazon Linux 2 ARM 64
+Amazon Linux 2 x64
+Amazon Linux x64
+Debian 10.0 x64
+Debian 11.0 x64
+Debian 9.2 x64
+macOS x64
+RedHat/CentOS 7.0 x64
+RedHat/CentOS 8.0 x64
+RedHat/CentOS 8.2 ARM 64
+Source (tgz)
+Source (zip)
+SUSE 12 x64
+SUSE 15 x64
+Ubuntu 18.04 ARM 64
+Ubuntu 18.04 x64
+Ubuntu 20.04 ARM 64
+Ubuntu 20.04 x64
+
 
 ## 2. 进程和线程
 
