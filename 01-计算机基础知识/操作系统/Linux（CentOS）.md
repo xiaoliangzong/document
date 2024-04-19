@@ -293,14 +293,20 @@ make                                # 编译和安装
 make install                        # 编译和安装， make install PREFIX=/usr/local/xxx可以替代./configure命令
 
 # 2. yum在线安装
+/etc/yum.repos.d/CentOS-Base.repo       # 镜像源地址
 yum -y install xxx # yum install 安装命令: -y所有的提示都为y，--installroot指定安装路径，--downloadonly只下载，不安装，默认下载路径：/var/cache/yum/x86_64/7/base/packages/，list查看所有安装列表，search搜索关键字对应的包
 yum -y update 包名							 # 升级
 yum list                                # 查询所有可用软件包列表
-yum grouplist                          # 列出所有可用的软件组列表
-/etc/yum.repos.d/CentOS-Base.repo      # yum源镜像仓库
+yum grouplist                           # 列出所有可用的软件组列表
 yum clean all     # 清理缓存
 yum makecache     # 重新生成yum缓存文件
-yum uodate        # 升级更新包
+yum update        # 升级更新包
+
+# 更换镜像源
+mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup             # 备份
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo    # 下载镜像源
+curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo    # 下载镜像源
+yum makecache                                                                             # 生成缓存
 
 # 3. 使用rpm包安装
 wget              # 获取rpm包，

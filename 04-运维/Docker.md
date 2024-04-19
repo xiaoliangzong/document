@@ -34,8 +34,8 @@ sudo rm -rf /var/lib/docker
 sudo yum install -y yum-utils
 # 3、设置镜像的仓库、更新yum软件包索引
 yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-yum makecache fast
-# 4、安装docker相关的源 docker-ce 社区 ee 企业版
+yum makecache
+# 4、安装docker相关的源 docker-ce 社区 ee 企业版，如果存在包冲突，可以使用 yum erase podman buildah 命令，从系统中卸载 Podman 和 Buildah的软件包
 yum install docker-ce docker-ce-cli containerd.io   # docker的默认工作路径：/var/lib/docker，--installroot=[file]指定安装位置
 # 5、启动docker
 systemctl start docker
