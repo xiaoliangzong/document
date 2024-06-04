@@ -242,6 +242,8 @@ http {
     default_type  application/octet-stream;     # 默认文件类型
     charset utf-8;                              # 默认编码
 
+    underscores_in_headers on;                  # 对于包含下划线（underscores）的请求头部，在默认情况下是不会被传递给后端的。这是因为在HTTP/1.1标准中，不允许使用下划线字符（RFC 7230）。
+
     #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
     #                  '$status $body_bytes_sent "$http_referer" '
     #                  '"$http_user_agent" "$http_x_forwarded_for"';

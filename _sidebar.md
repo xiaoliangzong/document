@@ -70,29 +70,15 @@
     - [Spring Security](05-Java/6.认证鉴权/Spring%20Security.md)
     - [OAuth2.0](05-Java/6.认证鉴权/OAuth2.0.md)
 
-  - <span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">接口文档</span>
-    - [Swagger](05-Java/7.接口文档/Swagger.md)
-    - [Swagger3](05-Java/7.接口文档/Swagger3.md)
-    - [OpenAPI](05-Java/6.接口文档/OpenAPI.md)
-    - [Knife4j](05-Java/7.接口文档/Knife4j.md)
 
-  - [<span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">消息队列</span>](05-Java/8.消息队列/)
-    - [RabbitMQ](05-Java/8.消息队列/RabbitMQ.md)
-    - [Kafka](05-Java/8.消息队列/Kafka.md)  
+    - [<span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">设计模式</span>](05-Java/设计模式/)
+      - [创建型](05-Java/设计模式/创建型.md)
+      - [结构型](05-Java/设计模式/结构型.md)
+      - [行为型](05-Java//设计模式/行为型.md)
 
-  - <span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">架构</span>
-
-    - [<span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">设计模式</span>](05-Java/9.架构/设计模式/)
-      - [创建型](05-Java/9.架构/设计模式/创建型.md)
-      - [结构型](05-Java/9.架构/设计模式/结构型.md)
-      - [行为型](05-Java/9.架构/设计模式/行为型.md)
-
-    - [<span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">微服务组件</span>](05-Java/9.架构/微服务/)
-      - [SpringCloudNetflix](05-Java/9.架构/SpringCloudNetflix.md) 
-      - [SpringCloudAlibaba](05-Java/9.架构/SpringCloudAlibaba.md) 
-
-    - [软件开发流程](05-Java/9.架构/软件开发流程.md)
-    - [架构图](05-Java/9.架构/架构图.md)    
+    - [<span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">微服务组件</span>](05-Java/微服务/)
+      - [SpringCloudNetflix](05-Java/SpringCloudNetflix.md) 
+      - [SpringCloudAlibaba](05-Java/SpringCloudAlibaba.md) 
 
   - <span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">其他</span>
 

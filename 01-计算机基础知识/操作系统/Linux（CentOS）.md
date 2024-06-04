@@ -433,8 +433,9 @@ systemctl enable httpd
 systemctl kill httpd
 ```
 
-## 11 
+## 11 常用命令及工具包
 
+### 11.1 netstat
 
 netstat 显示协议统计信息和当前 TCP/IP 网络连接，是一个监控TCP/IP网络的非常有用的工具
 
@@ -443,6 +444,14 @@ netstat 显示协议统计信息和当前 TCP/IP 网络连接，是一个监控T
 -n或--numeric：直接使用ip地址，而不通过域名服务器；
 -p或--programs：显示正在使用Socket的程序识别码和程序名称；
 
+### 11.2 bridge-utils
+
+ Linux 桥接网络设备的工具。Linux 桥接是一种将两个或多个网络接口连接起来的方式，使它们在逻辑上表现为单个网络接口。这在虚拟化环境和网络配置中很常见。
+
+```sh
+yum install -y bridge-utils      # 安装
+brctl show                       # 显示 Linux 桥接设备状态的命令
+```
 
 ## 11. 实战案例
 

@@ -137,7 +137,7 @@ Cookies.remove('name', { path: '' }) // 删除存了指定页面path的cookie
 
    - nodeJs 中包含 npm，安装 node.js 就会自动安装 npm
    - 更新 npm，node 自带的 npm 不是最新版本，需要更新：npm install -g npm
-   - 安装完之后，重写设置淘宝镜像：npm config set registry " https://registry.npm.taobao.org "
+   - 安装完之后，重写设置淘宝镜像：npm config set registry "https://registry.npmmirror.com"
    - 安装 vue-cli：npm install vue-cli -g
    - 检查 vue-cli 安装是否成功：vue list
    - 卸载 vue-cli：npm uninstall -g vue-cli
@@ -221,60 +221,3 @@ ES5：全浏览器都支持
 ## TypeScript
 
 微软的标准，通过 webpack 打包成 javascript；vue3.0 以上版本支持 typeScript
-
-## 解析图片方式
-
-### 以 base64 文件编码形式传输并显示前端
-
-```java
-BufferedImage bi = new BufferedImage(130, 48, BufferedImage.TYPE_INT_RGB);
-// 省略...
-FastByteArrayOutputStream os = new FastByteArrayOutputStream();
-
-try {
-   ImageIO.write(bufferedImage, "jpg", os);
-} catch (IOException e) {
-   return ResultVo.error(e.getMessage());
-}
-Map<String, Object> data = new HashMap<>(2);
-data.put("uuid", "uuid");
-// base64简单地说，它把一些 8-bit 数据翻译成标准 ASCII 字符，网上有很多免费的base64 编码和解码的工具
-data.put("img", Base64.getEncoder().encodeToString(os.toByteArray()));
-return ResultVo.success(data);
-```
-
-```js
-methods: {
-    getCode() {
-      getCodeImg().then(res => {
-        this.codeUrl = "data:image/gif;base64," + res.img;
-        // data表示取得数据的协定名称，image/png 是数据类型名称，base64 是数据的编码方法，逗号后面就是这个image/png文件base64编码后的数据。
-        this.loginForm.uuid = res.uuid;
-      });
-    },
-}
-
-```
-
-### 将流对象放入到 response 中
-
-```java
-//将图片输出
-ImageIO.write(image,"jpg",response.getOutputStream());
-
-window.URL.createObjectURL(response);
-
-<div class="login-code">
-   <img :src="codeUrl" @click="getCaptchaImage" class="login-code-img" />
-</div>
-
-// 获取验证码
-export function getCaptcha(){
-    return request({
-        url: '/captchaImage',
-        method: 'get',
-        responseType: 'blob'
-        // Blob对象表示不可变的类似文件对象的原始数据
-    })
-}
-```
