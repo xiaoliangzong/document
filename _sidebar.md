@@ -65,12 +65,6 @@
     - [Mybatis](05-Java/5.持久层框架/Mybatis.md)
     - [MybatisPlus](05-Java/5.持久层框架/MybatisPlus.md)
 
-  
-  - [<span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">认证鉴权</span>](05-Java/6.认证鉴权/)
-    - [Spring Security](05-Java/6.认证鉴权/Spring%20Security.md)
-    - [OAuth2.0](05-Java/6.认证鉴权/OAuth2.0.md)
-
-
     - [<span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">设计模式</span>](05-Java/设计模式/)
       - [创建型](05-Java/设计模式/创建型.md)
       - [结构型](05-Java/设计模式/结构型.md)
