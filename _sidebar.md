@@ -89,16 +89,8 @@
       - [Markdown](05-Java/其他/开发工具/markdown.md)
       - [Sonar](05-Java/其他/开发工具/Sonar.md)
 
-    - <span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">定时器</span>
-      - [Quartz](05-Java/其他/定时器/Quartz.md)
-      - [PowerJob](05-Java/其他/定时器/PowerJob.md)
-
     - [手写连接池](05-Java/其他/手写连接池.md)
     - [图片识别技术](05-Java/其他/图片识别技术.md)
-
-- **go**
-
-  - [README](06-go/)
 
 - **其他**
 
