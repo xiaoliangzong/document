@@ -1,11 +1,13 @@
 # IntelliJ IDEA
 
+
+
 ## 1 常用插件
 
 1. Lombok（简化代码）
 2. Alibaba Java Coding Guidelines（编码规范检查）
 3. Json Viewer
-4. Eclipse Code Formatter（统一代码格式化，需要加载配置文件）
+4. Eclipse Code Formatter/Adapter for Eclipse Code Formatter（统一代码格式化，需要加载配置文件）
 5. Resource Bundle Editor（国际化文件编写）
 6. EnvFile（环境文件配置）
 

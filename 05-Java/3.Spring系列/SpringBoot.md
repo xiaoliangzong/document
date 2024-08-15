@@ -800,9 +800,12 @@ public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
 
 ### 7.1 @PostConstruct 注解
 
-用于批注在 bean 初始化后立即运行一次的方法。请记住，即使没有任何注入，带注释的方法也将由Spring执行。
+Spring 容器会在 bean 的依赖注入完成后（即属性设置完成后），调用被该注解标记的方法进行初始化操作。
 
 ### 7.2 InitializingBean 接口
+
+Spring 容器会调用其 afterPropertiesSet() 方法来进行初始化。
+
 ### 7.3 ApplicationListener
 ### 7.4 @Bean和initMethod 属性
 ### 7.5 构造函数注入

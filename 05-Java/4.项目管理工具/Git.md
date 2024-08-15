@@ -28,7 +28,8 @@ git branch 分支名                   # 1. 创建分支
 git checkout 分支名                 # 2. 切换分支
 git checkout -b 分支名              # 3. 创建并切换分支（等同于步骤1、2）
 git branch -d 分支名                # 4. 删除分支，-D表示强制删除分支
-git push origin --delete 分支名     # 5. 删除远端分支
+git branch -d -r 分支名             # 5. 删除本地对远程分支的引用。在本地删除已经不存在的远程分支的记录。git fetch --prune 这个命令会自动清理本地仓库中所有不再存在于远程仓库的分支引用。
+git push origin -d 分支名           # 6. 删除远端分支
 git branch --set-upstream-to=origin/<远端分支名> <本地分支名>     # 6. 本地分支和远端分支相关联，--set-upstream-to等同于-u
 
 

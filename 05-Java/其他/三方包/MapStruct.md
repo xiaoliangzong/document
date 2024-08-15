@@ -50,6 +50,13 @@ IntelliJ IDEA 中下载 MapStruct Support 插件，安装完后重启Idea。插�
         <artifactId>mapstruct</artifactId>
         <version>${mapstruct.version}</version>
     </dependency>
+    <!-- 弃用，所包括的功能都迁移至 mapstruct -->
+    <!-- Deprecated MapStruct artifact containing annotations to be used with JDK 8 and later Relocated to mapstruct -->
+    <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct-jdk8</artifactId>
+        <version>1.5.5.Final</version>
+    </dependency>
     <!-- 注解处理器，用来处理和生成映射代码的注解处理器。需要在项目的构建配置中添加MapStruct-Processor作为依赖，以便在编译过程中触发注解处理器的执行。 -->
     <dependency>
         <groupId>org.mapstruct</groupId>

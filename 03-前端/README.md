@@ -1,20 +1,29 @@
-## 跨域
+# Web
 
-> 跨域是指浏览器不能执行其他网站的脚本，它是由浏览器的同源策略（所谓同源是指域名、协议、端口均相同）造成的，是浏览器对 JavaScript 施加的安全限制。当协议、域名、端口号，有一个或多个不同时，前端请求后端服务器接口的情况称为跨域访问。
->
-> localhost 和 127.0.0.1 虽然都指向本机，但也属于跨域
+## 1. Web 前端三剑客
+
+| 三剑客     | 说明   | 备注                       |
+| ---------- | ------ | -------------------------- |
+| HTML       | 结构层 | 从语义的角度，描述页面结构 |
+| CSS        | 样式层 | 从审美的角度，美化页面     |
+| JavaScript | 行为层 | 从交互的角度，提升用户体验 |
+
+## 2. 跨域
+
+跨域是指浏览器不能执行其他网站的脚本，它是由浏览器的同源策略（所谓同源是指域名、协议、端口均相同）造成的，是浏览器对 JavaScript 施加的安全限制。当协议、域名、端口号，有一个或多个不同时，前端请求后端服务器接口的情况称为跨域访问。
+
+localhost 和 127.0.0.1 虽然都指向本机，但也属于跨域
 
 同源策略限制
 
 - 无法读取非同源网页的 Cookie、LocalStorage 和 IndexedDB
 - 无法接触非同源网页的 DOM
 - 无法向非同源地址发送 AJAX 请求
- 
+
 跨域理解的误区
 
 1.  误区： 同源策略限制下，访问不到后台服务器的数据，或访问到后台服务器的数据后没有返回；
 2.  正确： 同源策略限制下，可以访问到后台服务器的数据，后台服务器会正常返回数据，而被浏览器给拦截了。
-
 
 解决方式
 
@@ -23,32 +32,19 @@
 
 java 后端实现 CORS 跨越请求的方式
 
-1. 创建新的 CorsFilter Bean对象
-2. 重写 WebMvcConfigurer 接口，实现addCorsMappings()方法
+1. 创建新的 CorsFilter Bean 对象
+2. 重写 WebMvcConfigurer 接口，实现 addCorsMappings()方法
 3. 使用注解 @CrossOrigin
 4. 手动设置响应头 (HttpServletResponse)
 5. 自定义 web filter 实现
 
-前两种方式属于全局 CORS 配置，后两种属于局部 CORS配置。如果使用了局部跨域是会覆盖全局跨域的规则，所以可以通过 @CrossOrigin 注解来进行细粒度更高的跨域资源控制。
-
+前两种方式属于全局 CORS 配置，后两种属于局部 CORS 配置。如果使用了局部跨域是会覆盖全局跨域的规则，所以可以通过 @CrossOrigin 注解来进行细粒度更高的跨域资源控制。
 
 FilterRegistrationBean 是 Spring Framework 提供的一个类，用于注册和配置 Filter 的工具类。通过 FilterRegistrationBean 实例注册，该方法能够设置过滤器之间的优先级。
 
+## 3. Cookie、Session
 
-
-
-
-## var const let 区别
-
-1. const： 不可以修改，必须初始化
-2. var： 可以修改，不初始化的话，默认位 undefined
-3. let： 块级作用域，函数内部使用 let 定义后，对函数外部无影响
-
-## Cookie、SessionStorage 和 LocalStorage 区别
-
-### cookie 和 session
-
-**都是用来跟踪浏览器用户身份的会话方式**
+cookie 和 session 都是用来跟踪浏览器用户身份的会话方式
 
 1. cookie 失效
    - 如果不在浏览器中设置过期时间，cookie 被保存在内存中，生命周期随浏览器的关闭而结束，这种 cookie 简称会话 cookie；
@@ -72,152 +68,137 @@ FilterRegistrationBean 是 Spring Framework 提供的一个类，用于注册和
    - 安全性：针对 cookie 所存在的攻击：Cookie 欺骗，Cookie 截获；session 的安全性大于 cookie
    - 缺点：cookie 大小受限、用户可以禁用，使功能受限、安全性低、每次访问都要传 cookie 给服务器，浪费带宽；session 保存的东西越多，占用服务器内存越大、依赖于 cookie、过度使用导致代码不可读不好维护。
 
-### HTML5 新增加的 WebStorage
+## 4. WebStorage
 
-> WebStorage 是 HTML5 新增的本地存储解决方案之一，但并不是为了取代 cookie 而制定的标准，cookie 作为 HTTP 协议的一部分用来处理客户端和服务器通信是不可或缺的。WebStorage 的意图在于解决本来不应该 cookie 做，却不得不用 cookie 的本地存储。WebStorage 存储数据大小一般都是 5MB；保存在客户端，不与服务器进行交互通信；只能存储字符串类型，对于复杂的对象可以使用 ECMAScript 提供的 JSON 对象的 stringify 和 parse 来处理
+WebStorage 是 HTML5 新增的存储数据的方案，比使用 cookie 更加直观。它提供了访问特定域名下的会话存储或本地存储的功能，如果是会话存储，则使用 sessionStorage，如果是本地存储(硬盘)，则使用 localStorage。
+
+它并不是为了取代 cookie 而制定的标准，cookie 作为 HTTP 协议的一部分用来处理客户端和服务器通信是不可或缺的。WebStorage 的意图在于解决本来不应该 cookie 做，却不得不用 cookie 的本地存储。WebStorage 存储数据大小一般都是 5MB；保存在客户端，不与服务器进行交互通信；只能存储字符串类型，对于复杂的对象可以使用 ECMAScript 提供的 JSON 对象的 stringify 和 parse 来处理
+
+localStorage 和 sessionStorage 都以键值对（key、value）的形式存储。注意: 这不是 javaScript 语言本身的特性，是 BOM 的东西。
+
+- setItem (key, value) —— 保存数据，以键值对的方式储存信息。
+- getItem (key) —— 获取数据，将键值传入，即可获取到对应的 value 值。
+- removeItem (key) —— 删除单个数据，根据键值移除对应的信息。
+- clear () —— 删除所有的数据
+- key (index) —— 获取某个索引的 key
 
 1. sessionStorage
+
    - 将数据保存在 session 对象中，
    - 临时保存
    - 获取方式：window.sessionStorage
    - 常用于敏感账号一次性登录；
-2. localStorage
 
+2. localStorage
    - 将数据保存在客户端本地的硬件设备，即使浏览器关闭了，该数据仍然存在，下次打开浏览器访问网站时可以继续使用
    - 永久保存，除非主动删除，否则数据永远不会消失
    - 获取方式：window.localStorage
-   - 常用于长期登录（+判断用户是否已登录），适合长期保存在本地的数据
+   - 常用于长期登录（判断用户是否已登录），适合长期保存在本地的数据
 
-3. WebStorage 提供了一些方法，数据操作比 cookie 方便
+## 5. Node.js
 
-   - setItem (key, value) —— 保存数据，以键值对的方式储存信息。
-   - getItem (key) —— 获取数据，将键值传入，即可获取到对应的 value 值。
-   - removeItem (key) —— 删除单个数据，根据键值移除对应的信息。
-   - clear () —— 删除所有的数据
-   - key (index) —— 获取某个索引的 key
+Node.js 是一个免费、开源、跨平台的 JavaScript 运行时环境，它让开发人员能够创建服务器、Web 应用、命令行工具和脚本。
 
-### vue 项目使用 js-cookie
+Node.js 发布于 2009 年 5 月，由 Ryan Dahl 开发，是一个基于 Chrome V8 引擎的 JavaScript 运行环境，使用了一个事件驱动、非阻塞式 I/O 模型， 让 JavaScript 运行在服务端的开发平台，它让 JavaScript 成为与 PHP、Python、Perl、Ruby 等服务端语言平起平坐的脚本语言。
 
-> js-cookie 是 cookie 存储的一个 js 的 API，根据官网描述其优点有：适用所有浏览器、接受任何字符、经过任何测试没什么 bug、支持 CMD 和 CommonJS、压缩之后非常小，仅 900 个字节
+它相当于 java 体系中对应的 jdk。
 
-**使用步骤**
+NPM 的全称是 Node Package Manager，是一个 NodeJS 包管理和分发工具，已经成为了非官方的发布 Node 模块（包）的标准。 [1]
 
-1. 安装： npm install js-cookie -S
-2. 在主入口 main.js 全局引入：import Cookies from 'js-cookie'
-3. 使用
+### 5.1 Node 可以做什么
 
-```js
-//1、存cookie  set方法支持的属性有 ：  expires->过期时间    path->设置为指定页面创建cookie   domain-》设置对指定域名及指定域名的子域名可见  secure->值有false和true ,表示设置是否只支持https,默认是false
-Cookies.set('key', 'value') //创建简单的cookie
-Cookies.set('key', 'value', { expires: 27 }) //创建有效期为27天的cookie
-Cookies.set('key', 'value', { expires: 17, path: '' }) //可以通过配置path,为当前页创建有效期7天的cookie
+1. 开发桌面应用程序
+2. 开发服务器应用程序
 
-//2、取cookie
-Cookies.get('key') // 获取指定key 对应的value
-Cookies.get() //获取所有value
+## 6. 前端构建工具
 
-//3、删除cookie
-Cookies.remove('key') //删除普通的cookie
-Cookies.remove('name', { path: '' }) // 删除存了指定页面path的cookie
+在浏览器支持 ES 模块之前，JavaScript 并没有提供原生机制让开发者以模块化的方式进行开发。这也正是我们对 “打包” 这个概念熟悉的原因：使用工具抓取、处理并将我们的源码模块串联成可以在浏览器中运行的文件。
 
-/* 注意：如果存的是对象，如： userInfo = {age:111,score:90};  Cookie.set('userInfo',userInfo)取出来的userInfo需要进行JSON的解析,
-解析为对象：let res = JSON.parse( Cookie.get('userInfo') );当然你也可以使用：Cookie.getJSON('userInfo');
-*/
-```
+使用模块化开发主要面临两个问题：
 
-## node.js npm webpack
+1. 浏览器兼容性问题，
+2. 模块化过多时，加载问题。
 
-1. 概念
+使用构建工具，对代码进行打包，将多个模块打包成一个文件。这样一来及解决了兼容性问题，又解决了模块过多的问题。
 
-   - npm：nodejs 的包管理工具，相当于 maven 中的包依赖管理；
-   - node.js：javaScript 包管理工具，是 js 的服务执行环境，是 js 后端运行平台，相当于 java 体系中对应的 jdk，是三个里面最基础的；
-   - webpack： 是基于 nodejs 实现的，前端工程化打包工具，是一种模块化的解决方案，是模块加载器兼打包工具(模块打包工具)，它能够把各种资源作为模块来处理和使用，主要作用打包、压缩、合并、按序加载；相当于 maven 中工程自动化；
+### 6.1 Webpack
 
-2. 安装详解：
+使用 Webpack 打包项目时，会把相关的资源(代码、样式等)生成多个 bundle 文件，再在 HTML 中通过 `<script>` 标签引入这些 budle 文件进行程序接下来的运行。当代码越来越多的时候，需要打包的模块也越来越多，Webpack 得找所有相关的依赖图，这个过程意味着消耗更多的时间。
 
-   - nodeJs 中包含 npm，安装 node.js 就会自动安装 npm
-   - 更新 npm，node 自带的 npm 不是最新版本，需要更新：npm install -g npm
-   - 安装完之后，重写设置淘宝镜像：npm config set registry "https://registry.npmmirror.com"
-   - 安装 vue-cli：npm install vue-cli -g
-   - 检查 vue-cli 安装是否成功：vue list
-   - 卸载 vue-cli：npm uninstall -g vue-cli
-   - 查看版本：vue -V
-   - 安装 3.x 以上版本：npm install -g @vue/cli（保证 node 版本>=8.9，npm 更新最新）
-   - 查看所有版本号：npm view vue-cli versions --json
-   - npm install webpack -g
-   - npm install webpack-cli -g
-   - 检查安装是否成功：webpack -v
+webpack 适用于大型，复杂的项目，它可以处理多种不同类型的文件，并根据需求进行解析、编译和打包。webpack 唯一不好的就是配置比较复杂，需要花费一定的时间和精力进行学习和调试。
 
-## css 预处理语言 Sass(Scss) Less
+它相当于 maven 中工程自动化。
 
-> 用一种专门的编程语言，进行 Web 页面样式设计，再通过编译器转化为正常的 CSS 文件，以供项目使用
+### 6.2 ESBuild
 
-**区别**
+Go 语言编写的快速、轻量级的 JavaScript/TypeScript 构建工具，比以 JavaScript 编写的打包器预构建依赖快 10-100 倍。适用于需要高性能构建的场景。
 
-1. Less 环境比 Sass 简单，Sass 的安装需要安装 Ruby 环境，Less 基于 JavaScrip，是需要引入 Less.js 来处理代码输出 css 到浏览器，也可以在开发环节使用 Less，然后编译成 css 文件，直接放在项目中
+### 6.3 Rollup
 
-2. Less 使用比 Sass 简单，Less 并没有裁剪 CSS 原有的特性，而是在现有 CSS 语法的基础上，为 CSS 加入程序式语言的特性。只要你了解 CSS 基础就可以很容易上手
+主要用于打包 JavaScript 模块，支持 ES 模块和插件。生成的打包文件较小，适合构建库和组件。
 
-3. 从功能出发，Sass 较 Less 略强大一些，Sass 有变量和作用域、函数、进程控制、数据结构
+### 6.4 Vite
 
-4. Less 与 Sass 处理机制不一样，前者是通过客户端处理的，后者是通过服务端处理，相比较之下前者解析会比后者慢一点
+Vite 基于浏览器原生 ES 模块的原生支持，通过服务端渲染和快速构建的方式实现快速启动项目和即时热更新，主要用于开发阶段快速启动项目和实现即时热更新。
 
-**语法的共性**
+在本地能更快的根本原因，是借用了浏览器原生 ESM 能力，从而跳过了生成 bundle 的时间，再加上能够不依赖第三方插件将编译结果缓存，而且 esbuild 自身的也有着更快的运行速度，从而实现了 Vite 快速的冷启动。
 
-1. 混入(Mixins)——class 中的 class；
-2. 参数混入——可以传递参数的 class，就像函数一样；
-3. 嵌套规则——Class 中嵌套 class，从而减少重复的代码；
-4. 运算——CSS 中用上数学；
-5. 颜色功能——可以编辑颜色；
-6. 名字空间(namespace)——分组样式，从而可以被调用；
-7. 作用域——局部修改样式；
-8. JavaScript 赋值——在 CSS 中使用 JavaScript 表达式赋值。
+本地启动一个 Vite 项目时，Server 在一开始的时候就启动，而不是找到所有依赖打完包再启动。Vite 启动后再去加载对应的文件，主要有一下的特点：
 
-**安装使用**
+- 基于浏览器原生 ES 模块的支持
+- 即时编译（Instant Compilation）
+- esbuild 预构建依赖
 
-```js
-// 1.安装
-//推荐版本
-"node-sass": "^4.12.0"和"sass-loader": "^8.0.2",
-sass-loader 7.3.1和node-sass 4.14.1
+Vite 适合于小型项目或者需要快速原型开发的场景，提供了更加优秀的开发体验和性能。
 
-npm install node-sass --save-dev
-npm install sass-loader --save-dev
-npm install less less-loader --save-dev
-// 管理员身份运行
-npm install --global --production windows-build-tools
+在生产环境下，Webpack 和 Vite 的打包，构建时间就没有这么大的区别了，因为在生产环境下 Vite 仍需要通过 Rollup 将代码打包。主要是基于以下几点考虑：
 
-npm i node-sass@4.12.0 --sass_binary_site=https://npm.taobao.org/mirrors/node-sass/
-// 2.使用：通常会在项目里创建一个variable.scss文件，里边定义一些公共的样式，可以是单独的变量、mixin混入（类似函数）
-// 为了不需要在每个页面引用，就定义全局变量，需要在vue.config.js中引用（也可以在每个文件的style标签中单独引用scss文件）
+1. 兼容性：尽管现代浏览器对 ESM 模块有很好的支持，但在生产环境中仍然需要考虑到旧版浏览器的兼容性。为了确保应用在所有浏览器中都能正常运行，需要将 ESM 模块转换成兼容性更好的 JavaScript 代码，通常是通过打包工具进行转换和优化。
+2. 性能优化：在生产环境中，需要对代码进行一些性能优化，如代码压缩、合并、分割等，以减小代码体积、加快页面加载速度。通过打包工具，可以将多个模块合并成一个或多个 bundle，并对代码进行压缩和混淆，以减小文件体积。
+3. 资源管理：除了 JavaScript 代码外，现代的前端应用还包含许多其他类型的资源，如样式表、图片、字体等。打包工具可以帮助管理这些资源，将它们进行优化、压缩，并生成适当的 URL 地址，以便在生产环境中有效地加载和使用这些资源。
+4. 部署和发布：在生产环境中，需要将应用部署到服务器上，并且通常会对代码进行一些配置和优化。通过打包工具，可以方便地生成部署所需的静态文件，并进行一些配置，如路径设置、缓存控制等，以便于部署和发布应用。
 
-<style lang="scss" scoped>
-import '@/assets/scss/variable.scss'
-</style>
+## 7. 前端包管理工具
 
-css: {
-  loaderOptions: {    // 向 CSS 相关的 loader 传递选项
-      scss: {         // 这里的选项会传递给sass-loader
-          prependData: `@import "@/assets/scss/variables.scss";`
-      },
-  }
-}
-```
+### 7.1 npm
 
-## javascript，原生 js，是基于标准规范 ECMAScript 开发，也称 ES
+npm（Node Package Manager）用于管理 JavaScript 项目的依赖包，提供包的安装、更新和管理功能。
 
-ES6：常用，当前主流版本，设计思想是尽量模块化，使编译时就能确定模块的依赖关系，以及输出和输入的变量；webpack 打包成为 ES5 支持！
-ES5：全浏览器都支持
+它相当于 maven 中的包依赖管理；
 
-1. jQuery 框架：简化 DOM 操作，
-2. Angular js：Google 收购的前端框架，java 开发者开发，将 java 的 mvc 模型搬到了前端，增加了模块化开发理念，与微软合作，采用 TypeScript 开发
-3. React：Facebook 出品，虚拟 DOM，利用内存。
-4. Vue：一款渐进式 javaScript 框架，用于构建用户界面（视图层），集成 Angular 和 REact 优点（模块化 mvvm-异步通信 和虚拟 DOM 技术），Vue 边界明确，只是为了处理 DOM，不具备通信能力，因此需要额外的通信框架和服务器交互，可以使用 Axios 或者 jQuery 的 ajax
-5. Axios：前端通信框架
-6. 常用的 UI 框架：bootstrap、ElementUI、LayUI
-7. umy-ui：一个基于 vue 的 PC 端表格 UI 库,解决万级数据渲染卡顿问题,过万数据点击全选卡顿,等等问题
-8. jQueryEasyUI： 是一种基于 jQuery 的用户界面的插件的集合，使用 easyui 你不需要写很多代码，你只需要通过编写一些简单 HTML 标记，就可以定义用户界面；jQueryEasyUI 是依赖 jQuery 的，而 jQuery 只是依赖于原生 javaScript，两个使用场景不同，对应的关系就如 vue 和 elementUI 的关系。
+主要用途：
 
-## TypeScript
+- 管理各种 JavaScript 库、工具和插件，如 React、Lodash 等。
+- 管理 Node.js 的库和工具，例如 Express、Mongoose 等。
+- 管理前端构建工具、开发工具和其他资源，例如打包工具（如 Webpack、Rollup）、任务运行器（如 Gulp、Grunt）、CSS 预处理器等。
+- 安装命令行工具，例如 Create React App、Angular CLI、Vue CLI 等。
 
-微软的标准，通过 webpack 打包成 javascript；vue3.0 以上版本支持 typeScript
+安装详解：
+
+- nodeJs 中包含 npm，安装 node.js 就会自动安装 npm
+- 更新 npm，node 自带的 npm 不是最新版本，需要更新：npm install -g npm
+- 安装完之后，重写设置淘宝镜像：npm config set registry "https://registry.npmmirror.com"
+- 安装 vue-cli：npm install vue-cli -g
+- 检查 vue-cli 安装是否成功：vue list
+- 卸载 vue-cli：npm uninstall -g vue-cli
+- 查看版本：vue -V
+- 安装 3.x 以上版本：npm install -g @vue/cli（保证 node 版本>=8.9，npm 更新最新）
+- 查看所有版本号：npm view vue-cli versions --json
+- npm install webpack -g
+- npm install webpack-cli -g
+- 检查安装是否成功：webpack -v
+
+### 7.2 yarn
+
+yarn 是由 Facebook、Google、Exponent 和 Tilde 联合推出了一个新的 JS 包管理工具，yarn 是为了弥补 npm 的一些缺陷而出现的。
+
+## 8. UI 框架
+
+1. LayUI：是一款采用自身模块规范编写的前端 UI 框架，遵循原生 HTML/CSS/JS 的书写与组织形式，门槛极低，拿来即用。
+2. ElementUI：是饿了么前端开源维护的 Vue UI 组件库。
+3. umy-ui：一个基于 vue 的 PC 端表格 UI 库，解决万级数据渲染卡顿问题，过万数据点击全选卡顿等问题
+4. jQueryEasyUI： 是一种基于 jQuery 的用户界面的插件的集合，使用 easyui 你不需要写很多代码，你只需要通过编写一些简单 HTML 标记，就可以定义用户界面；jQueryEasyUI 是依赖 jQuery 的，而 jQuery 只是依赖于原生 javaScript，两个使用场景不同，对应的关系就如 vue 和 elementUI 的关系。
+5. Bootstrap：一个流行的前端框架，提供响应式的 HTML、CSS 和 JavaScript 组件。
+6. Angular js：Google 收购的前端框架，java 开发者开发，将 java 的 mvc 模型搬到了前端，增加了模块化开发理念，与微软合作，采用 TypeScript 开发
+7. React：Facebook 出品，虚拟 DOM，利用内存。
+8. Vue.js：一款渐进式 javaScript 框架，用于构建用户界面（视图层），集成 Angular 和 REact 优点（模块化 mvvm-异步通信 和虚拟 DOM 技术），Vue 边界明确，只是为了处理 DOM，不具备通信能力，因此需要额外的通信框架和服务器交互，可以使用 Axios 或者 jQuery 的 ajax

@@ -1,8 +1,8 @@
-## 1. docsify 文档网站生成器
+# docsify
 
-说明：该文档就是基于 docsify 搭建的，配置简单，无需编译，只需要会 markdown 语法即可，详细配置可参考项目：[https://github.com/xiaoliangzong/document.git](https://github.com/xiaoliangzong/document.git)
+基于 docsify 搭建的，配置简单，无需编译，只需要会 markdown 语法即可，详细配置可参考项目：[https://github.com/xiaoliangzong/document.git](https://github.com/xiaoliangzong/document.git)
 
-**使用步骤：**
+## 使用步骤
 
 ```shell
 # 全局安装

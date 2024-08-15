@@ -541,6 +541,22 @@ public class ImportSee implements ImportSelector {
 // mybatis中的@MapperScan注解，就是基于这种方式实现注入Spring IOC容器的。
 ```
 
+**ConditionalOnProperty**
+
+用于根据应用程序的配置属性来决定是否应该创建一个 bean 或者是否应该加载一个配置类。这个注解通常用于根据配置灵活地决定某些 bean 的创建和加载行为。
+
+havingValue 属性定义了配置属性的预期值（expected value）。当使用 @ConditionalOnProperty 注解时，它会检查指定的配置属性是否存在，并且是否等于指定的值。
+
+- 属性设置了一个非空字符串（通常是一个期望的值），那么条件仅在该属性的值等于 havingValue 时才成立。
+- 属性没有指定，则意味着只要配置属性存在且不等于 false 就满足条件。
+
+matchIfMissing 属性指定了当配置属性没有设置时的匹配行为。默认情况下，它的值为 false。
+
+- matchIfMissing 设置为 true，并且配置中不存在该属性，则条件也会视作成立，即条件匹配成功。
+- matchIfMissing 设置为 false，而配置中又不存在该属性，则条件判定不成立，可能会导致相应的 bean 或配置类不会被创建或加载。
+
+matchIfMissing 设置为 false，配置文件中没有该属性，但是properties配置了默认值，该条件也不成立。
+
 ## 6. Spring 事务
 
 事务指逻辑上的一组操作，组成这组操作的各个单元，要不全部成功，要不全部不成功。

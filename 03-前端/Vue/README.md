@@ -325,3 +325,33 @@ background: red !important; //自定义颜色
 
 1. RSA: JSEncrypt，密钥对生成 http://web.chacuo.net/netrsakeypair
 2. AES/DES 加密解密：crypto-js.js
+
+
+### vue 项目使用 js-cookie
+
+> js-cookie 是 cookie 存储的一个 js 的 API，根据官网描述其优点有：适用所有浏览器、接受任何字符、经过任何测试没什么 bug、支持 CMD 和 CommonJS、压缩之后非常小，仅 900 个字节
+
+**使用步骤**
+
+1. 安装： npm install js-cookie -S
+2. 在主入口 main.js 全局引入：import Cookies from 'js-cookie'
+3. 使用
+
+```js
+//1、存cookie  set方法支持的属性有 ：  expires->过期时间    path->设置为指定页面创建cookie   domain-》设置对指定域名及指定域名的子域名可见  secure->值有false和true ,表示设置是否只支持https,默认是false
+Cookies.set("key", "value"); //创建简单的cookie
+Cookies.set("key", "value", { expires: 27 }); //创建有效期为27天的cookie
+Cookies.set("key", "value", { expires: 17, path: "" }); //可以通过配置path,为当前页创建有效期7天的cookie
+
+//2、取cookie
+Cookies.get("key"); // 获取指定key 对应的value
+Cookies.get(); //获取所有value
+
+//3、删除cookie
+Cookies.remove("key"); //删除普通的cookie
+Cookies.remove("name", { path: "" }); // 删除存了指定页面path的cookie
+
+/* 注意：如果存的是对象，如： userInfo = {age:111,score:90};  Cookie.set('userInfo',userInfo)取出来的userInfo需要进行JSON的解析,
+解析为对象：let res = JSON.parse( Cookie.get('userInfo') );当然你也可以使用：Cookie.getJSON('userInfo');
+*/
+```
