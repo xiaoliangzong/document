@@ -380,4 +380,4 @@ public abstract ZuulFilter implements IZuulFilter{
    - 异常处理：一般会在 error 类型和 post 类型过滤器中结合来处理。
    - 服务调用时长统计：pre 和 post 结合使用
 
-![Eureka](../../public/images/Java/SpringCloud/springcloud-eureka.png)
+![Eureka](./images/springcloud-eureka.png)

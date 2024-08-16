@@ -103,8 +103,6 @@ Node.js 发布于 2009 年 5 月，由 Ryan Dahl 开发，是一个基于 Chrome
 
 它相当于 java 体系中对应的 jdk。
 
-NPM 的全称是 Node Package Manager，是一个 NodeJS 包管理和分发工具，已经成为了非官方的发布 Node 模块（包）的标准。 [1]
-
 ### 5.1 Node 可以做什么
 
 1. 开发桌面应用程序
