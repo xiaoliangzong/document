@@ -285,6 +285,10 @@ pgrep命令：以名称为依据从运行进程队列中查找进程，并显示
 
 > /opt：用户级的程序目录，可以理解为 D:/Software，一般三方大型软件安装在该目录下。
 
+RPM(Red Hat Package Manager)，是基于Red hat的Linux Distribution的包管理系统。
+
+rpm包主要用于redhat及分支如redhat，centos，Fedora等，而deb包主要用于debian及分支如debian，ubuntu等。
+
 ```sh
 # 1. 使用压缩包安装
 tar -zxvf xxx.tar.gz
@@ -451,6 +455,19 @@ netstat 显示协议统计信息和当前 TCP/IP 网络连接，是一个监控T
 ```sh
 yum install -y bridge-utils      # 安装
 brctl show                       # 显示 Linux 桥接设备状态的命令
+```
+
+### 11.3 dos2unix
+
+linux 运行 sh 脚本的时候，出现了如下错误：
+
+$'\r': 未找到命令
+
+未预期的符号 `$'{\r'' 附近有语法错误
+
+```sh
+sudo apt-get install dos2unix
+dos2unix hello.sh
 ```
 
 ## 11. 实战案例

@@ -778,6 +778,11 @@ public class SaticScheduleTask {
 // 通过将cron对象数据持久化，调用的时候，获取时间周期。
 @Override
 public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+     ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+    threadPoolTaskScheduler.setPoolSize(POOL_SIZE);
+    threadPoolTaskScheduler.setThreadNamePrefix("scheduled-task-pool-");
+    threadPoolTaskScheduler.initialize();
+    taskRegistrar.setTaskScheduler(threadPoolTaskScheduler);
     taskRegistrar.addTriggerTask(
         //1.添加任务内容(Runnable)
         () -> System.out.println("执行动态定时任务: " + LocalDateTime.now().toLocalTime()),
@@ -873,6 +878,8 @@ th:src 替换资源 <script type="text/javascript" th:src="@{index.js}"></script
    - `使用 Validation 验证时如果 Group 不写，默认为 Default.class（接口），如果其他字段想使用默认的验证，则需要自定义的Group继承Default接口，或者每个都写清楚`
 
 ![validation](./images/SpringBoot-validation.png)
+
+3. 如果接口为post请求，参数为List<T>, 则controller类上需要使用@Validate注解，方法参数上使用@Valid注解
 
 **快速失败 Fail Fast 模式配置**
 

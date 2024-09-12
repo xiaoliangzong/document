@@ -44,3 +44,8 @@ mybatis:
   type-handlers-package: com.fp.virtualplant.common.handler
 ```
 
+
+## 3. 更新 null 值不生效
+
+参考链接：https://www.jb51.net/program/319865pf2.htm
+
