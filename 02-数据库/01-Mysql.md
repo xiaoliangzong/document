@@ -1,8 +1,8 @@
-## 1. 安装（5.7.31）
+## 1. 安装
 
 ### 1.1 windows(zip)
 
-windows 系统下 mysql 安装有两种方式: msi 直接安装和 zip 解压缩安装，本章节详细讲解 zip 包方式
+windows 系统下 mysql 常用的安装方式有两种：msi 直接安装和 zip 解压缩安装，msi 安装较为简单，一步一步点下去即可。本文档详细讲解 zip 包安装的方式。
 
 1. 解压，在根目录下新建 my.ini 配置文件
 2. 管理员身份运行进入 cmd 命令行，然后进入 bin 目录，执行初始化命令：mysqld --initialize-insecure --user=mysql --console
@@ -11,17 +11,15 @@ windows 系统下 mysql 安装有两种方式: msi 直接安装和 zip 解压缩
 5. 启动 net start [mysql]
 6. 登录后修改密码
 
-> **说明：**
->
-> - 初始化时，可以使用命令（mysqld --verbose --help）查看参数配置，--initialize-insecure 标识初始化时创建 root 用户，无密码
-> - 启动/停止服务命令：net start/stop [服务名]
-> - 如果使用 zip 包安装多个版本 mysql，则第一个安装之后，不需要设置环境变量，否则第二次执行 mysqld 初始化时，不知道使用哪个 mysqld；如果第二个版本的安装成功，但启动失败，尝试重启电脑后，卸载重新安装即可
-> - 如果卸载，zip 包安装方式在控制面板是找不到的，删除服务时，使用命令 sc delete [服务名]
-> - 默认只能使用 localhost 连接，如果需要使用 ip 连接，则修改 root 账号的 host 信息：update user set host='%' where user='root';
+**说明：**
 
-### 1.2 linux
+- 初始化时，可以使用命令（mysqld --verbose --help）查看参数配置，--initialize-insecure 标识初始化时创建 root 用户，无密码
+- 启动/停止服务命令：net start/stop [服务名]
+- 如果使用 zip 包安装多个版本 mysql，则第一个安装之后，不需要设置环境变量，否则第二次执行 mysqld 初始化时，不知道使用哪个 mysqld；如果第二个版本的安装成功，但启动失败，尝试重启电脑后，卸载重新安装即可
+- 如果卸载，zip 包安装方式在控制面板是找不到的，删除服务时，使用命令 sc delete [服务名]
+- 默认只能使用 localhost 连接，如果需要使用 ip 连接，则修改 root 账号的 host 信息：update user set host='%' where user='root';
 
-### 1.3 docker
+### 1.2 docker
 
 ```sh
 [root@localhost mysql]# tree
@@ -107,42 +105,82 @@ flush privileges;
 [root@localhost mysql]# docker stack deploy -c mysql-stack.yml mysql
 ```
 
-### 1.4 my.ini、my.cnf 配置文件
+### 1.3 my.ini、my.cnf 配置文件
 
 ```ini
 [mysqld]
 # 设置3306端口
 port=3306
+
 # 设置mysql的安装目录
 basedir=D:\Database\mysql-5.7.31\mysql-5.7.31
+
 # 设置mysql数据库的数据的存放目录
 datadir=D:\Database\mysql-5.7.31\mysql-5.7.31\Data
+
 # 允许最大连接数
 max_connections=200
+
 # 允许连接失败的次数。这是为了防止有人从该主机试图攻击数据库系统
 max_connect_errors=10
+
 # 服务端使用的字符集默认为UTF8
 character-set-server=utf8
+
 # 创建新表时将使用的默认存储引擎
 default-storage-engine=INNODB
+
 # 默认使用“mysql_native_password”插件认证
 default_authentication_plugin=mysql_native_password
+
+# 表示表名大小写不敏感。如果你想保留表名的原始大小写，则将其值设置为 0。mysql8.0之后，lower_case_table_names 配置必须在安装好 MySQL 后，初始化 mysql 配置时才有效。一旦 mysql 启动后，再设置是无效的，而且启动报错。
+lower_case_table_names=1
+
 # 设置默认时区
 default-time-zone=+8:00
+
 # 严格sql模式(strict mode)
 # ONLY_FULL_GROUP_BY: 对于GROUP BY聚合操作,如果在SELECT中的列,没有在GROUP BY中出现,那么这个SQL是不合法的,因为列不在GROUP BY从句中
 # NO_AUTO_VALUE_ON_ZERO: 该值影响自增长列的插入。默认设置下，插入0或NULL代表生成下一个自增长值。如果希望插入的值为0,而该列又是自增长的,那么这个选项就有用了
 # STRICT_TRANS_TABLES: 在该模式下，如果一个值不能插入到一个事务表中，则中断当前的操作,对非事务表不做限制
 # NO_ZERO_IN_DATE: 在严格模式下,不允许日期和月份为零
 # NO_ZERO_DATE: 设置该值,不允许插入零日期,插入零日期会抛出错误而不是警告。
-# NO_AUTO_CREATE_USER: 禁止GRANT创建密码为空的用户
+# NO_AUTO_CREATE_USER: 禁止GRANT创建密码为空的用户，mysql8.0.11该配置弃用。
 # NO_ENGINE_SUBSTITUTION: 如果需要的存储引擎被禁用或未编译，那么抛出错误。不设置此值时，用默认的存储引擎替代，并抛出一个异常
 # ERROR_FOR_DIVISION_BY_ZERO: 在INSERT或UPDATE过程中,如果数据被零除,则产生错误而非警告。如果未给出该模式,那么数据被零除时MySQL返回NULL
 sql_mode=ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 
+# 设置mysql导出路径
+secure_file_priv=D:/download/
+
+# innodb
+# 设置 InnoDB 缓冲池的大小，用于缓存数据和索引。建议将其设置为系统可用内存的70-80%。例如，如果服务器有 8GB 内存，可以将其设置为 6GB。
+innodb_buffer_pool_size=1024M
+# 将InnoDB缓冲池分成多个实例。这有助于提高并发性能，尤其是在高并发的场景下。
+innodb_buffer_pool_instances=8
+#日志缓冲区的大小。用于暂存即将写入日志文件的数据。
+innodb_log_buffer_size=16M
+# 日志文件的大小。太大的日志文件可能导致恢复时间变长，而太小的日志文件可能导致文件数量过多。
+innodb_log_file_size=1024M
+# 一个日志组中的日志文件数量。InnoDB使用多个日志文件来确保日志的持久性。
+innodb_log_files_in_group=2
+# 为每个表使用单独的数据文件。这提供了更好的表空间管理，但会增加元数据文件的I/O负担。
+innodb_file_per_table=1
+# 在事务提交时刷新日志。设置为1确保数据安全性，但可能会降低性能。
+innodb_flush_log_at_trx_commit=1
+# 指定如何刷新数据和日志到磁盘。O_DIRECT可以减少操作系统缓存的使用，提高I/O效率。
+innodb_flush_method=O_DIRECT
+# 数据文件的路径和大小。这里定义了两个数据文件，ibdata1和ibdata2，以及它们的大小和自动扩展的策略。
+innodb_data_file_path=ibdata1:268M;ibdata2:1024M:autoextend
+# MySQL版本8.0，默认等待锁的时间为50秒，超过50秒，事务会自动回滚，此设置为10秒
+innodb_lock_wait_timeout=10
+
+# 表示mysql登录进去之后的配置参数
 [mysql]
 # 设置mysql客户端默认字符集
 default-character-set=utf8
+
+# 表示所有客户端登录进去使用到的参数
 [client]
 default-character-set=utf8
 user=root
@@ -403,10 +441,10 @@ on delete set null on update set null    -- 设置为 null
 
 - 日期 datetime 和 timestamp
 
-| 类型       | 字节 | 范围           | 自动更新 | 时区 |
-| ---------- | --- | -------------- | -------- | ---- |
-| datetime   | 8 | 范围更广，可支持的时间范围是从 1000 年到 9999 年 | 5.6.5低版本不支持 | 不会自动进行时区转换，存储的是具体的日期和时间，无关时区   |
-| timestamp  | 4 | 范围较小，仅支持从 1970 年到 2038 年。这是由于 TIMESTAMP 类型使用的是 32 位整数存储。 |DEFAULT CURRENT_TIMESTAMP 和 ON UPDATE CURRENT_TIMESTAMP 来实现自动填充和更新时间戳字段  | 自动进行时区转换，并将存储的时间转换为 UTC 时间   |
+| 类型      | 字节 | 范围                                                                                  | 自动更新                                                                                | 时区                                                     |
+| --------- | ---- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| datetime  | 8    | 范围更广，可支持的时间范围是从 1000 年到 9999 年                                      | 5.6.5 低版本不支持                                                                      | 不会自动进行时区转换，存储的是具体的日期和时间，无关时区 |
+| timestamp | 4    | 范围较小，仅支持从 1970 年到 2038 年。这是由于 TIMESTAMP 类型使用的是 32 位整数存储。 | DEFAULT CURRENT_TIMESTAMP 和 ON UPDATE CURRENT_TIMESTAMP 来实现自动填充和更新时间戳字段 | 自动进行时区转换，并将存储的时间转换为 UTC 时间          |
 
 ### 3.4 变量
 
@@ -781,54 +819,133 @@ bin log 是 Server 层自己的日志
 4. 执行器生成这个操作的 binlog，并把 binlog 写入磁盘。
 5. 执行器调用引擎的提交事务接口，引擎把刚刚写入的 redo log 改成提交（commit）状态，更新完成。
 
-## 8. 用户、权限
+## 8. 用户、权限、角色
+
+### 8.1 用户权限
+
+用户权限相关的几张表：
+
+| 表                 | 描述                       |
+| ------------------ | -------------------------- |
+| mysql.user         | 一行记录代表一个用户标识   |
+| mysql.db           | 一行记录代表对数据库的权限 |
+| mysql.tables_priv  | 一行记录代表对表的权限     |
+| mysql.columns_priv | 一行记录代表对某一列的权限 |
+
+其中，USER表中，用户账户使用用户名和主机名作为唯一标识，主机名定义了用户可以从何处连接到数据库。
+
+安装完 MYSQL，用户列表中会出现两个 root 用户：root@localhost 和 root@%，通过命令 show grants; 查看权限，发现 root@localhost 中多了一条命令 GRANT PROXY ON ''@'' TO 'root'@'%' WITH GRANT OPTION; 这也就是为啥安装后可以在本地登录而不能远程登录。
 
 ```sql
 -- 1. 查询用户
 select user, host from mysql.user;
+select user, host from mysql.user\G
 
 /*
 -- 2. 创建用户
-    主机地址：指定创建用户在那台主机上登录，如需在所有的主机上登录，则设置成通配符 %，% 需要加引号；如本地，则设置成localhost
+    主机地址：指定创建用户在那台主机上登录，如需在所有的主机上登录，则设置成通配符 %，% 需要加引号；如本地，则设置成localhost，如需现在哪些ip可访问，则设置成192.168.%
 */
 create user <username>;
+-- 创建用户并同时设置密码
 create user 'username'@'host' identified by '密码';
 
 -- 3. 删除用户
 drop user 'username'@'host';
 
--- 4. 设置、更改用户密码
+-- 4. 设置用户密码
 set password = 'password';                       -- 修改当前登录的密码
 set password for '用户名'@'主机地址'='password';
+
+
+/*
+-- 5. 更改用户密码以及密码认证方式
+
+mysql_native_password： MySQL 5.6/5.7 的默认密码验证插件。使用 SHA1 算法进行密码存储，但因为 SHA1 被认为不够安全，所以不再推荐使用。
+caching_sha2_password： MySQL 8.0.4 开始，这成为了默认的身份验证插件。使用 SHA256 算法进行密码存储，并且密码是加盐的，提高了安全性。
+*/
 alter user 'root'@'localhost' identified with mysql_native_password by '123456';
 
 /*
--- 5. 给用户授权
-    privileges：用户的操作权限，all表示所有权限，其他权限包括 select、insert、update、delect、alter、create
-    databasename.tablename：数据库名.表名，*.*表示所有数据库的所有表
+-- 6. 给用户授权
+    privileges：用户的操作权限，all 表示所有权限，其他权限包括 select、insert、update、delect、alter、create
+    databasename.tablename：数据库名.表名，*.* 表示所有数据库的所有表
+    with grant option：通过在 grant 语句的最后使用该语句，就允许被授权的用户把得到的权限继续授予其他用户。该状态存储在 user 表中 的 Grant_priv 字段。
 */
 GRANT all privileges ON databasename.tablename TO 'username'@'host';
+-- 授权并设置密码，说明：从 MySQL 8.0 开始，用户管理和权限授予的语法有所变化，不能在 GRANT 语句中使用 IDENTIFIED BY 来设置密码。密码应该通过 CREATE USER 或 ALTER USER 语句单独设置。你需要先创建或修改用户，然后再进行授权。
+GRANT all privileges ON databasename.tablename TO 'username'@'host' identified by 'root';
+-- 将某个用户设置为次级管理员（可以授权）
+GRANT privileges ON databasename.tablename TO 'username'@'host' with grant option;
 
---6. 刷新权限，授权结束后，需要刷新权限
+-- 7. 刷新权限，也就是刷新 MySQL 的权限表，使所有用户和权限更改立即生效。在执行 GRANT、REVOKE 或修改用户权限后，建议运行此命令。
 flush privileges;
 
--- 将某个用户设置为次级管理员（可以授权）
-GRANT privileges ON databasename.tablename TO 'username'@'host' with grant option
+-- 8. 查看授权信息
+show grants;
+show grants for 'root'@'localhost';
 
--- 7. 查看授权信息
-show grants
-
--- 8. 撤销用户权限
-revoke privileges on databasename.tablename from 'username'@'host'
+-- 9. 撤销用户权限
+revoke privileges on databasename.tablename from 'username'@'host';
 ```
 
-### 8.1 解决密码错误的终极方案
+### 8.2 角色
+
+> MySql 基于“用户+IP”的这种授权模式其实还是挺好用的，但如果使用 Oracle、PostgreSQL、 SqlServer 你可能会发牢骚，这样对于每个用户都要赋权的方式是不是太麻烦了，如果我用户多呢？有没有角色或者用户组这样的功能呢？
+>
+> 好吧，你搓中了 mysql 的软肋，很痛，在 mysql5.7 开始才正式支持这个功能，而且连 mysql 官方把它叫做“Role Like”（不是角色，长得比较像而已，额~~~）。
+
+自 Mysql 5.5 以来新增 proxy 代理用户，表在 proxies_priv 中。
+
+```sql
+-- 查询变量check_proxy_users，mysql_native_password_proxy_users，需要将这两个变量设置成 true 才行
+show variables like '%proxy%';
+set GLOBAL check_proxy_users =1;
+set GLOBAL mysql_native_password_proxy_users = 1;
+
+-- 创建代理用户，其本质都是用户。
+create user 'role_user_proxy';
+create user 'db_test';
+-- 把两个用户加到代理用户组中
+grant proxy on 'role_user_proxy' to 'db_test';‘
+-- 给代理用户设置权限
+grant select(id, name) on *.* to 'role_user_proxy';
+
+-- 远程连接，没有权限，需要执行的命令
+GRANT PROXY ON ''@'' TO 'root'@'%' WITH GRANT OPTION;
+```
+
+### 8.3 【示例】为远程 root 用户授权
+
+```sql
+-- 创建用户并设置密码
+CREATE USER 'root'@'%' IDENTIFIED BY 'your_password';
+-- 授权
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+-- 刷新权限
+FLUSH PRIVILEGES;
+```
+
+### 8.4 Mysql 安全设置
+
+管理 root 用户时，应该考虑 MySQL 数据库的安全性，尤其是当决定开放远程访问时。为了确保数据库的安全性，以下几点非常重要：
+
+1. 使用强密码
+2. 限制远程访问
+3. 配置 MySQL 的 bind-address
+4. 定期检查并审计用户权限
+5. 使用非 root 用户进行日常操作
+
+### 8.5 解决密码错误的终极方案
+
+开发过程中，误删除 root 用户后，导致数据库连接不上，可以通过启动 MySQL 的安全模式（–skip-grant-tables）来恢复用户。
+
+具体操作步骤：
 
 1. 修改配置文件，在 [mysqld] 后添加 skip-grant-tables，表示登录时跳过权限检查，此时登录不需要密码
 2. 重启 MySQL 服务：sudo systemctl restart mysqld
-3. 修改密码：set password for 'root'@'localhost'='password'; 如果报：ERROR 1290 (HY000): The MySQL server is running with the --skip-grant-tables option so it cannot execute this statement。则输入 flush privileges; 
+3. 修改密码：set password for 'root'@'localhost'='password'; 如果报：ERROR 1290 (HY000): The MySQL server is running with the --skip-grant-tables option so it cannot execute this statement。则输入 flush privileges;
 4. 然后再次输入修改密码命令
-5. 设置远程访问：GRANT ALL PRIVILEGES ON *.* TO 'root'@'%'IDENTIFIED BY 'password' WITH GRANT OPTION;
+5. 设置远程访问：GRANT ALL PRIVILEGES ON _._ TO 'root'@'%'IDENTIFIED BY 'password' WITH GRANT OPTION;
 6. 刷新权限，授权结束后，需要刷新权限：flush privileges;
 7. exit;
 8. 再把 my.ini 的 skip-grant-tables 删除或者注释掉
@@ -954,23 +1071,23 @@ like    -- like "%xxx%" 不会使用索引，而like "xxx%"会使用索引
 1. id：标识一个 SELECT 查询的唯一标识符，如果查询中有子查询或联接操作，则会有多个 id
 2. select_type：表示查询的类型，包括以下几种类型：
 
-  - SIMPLE：简单 SELECT 查询，不包含子查询或联接操作
-  - PRIMARY：最外层的 SELECT 查询
-  - SUBQUERY：子查询，作为其他查询操作的一部分
-  - DERIVED：派生表，作为其他查询操作的一部分
-  - UNION：UNION 操作的第二个或后续 SELECT 查询
-  - UNION RESULT：UNION 操作的结果集合并
+- SIMPLE：简单 SELECT 查询，不包含子查询或联接操作
+- PRIMARY：最外层的 SELECT 查询
+- SUBQUERY：子查询，作为其他查询操作的一部分
+- DERIVED：派生表，作为其他查询操作的一部分
+- UNION：UNION 操作的第二个或后续 SELECT 查询
+- UNION RESULT：UNION 操作的结果集合并
 
 3. table：表示查询的表名或派生表名
 4. partitions：表示查询的分区信息，如果表没有被分区，则该值为空
 5. type：表示查询的访问类型，MySQL 根据查询条件、索引等因素来选择访问方式，常见的访问类型有：
 
-  - ALL：全表扫描
-  - index：遍历索引树
-  - range：范围查询
-  - ref：使用非唯一索引进行查询
-  - eq_ref：使用唯一索引进行查询
-  - const/system：基于常量或系统表中的行数进行查询
+- ALL：全表扫描
+- index：遍历索引树
+- range：范围查询
+- ref：使用非唯一索引进行查询
+- eq_ref：使用唯一索引进行查询
+- const/system：基于常量或系统表中的行数进行查询
 
 6. possible_keys：表示 MySQL 可以使用哪些索引来优化查询
 7. key：表示 MySQL 实际使用的索引，如果为 NULL，则表示没有使用索引
@@ -980,10 +1097,10 @@ like    -- like "%xxx%" 不会使用索引，而like "xxx%"会使用索引
 11. filtered：表示 MySQL 根据 WHERE 条件过滤掉的行数百分比，该值越小，表示过滤效率越高
 12. Extra：包含其他的执行信息，包括：
 
-  - Using where：MySQL 使用了 WHERE 子句进行筛选
-  - Using index：MySQL 使用了覆盖索引进行查询，不需要回表操作
-  - Using temporary/table：MySQL 创建了临时表或使用了外部临时表
-  - Using filesort：MySQL 需要对结果集进行排序操作，可能会影响查询效率  
+- Using where：MySQL 使用了 WHERE 子句进行筛选
+- Using index：MySQL 使用了覆盖索引进行查询，不需要回表操作
+- Using temporary/table：MySQL 创建了临时表或使用了外部临时表
+- Using filesort：MySQL 需要对结果集进行排序操作，可能会影响查询效率
 
 #### 11、面试必问
 
@@ -1043,6 +1160,6 @@ show variables like 'max_connections';   -- 查看mysql允许最大的连接数
 -- MySQL 5.7 版本实现了 mysql_reset_connection() 函数的接口，注意这是接口函数不是命令，那么当客户端执行了一个很大的操作后，在代码里调用 mysql_reset_connection 函数来重置连接，达到释放内存的效果。
 ```
 
-SHOW ENGINE INNODB STATUS  是 MySQL 操作数据库时常用的一条命令，它可以用于查看 InnoDB 存储引擎的详细状态信息，包括当前正在执行的事务、锁信息、死锁信息等。
+SHOW ENGINE INNODB STATUS 是 MySQL 操作数据库时常用的一条命令，它可以用于查看 InnoDB 存储引擎的详细状态信息，包括当前正在执行的事务、锁信息、死锁信息等。
 
 ### 12.2

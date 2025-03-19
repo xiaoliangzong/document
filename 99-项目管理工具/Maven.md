@@ -365,6 +365,7 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
 
 ```xml
 <!-- setting 设置 -->
+<?xml version="1.0" encoding="UTF-8"?>
 <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
@@ -384,12 +385,7 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
      | -->
     <servers>
         <server>
-            <id>releases</id>              
-            <username>admin</username>
-            <password>admin@nexus</password>
-        </server>
-        <server>
-            <id>snapshots</id>
+            <id>nexus</id>              
             <username>admin</username>
             <password>admin@nexus</password>
         </server>
@@ -465,13 +461,39 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
             </properties>
         </profile>
 
+        <!-- 阿里云仓库配置 -->
+        <profile>
+            <id>ali-profile</id>
+            <repositories>
+                <repository>
+                    <id>alimaven</id>
+                    <name>aliyun maven</name>
+                    <url>https://maven.aliyun.com/repository/public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>alimaven</id>
+                    <name>aliyun maven</name>
+                    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+
 		<!-- 私服仓库配置 -->
         <profile>
             <id>nexus-profile</id>
             <repositories>
-                <repository>
-                    <id>nexus</id>    <!--仓库id，repositories可以配置多个仓库，保证id不重复-->
-                    <name>xxx-nexus-name</name>
+                <!-- repositories 可以配置多个仓库，保证每个仓库的id不重复，如果 Nexus 存在多个仓库，则可以为每个仓库配置独立的 <server>，或者使用仓库组（Repository Group） -->
+                <repository>    
+                    <id>nexus</id>    <!--仓库id，需要与 <server> 的 id 保持一致。-->
+                    <name>xxx-nexus-repo-name</name>
                     <url>http://192.168.100.99:8082/repository/maven-public/</url>
                     <releases>
                         <enabled>true</enabled>
@@ -484,7 +506,7 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
             <pluginRepositories>
                 <pluginRepository>
                     <id>nexus</id>
-                    <name>nexus</name>
+                    <name>xxx-nexus-plugin-name</name>
                     <url>http://192.168.100.99:8082/repository/maven-public/</url>
 					<releases>
 						<enabled>true</enabled>
@@ -554,7 +576,7 @@ maven clean deploy
     <id>nexus-profile</id>
     <!-- 远程仓库列表 -->
     <repositories>
-        <repository>    <!--仓库id，repositories可以配置多个仓库，保证id不重复-->
+        <repository>
             <id>nexus-db</id>
             <!--仓库地址，即nexus仓库组的地址-->
             <url>http://192.168.100.99:8081/repository/db-maven-group/</url>
@@ -672,6 +694,7 @@ spring 害怕和其他语法有冲突，所以使用了这个配置。
                 <useDefaultDelimiters>false</useDefaultDelimiters>
                 <nonFilteredFileExtensions>
                     <!--不应用过滤的其他文件扩展名(已定义的有:jpg, jpeg, gif, bmp, png)-->
+                    <!--Maven 会将资源文件（如文本文件、配置文件、XML 文件等）拷贝到目标目录，并在拷贝时对其中的变量进行替换，例如将代码中某个环境变量的值替换为具体的值。这个过程叫做资源过滤。-->
                     <nonFilteredFileExtension>xls</nonFilteredFileExtension>
                     <nonFilteredFileExtension>xlsx</nonFilteredFileExtension>
                 </nonFilteredFileExtensions>
@@ -1971,6 +1994,31 @@ JOOQ 是一个 Java 编程库，它提供了一种方便的方式来与关系型
 
 ### 6.29 spring-javaformat-maven-plugin
 
+
+### 6.30 maven-archetype-plugin
+
+在原型元工程的 POM 目录下（maven-archetype-test）执行：mvn archetype:create-from-project 即可在 maven-archetype-test/target/generated-sources/archetype 目录下生成原型工程。
+
+在原型工程的 POM 目录下（maven-archetype-test/target/generated-sources/archetype ）执行：mvn install 即可在 target 目录下生成可运行的原型工程。
+
+执行可运行的原型工程生成目标项目
+```sh
+mvn archetype:generate -DinteractiveMode=false -DarchetypeCatalog=local -DarchetypeGroupId=priv.cqq -DarchetypeArtifactId=maven-archetype-test-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DgroupId=org.cqq -DartifactId=targetapp -Dpackage=org.cqq.targetapp -Dversion=0.0.1-SNAPSHOT
+
+mvn archetype:generate -s E:\apache-maven-3.8.1\conf\settings-base.xml -DarchetypeGroupId=com.fpwis -DarchetypeArtifactId=fpwis-archetype-archetype -DarchetypeVersion=1.3.0 -Dpackage=com.fpwis.aicompetition -DprojectShortName=aicompetition -DimageVersion=1.0.0 -DimageName=b_zg_ly_jyjs -DexternalPort=9501 -DinternalPort=9501
+```
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-archetype-plugin</artifactId>
+    <configuration>
+        <propertyFile>archetype.properties</propertyFile>
+        <encoding>UTF-8</encoding>
+        <!--这些类型的文件会执行占位符替换-->
+        <archetypeFilteredExtentions>java,xml,yaml,yml,properties,factories</archetypeFilteredExtentions>
+    </configuration>
+</plugin>
+```
 
 ## 7. Nexus 使用
 

@@ -161,6 +161,8 @@ docker run -it --name=xxx -p xx:xx --restart=always -v /opt/nginx:/etc/nginx:ro 
   # -e 环境配置，比如mysql设置密码 -e MYSQL_ROOT_PASSWORD=123456
   # -v 挂载，分为匿名挂载和具名挂载。匿名挂载：容器内路径；具名挂载：宿主机绝对路径:容器内路径。也可以改变容器内读写权限，比如：宿主机绝对路径:容器内路径:ro/rw
   # --volumes-from　多容器之间共享数据卷
+  # --rm 容器退出时自动移除
+  # -u Username or UID (format: <name|uid>[:<group|gid>]) 指定容器内进程的用户和用户组
   # --env-file 指定环境变量文件
   # --link --link <container_name>:<alias> ，第一个参数为链接到的另一个容器的名称或 ID，第二个参数为链接的别名，可省略。原理就是在/etc/hosts里面添加了一个alias的名称
   # --restart  重启策略，重启是由Docker守护进程完成的；
@@ -169,7 +171,7 @@ docker run -it --name=xxx -p xx:xx --restart=always -v /opt/nginx:/etc/nginx:ro 
       # on-failure:3 容器非正常退出时最多重启三次、
       # always容器退出时总是重启、
       # unless-stopped容器退出时总是重启，但不考虑Docker守护进程启动时就已经停止了的容器
-
+  # --privileged  Give extended privileges to this container 授予此容器扩展权限，使其能够访问和修改宿主机上的一些敏感资源。
 
 docker exec -it <containerId> /bin/bash   # 进入容器后开启一个新的终端，可以在里面操作(常用)，使用exit退出时容器不会停掉
 docker attach <containerId>               # 进入容器正在执行的终端，不会启动新的进程，使用exit退出时容器会停掉
@@ -199,8 +201,16 @@ docker stats <containerId>  # 每隔1s刷新一次输出内容，--no-stream 只
 docker stats --format "table {{.Name}}\t{{.ID}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.MemPerc}}\t{{.PIDs }}"
 docker stats --format "{\"container\":\"{{.Container}}\"}"
 
-# 查询挂载
+# 查询挂载列表
 docker volume ls
+# 创建挂载
+docker volume create 
+# 查看挂载详情
+docker volume inspect
+# 删除
+docker volume rm
+# 删除未使用的本地卷
+docker volume prune
 
 
 
@@ -550,6 +560,12 @@ services:
 
 ## 7. docker-compose
 
+docker-compose 是一个独立的命令行工具，用于管理和运行多容器的 Docker 应用。通过 docker-compose.yml 配置文件定义、启动、停止和管理 Docker 容器。从 Docker 1.13 版本开始，Docker 官方逐步将 docker-compose 功能集成到了 Docker CLI 工具中，目的是简化 Docker 工具链的管理，并将所有功能统一到一个命令下。也就是说，现在 docker compose 成为 Docker CLI 的一部分。4
+
+- docker-compose（独立工具）：是早期的独立工具，需要单独安装并使用。
+- docker compose（CLI 插件）：是 Docker 集成到 CLI 中的命令，是新版本 Docker 提供的官方命令。
+
+
 Docker Compose 负责实现对 Docker 容器集群的快速编排。将所管理的容器分为三层，分别是工程（project）、服务（service）、容器（container），运行目录下的所有文件（docker-compose.yml）组成一个工程，一个工程包含多个服务，每个服务中定义了容器运行的镜像、参数、依赖，一个服务可包括多个容器实例。
 
 使用 docker-compse 编排的一组容器时会默认创建一个网络，并且这组容器全部都会加入到网络当中。容器之间可以直接使用服务名去直接通信。
@@ -693,13 +709,15 @@ docker stack services <stack_name>    # 查询 stack 的服务列表
 docker stack rm <stack_name>          # 删除 stack
 docker stack ps <stack_name>          # 查询 stack 的任务运行状态，和 docker service ps <service_name> 类似，它会将 stack 下的 所有 service 的任务状态列出来
 
-docker service create --name <service_name> --network <network_name> <image>      # 基于某个镜像创建一个服务，比如将服务添加到该网络中，实现使用服务名访问。
+docker service create --name <service_name> --network <network_name> --replicas 3 <image>      # 基于某个镜像创建一个服务，比如将服务添加到该网络中，实现使用服务名访问。--replicas 创建三个实例
 docker service ls                     # 列出所有服务
 docker service ps <service_name>      # 查询服务中的任务运行状态。说明：任务和容器不是一回事，每个服务由一个或多个任务（task）组成，每个任务对应着运行中的容器。
 docker service logs --tail 1000 -f <service_name>   # 查询日志
 docker service update --force <service_name>        # 重启某个服务
+docker service update --image <image> --update-parallelism 1 --update-delay 10s my-service    # 滚动升级
 docker service rm <service_name>                    # 删除某个服务
 docker service inspect <service_name>               # 展示某个服务的详细信息
+
 ```
 
 ![image-20210517182851579](images/docker-stack.png)

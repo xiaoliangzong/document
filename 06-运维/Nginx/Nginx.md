@@ -260,6 +260,9 @@ http {
     
     #server_names_hash_bucket_size 128;     # 服务器名的 hash 哈希桶的大小
 
+    # 隐藏 nginx 的版本号信息
+    # 查看 http 请求的 response 里面的 header 我们会发现有 server 这个参数，它表示服务端使用的是什么 web 服务器。Nginx默认是显示版本号的，比如 Server: nginx/1.26.1 ， 这样存在漏洞。
+    server_tokens off;
 
     #keepalive_timeout  0;
     keepalive_timeout  65;                  # 长连接超时时间，单位是秒

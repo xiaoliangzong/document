@@ -9,9 +9,13 @@
 | Redis   | 键值型 |
 | MongoDB | 文档型 |
 
+
 ## 国产关系型数据库
 
-> 按照墨天轮网站排名顺序罗列。[https://www.modb.pro/dbRank](https://www.modb.pro/dbRank)
+> 墨天轮网站排名  [https://www.modb.pro/dbRank](https://www.modb.pro/dbRank)
+>
+> 国家保密科技测评中心，安全可靠测评结果公告（2024年第2号）  [http://www.nsstec.org.cn/tzgg/354277.shtml](http://www.nsstec.org.cn/tzgg/354277.shtml)
+>
 
 | 国产数据库名称    | 模型   | 解释                                                                                                                                           |
 | ----------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -28,11 +32,14 @@
 | 瀚高数据库        | 关系型 |                                                                                                                                                |
 | 神通数据库 OSCAR  | 关系型 | 天津神舟通用数据技术有限公司拥有自主知识产权的企业级、大型通用关系型数据库管理系统                                                             |
 
-mysql 转 国产库的开源项目：https://gitee.com/yanzhenyu_shower/ruoyi-sql-convert  
-
 ## 时序数据库
 
-TSDB（Time Series Database）时序数据库，常用的有 TDengine、InfluxDB、openPlant。
+> 时序数据的说明，可以参考北京涛思的官网文档：https://docs.taosdata.com/concept/
+
+TSDB（Time Series Database）时序数据库，常用的有 涛思 TDengine、InfluxDB、openPlant、清华 IoTDB。
+
+时序数据，即时间序列数据（Time-Series Data），它们是一组按照时间发生先后顺序进行排列的序列数据。日常生活中，设备、传感器采集的数据就是时序数据，证券交易的记录也是时序数据。因此时序数据的处理并不陌生，特别在是工业自动化以及证券金融行业，专业的时序数据处理软件早已存在，比如工业领域的 PI System 以及金融行业的 KDB。
+
 
 ### InfluxDB
 

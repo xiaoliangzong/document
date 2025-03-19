@@ -566,6 +566,13 @@ matchIfMissing 设置为 false，配置文件中没有该属性，但是properti
 - 编程式事务管理：通过编程的方式管理事务，使用 TransactionTemplate 或直接使用底层的 PlatformTransactionManager，可以带来极大的灵活性，但是难维护；
 - 声明式事务管理：使用注解 @Transactional 或 配置文件（XML） 配置来管理事务，是基于 AOP 实现的，将事务管理代码从业务方法中分离出来；在实际业务中经常使用该方式。
 
+
+Spring的事务管理器，通过PlatformTransactionManager接口表示，其有2个重要的实现类：
+
+DataSourceTransactionManager：用于支持本地事务，事实上，其内部也是通过操作java.sql.Connection来开启、提交和回滚事务。
+
+JtaTransactionManager：用于支持分布式事务，其实现了JTA规范，使用XA协议进行两阶段提交。需要注意的是，这只是一个代理，我们需要为其提供一个JTA provider，一般是Java EE容器提供的事务协调器(Java EE server's transaction coordinator)，也可以不依赖容器，配置一个本地的JTA provider。
+
 ### 6.1 事务的隔离级别
 
 | 事务隔离级别     | 说明                                                                                                                                                                                       |

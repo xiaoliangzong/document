@@ -1,3 +1,6 @@
+https://www.cnblogs.com/flashsun/p/14266148.html
+
+
 ## http 和 https
 
 > 超文本传输协议。用于在 web 浏览器和网站服务器之间传递信息，
