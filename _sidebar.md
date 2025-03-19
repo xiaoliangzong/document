@@ -77,6 +77,8 @@
 
 - **测试**
 
+  - [JMeter](05-测试/JMeter.md)
+
 - **运维**
   - [bat](06-运维/bat.md)
   - [shell](06-运维/shell.md)
