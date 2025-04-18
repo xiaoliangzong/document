@@ -38,6 +38,7 @@
 - **后端 Java**
   - <span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">JVM</span>
     - [JVM](04-后端%20Java/1.JVM/JVM.md)
+    - [JVM 调优](04-后端%20Java/1.JVM/JVM%20调优.md)
   - <span style="font-weight:normal; font-size:14px; color:#364149; font-family:Source Sans Pro,Helvetica Neue,Arial,sans-serif">Java基础</span>
     - [基础](04-后端%20Java/2.Java基础/基础.md)
     - [Java8 新特性](04-后端%20Java/2.Java基础/Java8新特性.md)
