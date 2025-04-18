@@ -745,9 +745,11 @@ services:
       restart_policy:
         condition: on-failure
       resources:
-        limits:
-          cpus: "8"                 # 20%的内存可用处理时间
-          memory: 21024M            # 内存不超过1024M
+        limits:                     # 资源限制
+          cpus: "8"                 # 最多使用 2 个 CPU 核心
+          memory: 1024M             # 内存不超过1024M
+        reservations:               # 资源保留
+          memory: 512G              # 系统保证至少为容器分配 512M 内存
       update_config:
         parallelism: 1              # 每次启动一个容器一份服务
         delay: 5s                   # 更新一组容器之间的等待时间
@@ -895,6 +897,12 @@ docker secret rm SECRET [SECRET...]                   # 移除一个或多个敏
 ```
 
 ## 12. 私有仓库（registry）
+
+> 远程仓库
+> 1. docker.io : Docker Hub 官方镜像仓库，也是 Docker 默认的仓库。https://hub.docker.com/ 是 Docker Hub 提供的 Web 界面。
+> 2. quay.io : Red Hat 镜像仓库。https://quay.io/
+> 3. gcr.io、k8s.gcr.io : 谷歌镜像仓库
+> 4. ghcr.io : GitHub 镜像仓库
 
 Docker 官方提供了公共的镜像仓库 [Docker Hub]( https://hub.docker.com)，但是从安全和效率等方面考虑，在大多数公司都会部署私有环境内的 Registry。其实 Docker 官方也提供了一个私有镜像仓库 docker Registry，安装部署容易，安装一个 Registry 容器就可以使用。但是 Registry 缺点比较明显：
 

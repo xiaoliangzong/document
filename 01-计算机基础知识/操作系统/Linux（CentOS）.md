@@ -148,7 +148,7 @@ setup          # ip配置
 
 ### 1.2 firewalld、iptables
 
-iptables：Linux系统的防火墙：IP信息包过滤系统，它实际上由两个组件 netfilter 和 iptables 组成。主要工作在网络层，针对 IP 数据包。体现在对包内的 IP 地址、端口等信息的处理上。
+iptables：Linux 系统的防火墙：IP 信息包过滤系统，它实际上由两个组件 netfilter 和 iptables 组成。主要工作在网络层，针对 IP 数据包。体现在对包内的 IP 地址、端口等信息的处理上。
 
 firewalld：Centos7 系统默认的防火墙管理工具，取代了之前的 iptables 防火墙，也是工作在网络层，属于包过滤防火墙。
 
@@ -156,7 +156,7 @@ firewalld：Centos7 系统默认的防火墙管理工具，取代了之前的 ip
 
 firewalld 和 iptables 都是用来管理防火墙的工具(属于用户态)来定义防火墙的各种规则功能，内部结构都指向 netfilter 网络过滤子系统(属于内核态)来实现包过滤防火墙功能。
 
-1. iptables 主要是基于接口，来设置规则，从而判断网络的安全性。firewalld是基于区域，根据不同的区域来设置不同的规则，从而保证网络的安全，与硬件防火墙的设置相类似。
+1. iptables 主要是基于接口，来设置规则，从而判断网络的安全性。firewalld 是基于区域，根据不同的区域来设置不同的规则，从而保证网络的安全，与硬件防火墙的设置相类似。
 2. iptables 在 /etc/sysconfig/iptables 中储存配置，firewalld 将配置储存在 /etc/firewalld/ （优先加载）和 /usr/lib/firewalld/ (默认的配置文件) 中的各种 XML 文件里。
 3. iptables 防火墙类型为静态防火墙；firewalld 防火墙类型为动态防火墙。
 
@@ -342,7 +342,6 @@ seq 1 4 | xargs -I{} echo {} > h.txt      # 间隔输出，且写入文件 【�
 seq -w 1 10             # 前面补0
 ```
 
-
 ### 1.5 tar zip bzip gzip
 
 解压缩常用命令
@@ -360,13 +359,19 @@ seq -w 1 10             # 前面补0
 ### 1.6 ps 进程
 
 ```sh
-ps                      # 查看当前系统中正在执行的各种进程信息
-                        # -a 显示当前终端运行的所有进程信息 -u -x
-ps -aux | grep mysql    # 查看mysql进程
-ps -ef | grep java      # 查看父进程信息
+ps --help               # 帮助，根据提示可以使用 'ps --help <simple|list|output|threads|misc|all>' 或 'ps --help <s|l|o|t|m|a>' 进一步获取帮助。
+ps                      # 查看当前系统中正在执行的各种进程信息。
+ps -l                   # 以长格式显示进程信息，包括进程的优先级（PRI）、调度策略（NI）等信息。
+ps -ef                  # 显示所有进程的详细信息，包括进程的所有者、启动时间、命令行等。输出格式通常包括用户（UID）、进程 ID（PID）、父进程 ID（PPID）、启动时间（STIME）、终端（TTY）、命令（CMD）等列。
+ps -ef | grep java      
+ps -aux                 # 与-ef类似，也用于显示所有进程的详细信息，但在输出格式和内容上略有不同。它会显示进程的资源使用情况，如 CPU 使用率（% CPU）、内存使用率（% MEM）等。
+ps -aux | grep mysql
 ps -eLf | grep '容器名' | wc -l     # 找到项目的所占的线程数
-pstree -pu              # 进程树
-kill -9 pid             # 杀死进程
+ps -p <pid> -o etime               # 查看指定进程的运行时长
+
+pstree -pu                         # 进程树
+kill -9 pid                        # 杀死进程
+
 
 pgrep命令：以名称为依据从运行进程队列中查找进程，并显示查找到的进程id
                 选项
@@ -418,9 +423,9 @@ setenforce 0
 # 临时开启 SELinux
 setenforce 1
 # 查看当前状态命令
-getenforce 
+getenforce
 # 永久关闭 SELinux 需修改配置文件：/etc/selinux/config，修改 SELINUX=disabled
-cat /etc/selinux/config 
+cat /etc/selinux/config
 # 修改 SELinux 永久关闭，必须重启服务器，才能生效。且永久关闭后，不能通过 setenforce 1 命令临时打开。
 ```
 
@@ -488,16 +493,16 @@ ln [-s] 		# symbolic make symbolic links instead of hard links 使用符号链�
 ls -i       # 查询inode号
 ```
 
-
 ## 9. cpu 和内存、硬盘
 
 ![top命令详解](../images/linux_cpu.png)
 
 ```sh
-top               #  cpu 和内存使用率，P占用最大，-d 5 每5s刷新一次
-ps -l             # 查询进程
-ps -ef
-pmap -d 进程id    # 用于报告进程的内存映射关系
+top               # 用于实时显示系统中各个进程的资源占用情况。cpu 和内存使用率，P占用最大
+top -d 5 -n 10    # 每5s刷新一次，只运行10次更新后就结束
+top -Hp <pid>     # 定位某个进程的具体线程，-p指定监控的进程ID，-H用于开启线程模式，当使用-H参数时，top命令将显示进程中的各个线程信息，而不是默认的进程信息。
+
+pmap -d <pid>     # 用于报告进程的内存映射关系
 
 # 显示当前系统未使用内存数目、已使用内存数目、被内核使用的内存缓冲区；
 # -k单位为k，-m单位为M，-g单位为G，-h表示输出是可读的，即单位是直接转换之后的，-t表示total，RAM + swap之和，-c表示输出次数，-s 每隔几秒执行一次
@@ -523,6 +528,7 @@ tracert -d ip     # 用来检测网络出现故障的位置，即在哪个环节
 ## -d：防止tracert试图将中间路由器的IP地址解析为它们的名称。这样可以加速显示tracert的结果。
 
 ```
+
 ### 10.2 配置网络地址的工具
 
 配置网络地址的工具，常用的包括：
@@ -585,38 +591,54 @@ systemctl restart NetworkManager
 
 ## 11. 服务管理
 
-**systemctl** 是系统服务管理器指令，主要负责控制 systemd 系统和服务管理器。实际上 systemctl 是 service 和 chkconfig 的集合和代替。
+### 11.1 systemctl
+
+systemctl 是系统服务管理器指令，主要负责控制 systemd 系统和服务管理器。实际上 systemctl 是 service 和 chkconfig 的集合和代替。
 
 - service ：systemd 是一个系统管理守护进程、工具和库的集合；主要操作有系统服务启动、停止、重启、关闭、显示状态；
 - chkconfig：是管理系统服务(service)的命令行工具。所谓系统服务(service)，就是随系统启动而启动，随系统关闭而关闭的程序。
 
 ![systemctl=chkconfig+service](../images/systemctl-chkconfig%2Bservice.png)
 
-**sysctl** 被用于在内核运行时动态地修改内核的运行参数，可用的内核参数在目录/proc/sys 中。它包含一些 TCP/IP 堆栈和虚拟内存系统的高级选项，这可以让有经验的管理员提高引人注目的系统性能。
+```sh
+# 1、 检查某个单元是否启动
+systemctl is-enabled httpd.service
+# 2、 检查某个服务运行状态
+systemctl status httpd.service      # 状态
+systemctl restart httpd.service     # 重启
+systemctl stop httpd.service        # 停止
+systemctl reload httpd.service      # 重载
+# 3、列出所有服务
+systemctl list-unit-files --type=service
+# 4、查询服务是否激活，和配置是否开机启动
+systemctl is-active httpd
+systemctl disable httpd
+systemctl enable httpd
+# 5、杀死服务
+systemctl kill httpd
+```
+
+### 11.2 sysctl
+
+sysctl 被用于在内核运行时动态地修改内核的运行参数，可用的内核参数在目录/proc/sys 中。它包含一些 TCP/IP 堆栈和虚拟内存系统的高级选项，这可以让有经验的管理员提高引人注目的系统性能。
 
 ```sh
 sysctl -a                     # 显示全部配置信息
 sysctl -p                     # 使配置 /etc/sysctl.conf 生
 sysctl net.ipv4.ip_forward    # 查看是否开启路由ip转发
+```
 
-# 1、 检查某个单元是否启动
-systemctl is-enabled httpd.service
-# 2、 检查某个服务运行状态
-systemctl status httpd.service
-# systemctl restart httpd.service  	# 重启
-# systemctl stop httpd.service		# 停止
-# systemctl reload httpd.service	# 重载
+### 11.3 journalctl
 
-# 3、列出所有服务
-systemctl list-unit-files --type=service
+是 Linux 系统（使用 systemd 作为初始化系统）的日志管理工具，用于查询和显示系统日志。
 
-# 4、查询服务是否激活，和配置是否开机启动
-systemctl is-active httpd
-systemctl disable httpd
-systemctl enable httpd
-
-# 5、杀死服务
-systemctl kill httpd
+```sh
+journalctl -h               # 帮助
+journalctl -u httpd         # -u 表示按服务单元（unit）过滤日志
+journalctl -u httpd -f      # -f 表示实时刷新
+journalctl -u httpd -n 100  # -n 表示最近 100 行日志
+journalctl -u httpd --since "2023-01-01" --until "2023-01-02"   # 按时间过滤
+journalctl -u httpd -p err  # -p 表示日志优先级，err为仅显示错误日志
 ```
 
 ## 12 常用命令及工具包
