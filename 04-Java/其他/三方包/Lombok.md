@@ -14,6 +14,7 @@
 7.  @EqualsAndHashCode ： 注在类上，提供对应的 equals 和 hashCode 方法，默认仅使用该类中定义的属性且不调用父类的方法，通过 callSuper=true，让其生成的方法中调用父类的方法。
 8.  @Log4j/@Slf4j ： 注在类上，提供对应的 Logger 对象，变量名为 log
 9.  @RequiredArgsConstructor : 替代@Autowired，注入时使用 final 修饰或@NotNull 注解
+10. @SneakyThrows : 简化异常处理的代码，让开发者可以在不显式捕获或声明受检查异常（Checked Exception）的情况下抛出这些异常。
 
 **注意点**
 

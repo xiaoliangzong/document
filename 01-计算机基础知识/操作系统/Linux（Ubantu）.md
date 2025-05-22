@@ -18,7 +18,24 @@ dpkg 和 apt 比较：
 # apt-get update只是更新了apt的资源列表，没有真正的对系统执行更新。如果需要，要使用apt-get upgrade来更新。
 apt-get update              # 同步 /etc/apt/sources.list 和 /etc/apt/sources.list.d 中列出的源的索引，这样才能获取到最新的软件包。
 apt-get upgrade
-apt install net-tools       # 安装网络工具包，解决ifconfig命令找不到问题
+sudo apt install net-tools       # 安装网络工具包，解决ifconfig命令找不到问题
+sudo apt install vim             # 安装网络工具包，解决ifconfig命令找不到问题
+sudo apt install ssh             # 安装ssh，解决无法ssh登录，如果root无法ssh登录，修改配置配置/etc/ssh/sshd_config的属性PermitRootLogin为yes
+
+vim /etc/apt/sources.list   # 更换源
+
+# 清华源
+# 默认注释了源码仓库，如有需要可自行取消注释
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security main restricted universe multiverse
+
+sudo apt update             # 更新源
 ```
 
 ### dpkg
