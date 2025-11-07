@@ -2,19 +2,17 @@
 
 [Maven 官网： https://maven.apache.org/](https://maven.apache.org/)
 
-
-
 ## 1. 概念
 
-> bom全称是bill of materials，即物料清单。
-> pom里面是具体的依赖项，bom是对依赖项的管理。bom里面声明的gav不会引入到项目依赖jar包里面，pom中声明的gav会被引入到项目依赖jar包里面，有了bom，在bom声明时候可以省去版本号的声明。
+> bom 全称是 bill of materials，即物料清单。
+> pom 里面是具体的依赖项，bom 是对依赖项的管理。bom 里面声明的 gav 不会引入到项目依赖 jar 包里面，pom 中声明的 gav 会被引入到项目依赖 jar 包里面，有了 bom，在 bom 声明时候可以省去版本号的声明。
 
 项目构建和依赖管理工具。
 
 **坐标**
 
-- groupId：公司或组织Id
-- artifactId：一个项目或者是项目中的一个模块Id
+- groupId：公司或组织 Id
+- artifactId：一个项目或者是项目中的一个模块 Id
 - version：版本号，比如 SNAPSHOT 表示快照版本，RELEASE 表示正式版本
 
 **工作机制**
@@ -44,7 +42,7 @@ mvn help:describe -Dplugin=org.apache.maven.plugins:maven-resources-plugin -Ddet
 
 ## 2. 生命周期
 
-生命周期（Lifecycle）是 Maven 构建过程的整体组织结构。Maven 定义了三个默认的生命周期：clean（清理）、default（默认）和site（站点）。每个生命周期由一系列阶段（phase）组成。
+生命周期（Lifecycle）是 Maven 构建过程的整体组织结构。Maven 定义了三个默认的生命周期：clean（清理）、default（默认）和 site（站点）。每个生命周期由一系列阶段（phase）组成。
 
 - clean：用于清理项目。
 - default/build：用于构建项目。
@@ -54,11 +52,11 @@ mvn help:describe -Dplugin=org.apache.maven.plugins:maven-resources-plugin -Ddet
 
 **clean**
 
-|   阶段   |                         描述                         |
-| :------: | :--------------------------------------------------: |
-| pre-clean |        在清理之前执行的任务        |
-| clean  |                清理生成的输出文件                |
-| post-clean  |                在清理之后前执行的任务                |
+|    阶段    |          描述          |
+| :--------: | :--------------------: |
+| pre-clean  |  在清理之前执行的任务  |
+|   clean    |   清理生成的输出文件   |
+| post-clean | 在清理之后前执行的任务 |
 
 **default**
 
@@ -100,24 +98,22 @@ mvn help:describe -Dplugin=org.apache.maven.plugins:maven-resources-plugin -Ddet
 
 **site**
 
-|   阶段   |                         描述                         |
-| :------: | :--------------------------------------------------: |
-| pre-site |        在生成站点之前执行的任务        |
-| site  |                生成项目站点文档                |
-| post-site   |     在生成站点之后执行的任务     |
-| site-deploy  |      将生成的站点文档部署到远程服务器      |
-
+|    阶段     |               描述               |
+| :---------: | :------------------------------: |
+|  pre-site   |     在生成站点之前执行的任务     |
+|    site     |         生成项目站点文档         |
+|  post-site  |     在生成站点之后执行的任务     |
+| site-deploy | 将生成的站点文档部署到远程服务器 |
 
 目标（Goal）是 Maven 构建过程中执行的具体任务。每个阶段都会绑定到一个或多个目标上。Maven 提供了许多内置的目标用于执行各种操作，比如编译源代码、运行单元测试、打包项目等。
 
+Maven 通过 lifecycle（生命周期）、phase（阶段）和 goal（最小任务单元）来提供标准的构建流程。lifecycle、phase 和 goal 的关系：
 
-Maven通过lifecycle（生命周期）、phase（阶段）和goal（最小任务单元）来提供标准的构建流程。lifecycle、phase和goal的关系：
+- lifecycle 相当于 Java 的 package，它包含一个或多个 phase；
+- phase 相当于 Java 的 class，它包含一个或多个 goal；
+- goal 相当于 class 的 method，它其实才是真正干活的。
 
-- lifecycle相当于Java的package，它包含一个或多个phase；
-- phase相当于Java的class，它包含一个或多个goal；
-- goal相当于class的method，它其实才是真正干活的。
-
-**通常使用 mvn 这个命令时，后边的参数是阶段 phase，Maven自动根据生命周期运行到指定的phase。命令: mvn [phase] [phase]**
+**通常使用 mvn 这个命令时，后边的参数是阶段 phase，Maven 自动根据生命周期运行到指定的 phase。命令: mvn [phase] [phase]**
 
 **IntelliJ IDEA 中显示的 Lifecycle 和 Maven 定义的生命周期、阶段概念不一致**
 
@@ -129,7 +125,7 @@ IntelliJ IDEA 使用 Maven 插件来解析和执行 Maven 构建，它会根据 
 
 **IntelliJ IDEA 中执行 mvn pre-clean 报错**
 
-在 Maven 命令行中，mvn clean中的clean是指 Maven 生命周期中的一个阶段。具体来说，这个阶段对应的是 clean 生命周期中的 clean 阶段。
+在 Maven 命令行中，mvn clean 中的 clean 是指 Maven 生命周期中的一个阶段。具体来说，这个阶段对应的是 clean 生命周期中的 clean 阶段。
 
 在 IntelliJ IDEA 中无法执行 mvn pre-clean 命令，这是因为 pre-clean 不是一个独立的阶段，而是 clean 生命周期中的一个阶段。在 Maven 的生命周期中，只有一些特定的阶段可以直接通过命令行执行。
 
@@ -168,11 +164,11 @@ project
 **说明**
 
 - compile 为默认的依赖有效范围。
-- provided 在开发过程中需要用到的 jar 包，比如 servlet-api.jar 。而这个范围的 jar 包之所以不参与部署，就是避免和服务器上已有的同类 jar 包冲突。 
+- provided 在开发过程中需要用到的 jar 包，比如 servlet-api.jar 。而这个范围的 jar 包之所以不参与部署，就是避免和服务器上已有的同类 jar 包冲突。
 - test，表示依赖项目仅仅参与测试相关的工作，包括测试代码的编译，执行。
 - runtime，专门用于编译时不需要，但是运行时需要的 jar 包。
 - system，被依赖项不会从 maven 仓库下载，而是从本地文件系统拿。需要添加 systemPath 的属性来定义路径。
-- import，打包类型必须是 pom，且必须放在 <dependencyManagement> 中。 
+- import，打包类型必须是 pom，且必须放在 <dependencyManagement> 中。
 
 |  作用域  | 对主程序是否有效 | 对测试程序是否有效 | 是否参与打包部署 | 是否传递 |      举例       |
 | :------: | :--------------: | :----------------: | :--------------: | :------: | :-------------: |
@@ -222,7 +218,7 @@ project
 
 Super POM 是 Maven 的默认 POM。除非明确设置，否则所有 POM 都扩展 Super POM。就好比一个 Java 类默认继承了 Object 类。
 
-effective POM，在 POM 的继承关系中，子 POM 可以覆盖父 POM中的配置，如果子 POM 没有覆盖，那么父 POM 中的配置将会被继承。按照这个规则，继承关系中的所有 POM 叠加到一起，就得到了一个最终生效的 POM。显然 Maven 实际运行过程中，执行构建操作就是按照这个最终生效的 POM 来运行的。这个最终的 POM 就是有效 POM。
+effective POM，在 POM 的继承关系中，子 POM 可以覆盖父 POM 中的配置，如果子 POM 没有覆盖，那么父 POM 中的配置将会被继承。按照这个规则，继承关系中的所有 POM 叠加到一起，就得到了一个最终生效的 POM。显然 Maven 实际运行过程中，执行构建操作就是按照这个最终生效的 POM 来运行的。这个最终的 POM 就是有效 POM。
 
 查看有效 POM 命令： mvn help:effective-pom
 
@@ -241,7 +237,6 @@ effective POM，在 POM 的继承关系中，子 POM 可以覆盖父 POM中的�
 - 在 POM 文件中引入属性
 - 资源过滤功能：在非 Maven 属性文件中引用属性，由 Maven 在处理资源时，将引入属性的表达式替换成属性值
 
-
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- project 标签：根标签，表示对当前工程进行配置、管理。  -->
@@ -249,6 +244,10 @@ effective POM，在 POM 的继承关系中，子 POM 可以覆盖父 POM中的�
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <!-- modelVersion 标签：从 Maven 2 开始就固定是 4.0.0。代表当前 pom.xml 所采用的标签结构。 -->
     <modelVersion>4.0.0</modelVersion>
+    <!-- Maven 版本前置要求，表示该项目必须在Maven 3.0.3 及以上版本中运行，否则会报错 -->
+    <prerequisites>
+        <maven>3.0.3</maven>
+    </prerequisites>
 
     <!-- 坐标信息 -->
     <groupId>com.fengpin</groupId>
@@ -276,7 +275,7 @@ effective POM，在 POM 的继承关系中，子 POM 可以覆盖父 POM中的�
 
     <!-- dependencies 标签：配置具体依赖信息 -->
     <dependencies>
-    
+
     </dependencies>
 
     <build>
@@ -298,7 +297,7 @@ effective POM，在 POM 的继承关系中，子 POM 可以覆盖父 POM中的�
             </resource>
             <!-- 不过滤处理，只是将所有配置文件打包到classpath下 -->
             <resource>
-                <filtering>false</filtering>    
+                <filtering>false</filtering>
                 <directory>src/main/java</directory>
                 <includes>
                     <include>**/*.xml</include>
@@ -329,7 +328,7 @@ effective POM，在 POM 的继承关系中，子 POM 可以覆盖父 POM中的�
 
     <!-- 用于指定项目构建后发布到远程仓库的配置信息 -->
     <distributionManagement>
-        <!-- 
+        <!--
             1. 用于指定重定位规则，
             2. 目的是将构件从其原始位置移动到新的位置，一般是由于特定的组织或项目对构件进行了修改或重新打包，需要将其发布到不同的仓库或命名空间下。通过在 relocation 元素中指定需要重定位的构件，可以将构件发布到指定的位置。
             3. relocation 元素在 POM 文件中并不常见，通常用于特定情况下的构建和部署需求。如果你的项目中没有具体的重定位需求，可以忽略该配置。
@@ -344,9 +343,9 @@ effective POM，在 POM 的继承关系中，子 POM 可以覆盖父 POM中的�
 
 ## 4. Setting 配置说明
 
-maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-builder-${version}.jar 中，打开该文件，能找到超级POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM，所有 Maven 项目继承该配置，在这个 POM 中找到 repositories 标签的 url：https://repo.maven.apache.org/maven2
+maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-builder-${version}.jar 中，打开该文件，能找到超级 POM：\org\apache\maven\model\pom-4.0.0.xml ，它是所有 Maven POM 的父 POM，所有 Maven 项目继承该配置，在这个 POM 中找到 repositories 标签的 url：https://repo.maven.apache.org/maven2
 
-**优先级** 
+**优先级**
 
 本地仓库 > active profile > pom 中的 repository > mirror
 
@@ -375,9 +374,9 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
 
      <!--
      | 远程库的服务器信息，用于上传或下载时需要认证的远程仓库。
-     | 
+     |
      | 同一个仓库，releases 和 snapshots 的用户密码相同，则可以只配置一个 server。
-     | 
+     |
      | <id> 标签说明：是指仓库的唯一标识。
      | 1. 下载时，必须和配置的仓库 id 或者镜像 id 相同，pom 中是指 <repositories> 和 <pluginRepositories> 标签，setting是指 <mirror> 和 <profiles> 标签。
      | 2. 上传时，必须和 pom 中配置的 <distrubutionManagement> 标签 id 相同。
@@ -385,7 +384,7 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
      | -->
     <servers>
         <server>
-            <id>nexus</id>              
+            <id>nexus</id>
             <username>admin</username>
             <password>admin@nexus</password>
         </server>
@@ -394,11 +393,11 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
     <!--
      | 仓库镜像：
      | mirror 相当于一个拦截器，它会拦截maven对remote repository的相关请求，把请求里的remote repository地址，重定向到mirror里配置的地址。
-     | 
+     |
      | 如果没有配置，则默认会到 http://repo1.maven.org/maven2 仓库去请求插件和依赖包。
      |
      | mirrors 可以配置多个子节点，但它只会使用其中的一个节点。Maven 在选择 Mirror 时遵循以下规则：
-     |  
+     |
      | 1. Maven 会按照在 settings.xml 文件中定义的镜像顺序依次尝试。它将根据 <mirrorOf> 元素的配置和远程仓库URL进行匹配。
      | 2. Maven 会选择与远程仓库 URL 最匹配的镜像。匹配方式是通过 <mirrorOf> 元素的配置来判断的。
      | 3. 如果没有找到匹配的镜像，Maven将会直接请求远程仓库。
@@ -443,9 +442,9 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
     <profiles>
         <!-- 全局设置 -->
         <!--
-         | 
+         |
          | setting.xml 中配置：仅在本地生效，如果脱离当前 setting.xml 能够覆盖的范围，则无法生效。
-         | 在当前 Maven 工程 pom.xml 中配置：无论在哪个环境执行编译等构建操作都有效。     
+         | 在当前 Maven 工程 pom.xml 中配置：无论在哪个环境执行编译等构建操作都有效。
          | -->
         <profile>
             <id>jdk1.8</id>
@@ -491,7 +490,7 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
             <id>nexus-profile</id>
             <repositories>
                 <!-- repositories 可以配置多个仓库，保证每个仓库的id不重复，如果 Nexus 存在多个仓库，则可以为每个仓库配置独立的 <server>，或者使用仓库组（Repository Group） -->
-                <repository>    
+                <repository>
                     <id>nexus</id>    <!--仓库id，需要与 <server> 的 id 保持一致。-->
                     <name>xxx-nexus-repo-name</name>
                     <url>http://192.168.100.99:8082/repository/maven-public/</url>
@@ -535,7 +534,7 @@ maven 默认的中央仓库是在 maven 安装目录下的 /lib/maven-model-buil
 
 ### 5.1 上传
 
-上传部署时，是需要在 pom 和 setting 中都配置的。pom 中配置 distributionManagement 标签，setting 中配置服务器认证信息，和distributionManagement配合使用。
+上传部署时，是需要在 pom 和 setting 中都配置的。pom 中配置 distributionManagement 标签，setting 中配置服务器认证信息，和 distributionManagement 配合使用。
 
 ```xml
 <!-- setting中设置 -->
@@ -645,18 +644,17 @@ validate 和 verify 阶段通常不需要使用任何插件，因为它们的主
 
 #### 6.0.1 maven-resources-plugin
 
-项目直接或间接引入 spring-boot-starter-parent 作为 parent，且没有手动配置 maven-resources-plugin 插件。则只能使用 @*@ 这一种占位符，这是因为 spring-boot-starter-parent 指定了 <resource.delimiter>@</resource.delimiter>，并设置 <useDefaultDelimiters>false</useDefaultDelimiters>。
+项目直接或间接引入 spring-boot-starter-parent 作为 parent，且没有手动配置 maven-resources-plugin 插件。则只能使用 @\*@ 这一种占位符，这是因为 spring-boot-starter-parent 指定了 <resource.delimiter>@</resource.delimiter>，并设置 <useDefaultDelimiters>false</useDefaultDelimiters>。
 spring 害怕和其他语法有冲突，所以使用了这个配置。
 
-
-项目没有引入 spring-boot-starter-parent 作为 parent，手动引入 maven-resources-plugin 插件，但没有指定任何 delimiter，也没有显式配置 useDefaultDelimiters 为 false，那么可以使用默认占位符 @*@ 或 ${*}，因为不配置 useDefaultDelimiters 的话，默认为 true。
+项目没有引入 spring-boot-starter-parent 作为 parent，手动引入 maven-resources-plugin 插件，但没有指定任何 delimiter，也没有显式配置 useDefaultDelimiters 为 false，那么可以使用默认占位符 @_@ 或 ${_}，因为不配置 useDefaultDelimiters 的话，默认为 true。
 
 ```xml
 <build>
     <!-- 配置资源目录，resources 标签其实就是 maven-resources-plugin 的配置。 -->
     <resources>
         <resource>
-            <!-- 
+            <!--
                 filtering 作用是是否允许指定任意文件可以以${...} or @...@的语法来提取pom.xml当中的配置。默认为 false。
                 设置为 true 表示对该目录下的资源文件进行过滤处理（是指对资源文件进行替换操作），也就是将配置文件中的${...}/@...@占位符进行解析替换。
              -->
@@ -722,6 +720,7 @@ spring 害怕和其他语法有冲突，所以使用了这个配置。
 </plugin>
 
 ```
+
 #### 6.0.3 maven-site-plugin
 
 用于生成项目的网站文档。它根据项目的源代码、资源文件和其他配置信息，生成一个静态网站，其中包含有关项目的各种文档、报告和页面。主要功能包括：
@@ -739,10 +738,9 @@ spring 害怕和其他语法有冲突，所以使用了这个配置。
 </plugin>
 ```
 
+#### 6.0.4 maven-jar-plugin
 
-#### 6.0.4 maven-jar-plugin 
-
-只包括当前模块的jar，不包含依赖jar，无法直接启动（相当于打成一个可以依赖的jar包）
+只包括当前模块的 jar，不包含依赖 jar，无法直接启动（相当于打成一个可以依赖的 jar 包）
 
 ```xml
 <plugin>
@@ -758,7 +756,7 @@ spring 害怕和其他语法有冲突，所以使用了这个配置。
 				<!-- 这个属性特别关键，如果没有这个属性，有时候我们引用的包maven库下面可能会有多个包，并且只有一个是正确的，其余的可能是带时间戳的，
 				此时会在classpath下面把那个带时间戳的给添加上去，然后我们在依赖打包的时候，打的是正确的，所以两头会对不上，报错。 -->
 				<useUniqueVersions>false</useUniqueVersions>
-				<!-- 为依赖包添加路径, 这些路径会写在MANIFEST文件的Class-Path下 -->	
+				<!-- 为依赖包添加路径, 这些路径会写在MANIFEST文件的Class-Path下 -->
 				<addClasspath>true</addClasspath>
 				<!-- 这个jar所依赖的jar包添加classPath的时候的前缀，如果这个jar本身和依赖包在同一级目录，则不需要添加 -->
 				<classpathPrefix>lib/</classpathPrefix>
@@ -829,10 +827,10 @@ mvn help:evaluate
 5. 生成依赖树：使用 `tree` 目标可以生成项目依赖树，显示每个依赖项及其传递依赖项，这对于了解项目依赖结构以及解决依赖冲突非常有用。
 6. 打包依赖：使用 `bundle` 目标可以将项目及其依赖项打包成一个单独的 jar，这对于简化部署和发布非常有用。
 
-| 目标             | dependency:copy                                              | dependency:copy-dependencies                                 |
-| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **作用对象**     | 只能复制指定的单个依赖项。                                   | 可以复制所有依赖项。                                         |
-| **依赖处理方式** | 只复制指定的依赖项，它不会处理这些依赖项的传递依赖关系。     | 可以复制所有依赖项，并且会自动处理传递依赖关系。             |
+| 目标             | dependency:copy                                                                   | dependency:copy-dependencies                                                      |
+| ---------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **作用对象**     | 只能复制指定的单个依赖项。                                                        | 可以复制所有依赖项。                                                              |
+| **依赖处理方式** | 只复制指定的依赖项，它不会处理这些依赖项的传递依赖关系。                          | 可以复制所有依赖项，并且会自动处理传递依赖关系。                                  |
 | **使用方式**     | 通常用于复制单个依赖项到指定目录中，例如将某个依赖项复制到应用程序的 lib 目录中。 | 通常用于将所有依赖项复制到指定目录中，例如将所有依赖项复制到发布包的 lib 目录中。 |
 
 ```xml
@@ -887,7 +885,7 @@ mvn help:evaluate
 </plugin>
 ```
 
-### 6.3 maven-source-plugin 源码生成 **
+### 6.3 maven-source-plugin 源码生成 \*\*
 
 用于帮助生成项目的源代码和源码附件（source attachments）。源码附件是一个包含项目源代码的 JAR 文件，可以与二进制 JAR 文件一起发布，以便其他开发人员可以查看和调试源代码。
 
@@ -903,8 +901,8 @@ mvn help:evaluate
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-source-plugin</artifactId>
     <version>3.2.0</version>
-    <!-- 
-        是否配置 attach 只是为了控制源码 jar 是否附加到构建输出中。因为此插件配置后，就代表源码jar会生成。 
+    <!--
+        是否配置 attach 只是为了控制源码 jar 是否附加到构建输出中。因为此插件配置后，就代表源码jar会生成。
         值为 true，说明打成的源码 jar 文件才做作为附件附加到构建输出中。
      -->
     <configuration>
@@ -921,7 +919,8 @@ mvn help:evaluate
     </executions>
 </plugin>
 ```
-### 6.4 maven-project-info-reports-plugin  项目信息报告生成
+
+### 6.4 maven-project-info-reports-plugin 项目信息报告生成
 
 用于生成项目信息报告，提供有关项目配置和元数据的详细信息。它可以生成各种报告，包括项目概述、构建环境、源码统计和依赖关系等。
 
@@ -965,17 +964,16 @@ mvn help:evaluate
 </plugin>
 ```
 
-### 6.6-1 maven-pmd-plugin 代码检查 **
+### 6.6-1 maven-pmd-plugin 代码检查 \*\*
 
 都是用于进行代码质量分析和静态代码检查的工具。
 
-|        |                          Checkstyle                          |                           FindBugs                           |                             PMD                              |
-| ------ | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| 插件   |                   maven-checkstyle-plugin                    |                    findbugs-maven-plugin                     |                       maven-pmd-plugin                       |
-| 关注点 |                  代码风格和格式（编码规范）                  |                        代码缺陷和安全                        |                      代码规范和最佳实践                      |
-| 目的   |               检查Java源文件是否与代码规范相符               |  基于Bug Patterns概念，查找字节码文件（.class）中的潜在bug   |                  检查Java源文件中的潜在问题                  |
+|        |                                   Checkstyle                                   |                              FindBugs                              |                                          PMD                                           |
+| ------ | :----------------------------------------------------------------------------: | :----------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
+| 插件   |                            maven-checkstyle-plugin                             |                       findbugs-maven-plugin                        |                                    maven-pmd-plugin                                    |
+| 关注点 |                           代码风格和格式（编码规范）                           |                           代码缺陷和安全                           |                                   代码规范和最佳实践                                   |
+| 目的   |                       检查 Java 源文件是否与代码规范相符                       |    基于 Bug Patterns 概念，查找字节码文件（.class）中的潜在 bug    |                              检查 Java 源文件中的潜在问题                              |
 | 检查项 | 可以检查代码是否符合所选择的编码规范，如缩进、命名约定、代码长度、空格使用等。 | 可以检查代码中的潜在漏洞，如空指针引用、资源泄漏、敏感数据泄露等。 | 可以检查代码中的潜在问题，如未使用的变量、不必要的对象创建、重复的代码、冗长的方法等。 |
-
 
 ```xml
 <plugin>
@@ -1021,7 +1019,6 @@ mvn help:evaluate
 ```
 
 ### 6.6-2 findbugs-maven-plugin 代码检查
-
 
 ### 6.6-3 maven-checkstyle-plugin 代码检查
 
@@ -1087,7 +1084,7 @@ mvn help:evaluate
 
 ### 6.7 arch-unit-maven-plugin 代码检查
 
-ArchUnit是一个用于Java代码架构自动化检测的开源框架，可以帮助开发者在编译期间自动化地检查代码的结构和规范。
+ArchUnit 是一个用于 Java 代码架构自动化检测的开源框架，可以帮助开发者在编译期间自动化地检查代码的结构和规范。
 
 ```xml
 <plugin>
@@ -1126,12 +1123,12 @@ ArchUnit是一个用于Java代码架构自动化检测的开源框架，可以�
 
 ### 6.8 maven-failsafe-plugin 运行集成测试
 
-| maven-surefire-plugin                                        | maven-failsafe-plugin                                        |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 用于运行单元测试（unit tests）。                             | 用于运行集成测试（integration tests）。                      |
+| maven-surefire-plugin                                                             | maven-failsafe-plugin                                                                 |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 用于运行单元测试（unit tests）。                                                  | 用于运行集成测试（integration tests）。                                               |
 | 默认绑定到 Maven 生命周期的 `test` 阶段，即在执行 `mvn test` 时会运行其中的测试。 | 默认绑定到 Maven 生命周期的 `verify` 阶段，即在执行 `mvn verify` 时会运行其中的测试。 |
-| 测试类文件需要符合默认的命名规范（包括 Test 或TestCase 后缀）。 | 测试类文件需要符合默认的命名规范（包括 IT 或IntegrationTest 后缀）。 |
-| 通常在内存中执行，非常适合轻量级的测试。                     | 更适合运行耗时较长、需要依赖外部资源（如数据库、服务等）的集成测试。 |
+| 测试类文件需要符合默认的命名规范（包括 Test 或 TestCase 后缀）。                  | 测试类文件需要符合默认的命名规范（包括 IT 或 IntegrationTest 后缀）。                 |
+| 通常在内存中执行，非常适合轻量级的测试。                                          | 更适合运行耗时较长、需要依赖外部资源（如数据库、服务等）的集成测试。                  |
 
 Failsafe 插件是一个测试插件，用于运行集成测试。与 Surefire 插件不同，Failsafe 插件用于运行需要依赖外部环境、例如数据库或网络等的测试。
 
@@ -1180,7 +1177,7 @@ Failsafe 插件是一个测试插件，用于运行集成测试。与 Surefire �
 </plugin>
 ```
 
-### 6.10 flatten-maven-plugin 扁平化 **
+### 6.10 flatten-maven-plugin 扁平化 \*\*
 
 > 架构师必备
 >
@@ -1188,8 +1185,8 @@ Failsafe 插件是一个测试插件，用于运行集成测试。与 Surefire �
 
 **问题**
 
-比如有一些common模块（common-core、common-log、common-redis、common-security、common-swagger），对于这些对于这些公共的依赖，当我们进行修改的时候，只需要改对应的模块代码即可。
-但会出现这样一个问题，每个common公共依赖的版本号，可能会不一样：可能common-core是1.0，common-log是1.1等等，这样就导致项目的依赖管理变得比较混乱。
+比如有一些 common 模块（common-core、common-log、common-redis、common-security、common-swagger），对于这些对于这些公共的依赖，当我们进行修改的时候，只需要改对应的模块代码即可。
+但会出现这样一个问题，每个 common 公共依赖的版本号，可能会不一样：可能 common-core 是 1.0，common-log 是 1.1 等等，这样就导致项目的依赖管理变得比较混乱。
 
 **分析**
 
@@ -1205,7 +1202,7 @@ flatten-maven-plugin 插件，通过将 pom.xml 文件里面的 ${revision} 替�
 
 **问题处理**
 
-问题1：出现 .flattened-pom.xml 文件，但 ${revision} 无法被替换成真实的版本号，是因为 flatten-maven-plugin 插件，不起作用导致的。
+问题 1：出现 .flattened-pom.xml 文件，但 ${revision} 无法被替换成真实的版本号，是因为 flatten-maven-plugin 插件，不起作用导致的。
 解决： flatten-maven-plugin 插件需要的 maven 版本 3.5 以上。
 
 ```xml
@@ -1280,7 +1277,7 @@ flatten-maven-plugin 插件，通过将 pom.xml 文件里面的 ${revision} 替�
 </plugin>
 ```
 
-### 6.11  maven-shade-plugin
+### 6.11 maven-shade-plugin
 
 用于构建可执行的、可独立运行的 JAR 文件。它的主要功能是将项目的依赖项和其他资源合并到一个单独的 JAR 文件中，以消除对外部依赖的需求，并简化项目的部署和分发。
 
@@ -1342,13 +1339,13 @@ flatten-maven-plugin 插件，通过将 pom.xml 文件里面的 ${revision} 替�
 
 > 作用：
 
-maven提供的打包插件有如下三种：
+maven 提供的打包插件有如下三种：
 
-| 插件                  | 功能                                                         |
-| --------------------- | ------------------------------------------------------------ |
-| maven-jar-plugin      | maven 默认打包插件【springboot默认使用该方式打包】，用来创建 project jar |
-| maven-shade-plugin    | 用来打可执行包，executable(fat) jar                          |
-| maven-assembly-plugin | 支持定制化打包方式，例如 apache 项目的打包方式               |
+| 插件                  | 功能                                                                      |
+| --------------------- | ------------------------------------------------------------------------- |
+| maven-jar-plugin      | maven 默认打包插件【springboot 默认使用该方式打包】，用来创建 project jar |
+| maven-shade-plugin    | 用来打可执行包，executable(fat) jar                                       |
+| maven-assembly-plugin | 支持定制化打包方式，例如 apache 项目的打包方式                            |
 
 是 maven 中针对打包任务而提供的标准插件。允许用户将项目输出与它的依赖项、模块、站点文档、和其他文件一起组装成一个可分发的归档文件。例如创建可运行的 JAR 文件、ZIP 文件等。
 
@@ -1360,24 +1357,24 @@ maven提供的打包插件有如下三种：
 4. 支持文件过滤和重命名：能够自定义包含/排除指定的目录或文件。可以通过配置规则来排除某些文件或目录，也可以对文件进行重命名，以满足特定的需求。
 
 ```xml
-<plugin>  
-    <artifactId>maven-assembly-plugin</artifactId>  
+<plugin>
+    <artifactId>maven-assembly-plugin</artifactId>
     <executions>
-        <execution>  
+        <execution>
             <id>make-zip</id>
-            <phase>package</phase>  
-            <goals>    
-                <goal>single</goal> 
-            </goals>    
-            <configuration>  
-                <descriptors> 
-                <!--描述文件路径-->  
-                <descriptor>build/assembly/assembly.xml</descriptor>  
-                </descriptors>  
-            </configuration>  
-        </execution>  
-    </executions>  
- </plugin> 
+            <phase>package</phase>
+            <goals>
+                <goal>single</goal>
+            </goals>
+            <configuration>
+                <descriptors>
+                <!--描述文件路径-->
+                <descriptor>build/assembly/assembly.xml</descriptor>
+                </descriptors>
+            </configuration>
+        </execution>
+    </executions>
+ </plugin>
 ```
 
 ### 6.13 maven-antrun-plugin
@@ -1507,7 +1504,7 @@ Ant 是一个基于 XML 的构建工具，它提供了一种灵活和可扩展�
 
 ### 6.17 spring-boot-maven-plugin
 
-将应用程序及其依赖jar一起打包到一个独立的jar中，打出来的是fat jar，可以直接启动。
+将应用程序及其依赖 jar 一起打包到一个独立的 jar 中，打出来的是 fat jar，可以直接启动。
 
 ```xml
 <plugin>
@@ -1527,7 +1524,7 @@ Ant 是一个基于 XML 的构建工具，它提供了一种灵活和可扩展�
 </plugin>
 ```
 
-### 6.18 xml-maven-plugin  XML 文件操作
+### 6.18 xml-maven-plugin XML 文件操作
 
 用于在构建过程中执行 XML 文件的操作。它允许您在 Maven 构建期间执行各种操作，例如创建、修改、过滤和验证 XML 文件。
 
@@ -1546,7 +1543,6 @@ Ant 是一个基于 XML 的构建工具，它提供了一种灵活和可扩展�
     </configuration>
 </plugin>
 ```
-
 
 ### 6.19 johnzon-maven-plugin JSON 处理工具
 
@@ -1586,8 +1582,8 @@ johnzon-maven-plugin 用于执行与 JSON 相关的任务。这个插件提供�
 用于在构建过程中获取 Git 代码库的提交信息，并将这些信息注入到你的 Java 类中。这个插件可以帮助你在构建过程中嵌入有关 Git 提交的信息，例如提交 ID、提交时间、提交者等，这些信息可以在运行时被访问到。
 
 - 生成 git.properties 文件；
-- 配置打包名称，默认打包文件名格式为：<artifactId>-<version>.jar，需要在 version 后边拼接属性：git.commit.id.abbrev（插件将该属性注入到maven项目中，可以在pom文件中引用），比如 <version>1.0.0-${git.commit.id.abbrev}</version>
-- 校验Git属性是否符合预期值
+- 配置打包名称，默认打包文件名格式为：<artifactId>-<version>.jar，需要在 version 后边拼接属性：git.commit.id.abbrev（插件将该属性注入到 maven 项目中，可以在 pom 文件中引用），比如 <version>1.0.0-${git.commit.id.abbrev}</version>
+- 校验 Git 属性是否符合预期值
 
 ```xml
 <plugin>
@@ -1759,12 +1755,11 @@ johnzon-maven-plugin 用于执行与 JSON 相关的任务。这个插件提供�
 ### 6.22 flyway-maven-plugin 管理数据库的版本控制和变更管理
 
 > flyway-maven-plugin 和 liquibase-maven-plugin 比较
-> 
+>
 > 都是用于与 Maven 构建工具集成的数据库迁移工具插件，两者都支持对数据库进行版本控制。
-> 
+>
 > 1. 语法和配置：Flyway 使用 SQL 迁移脚本，需要提供原生 SQL 脚本。而 Liquibase 支持多种格式（包括 SQL、XML、JSON、YAML 等）来定义变更集。Liquibase 还提供了更复杂的变更定义和逻辑，例如条件变更、回滚脚本等。
 > 2. 数据库支持：Flyway 对各种主流数据库的支持更为广泛，包括 PostgreSQL、MySQL、Oracle 等，而 Liquibase 也支持多种数据库，但可能需要针对特定的数据库做一些适配工作。
-> 
 
 是 Flyway 数据库迁移工具的 Maven 插件。它允许你通过 Maven 构建过程来管理和执行数据库迁移。主要功能有：
 
@@ -1865,7 +1860,7 @@ Liquibase 是一个开源的数据库变更管理工具，它可以通过一个�
 
 ```bash
 # 显示当前项目中所有依赖项的版本信息和可用的更新版本。
-mvn versions:display-dependency-updates 
+mvn versions:display-dependency-updates
 # 显示插件的更新版本信息。
 mvn versions:display-plugin-updates
 # 自动更新依赖项的版本
@@ -1894,7 +1889,7 @@ mvn versions:update-properties
 
 ### 6.26 jooq-codegen-maven 基于数据库生成 Java 持久层代码
 
-用于与 JOOQ（Java Object Oriented Querying）集成，在 Maven 构建过程中生成基于数据库的 Java 持久层代码。（Java 实体类、DAO类和查询接口）
+用于与 JOOQ（Java Object Oriented Querying）集成，在 Maven 构建过程中生成基于数据库的 Java 持久层代码。（Java 实体类、DAO 类和查询接口）
 
 JOOQ 是一个 Java 编程库，它提供了一种方便的方式来与关系型数据库进行交互。使用时需要编写 jooq-codegen-config.xml。
 
@@ -1965,9 +1960,9 @@ JOOQ 是一个 Java 编程库，它提供了一种方便的方式来与关系型
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>build-helper-maven-plugin</artifactId>
     <version>3.2.0</version>
-    <!-- 
+    <!--
         inherited 属性用来指定配置是否应该被子模块继承。当设置为 false 时，子模块将不会继承父模块的相同配置。而当设置为 true 或者默认情况下，子模块会继承父模块的配置。
-        
+
         如果您需要将该插件应用到多个子项目中，可以在父项目中配置该插件，并将其inherited属性设置为true。
      -->
     <inherited>false</inherited>
@@ -1994,7 +1989,6 @@ JOOQ 是一个 Java 编程库，它提供了一种方便的方式来与关系型
 
 ### 6.29 spring-javaformat-maven-plugin
 
-
 ### 6.30 maven-archetype-plugin
 
 在原型元工程的 POM 目录下（maven-archetype-test）执行：mvn archetype:create-from-project 即可在 maven-archetype-test/target/generated-sources/archetype 目录下生成原型工程。
@@ -2002,11 +1996,13 @@ JOOQ 是一个 Java 编程库，它提供了一种方便的方式来与关系型
 在原型工程的 POM 目录下（maven-archetype-test/target/generated-sources/archetype ）执行：mvn install 即可在 target 目录下生成可运行的原型工程。
 
 执行可运行的原型工程生成目标项目
+
 ```sh
 mvn archetype:generate -DinteractiveMode=false -DarchetypeCatalog=local -DarchetypeGroupId=priv.cqq -DarchetypeArtifactId=maven-archetype-test-archetype -DarchetypeVersion=0.0.1-SNAPSHOT -DgroupId=org.cqq -DartifactId=targetapp -Dpackage=org.cqq.targetapp -Dversion=0.0.1-SNAPSHOT
 
 mvn archetype:generate -s E:\apache-maven-3.8.1\conf\settings-base.xml -DarchetypeGroupId=com.fpwis -DarchetypeArtifactId=fpwis-archetype-archetype -DarchetypeVersion=1.3.0 -Dpackage=com.fpwis.aicompetition -DprojectShortName=aicompetition -DimageVersion=1.0.0 -DimageName=b_zg_ly_jyjs -DexternalPort=9501 -DinternalPort=9501
 ```
+
 ```xml
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
@@ -2022,7 +2018,7 @@ mvn archetype:generate -s E:\apache-maven-3.8.1\conf\settings-base.xml -Darchety
 
 ## 7. Nexus 使用
 
-[官网：https://help.sonatype.com/repomanager3](https://help.sonatype.com/repomanager3) 
+[官网：https://help.sonatype.com/repomanager3](https://help.sonatype.com/repomanager3)
 
 ### 7.1 部署
 
@@ -2030,54 +2026,115 @@ mvn archetype:generate -s E:\apache-maven-3.8.1\conf\settings-base.xml -Darchety
 
 启动镜像
 
-docker run -d -p 8081:8081  --name nexus3 --restart=always -v D:\docker\nexus\nexus-data:/var/nexus-data -v D:\docker\nexus\sonatype-work:/opt/sonatype/sonatype-work/nexus3 sonatype/nexus3
+docker run -d -p 8081:8081 --name nexus3 --restart=always -v D:\docker\nexus\nexus-data:/var/nexus-data -v D:\docker\nexus\sonatype-work:/opt/sonatype/sonatype-work/nexus3 sonatype/nexus3
 
 ### 7.2 仓库类型
 
-nexus 中仓库的类型有三种，分别为：Proxy、Hosted、Group。（v2版本，还有一个virtual类型）
+nexus 中仓库的类型有三种，分别为：Proxy、Hosted、Group。（v2 版本，还有一个 virtual 类型）
 
-1. Proxy：代理仓库，用来关联代理中央Maven仓库，和咱本地maven远程中央仓库一个意思。
+1. Proxy：代理仓库，用来关联代理中央 Maven 仓库，和咱本地 maven 远程中央仓库一个意思。
 2. Hosted：宿主仓库，这个类型用于定义我们自己的私服，比如公司内部的一些公共依赖包，就可以传到上面。hosted 还有三种策略，用于分别存储不通场景产出的依赖。
 
-    - Release：一般用于存储已经正式发布的依赖。
-    - Snapshot：用于存储未发布的依赖。
-    - Mixed：混合，已发布和未发布的都有。
+   - Release：一般用于存储已经正式发布的依赖。
+   - Snapshot：用于存储未发布的依赖。
+   - Mixed：混合，已发布和未发布的都有。
 
 3. group：仓库组，Nexus 通过仓库组的概念统一管理多个仓库，这样我们在项目中直接请求仓库组即可请求到仓库组管理的多个仓库。
 4. virtual：虚拟仓库，用于适配 Maven 1。
-
 
 ### 7.3 创建自定义私服
 
 #### 7.3.1 创建中央仓库
 
-找到 Repository点击菜单Repositories点击create repository,打开界入会让选择recipe，每一种recipe在配置上会存在一些区别，我们就选maven2，中央仓库穿件选择的类型是Proxy，所以我们要选择就是maven2(proxy)，选择后打开接口，配置是目标的中央仓库地址即可。配置后接口参看上面类型。
+找到 Repository 点击菜单 Repositories 点击 create repository,打开界入会让选择 recipe，每一种 recipe 在配置上会存在一些区别，我们就选 maven2，中央仓库穿件选择的类型是 Proxy，所以我们要选择就是 maven2(proxy)，选择后打开接口，配置是目标的中央仓库地址即可。配置后接口参看上面类型。
 
 #### 7.3.2 创建自定义仓库
 
-还是一样点击create repository选择maven(Hosted)，进入界面后根据自己使用的场景选择version policy,特别注意有一个deployment policy的选项，这个选项是用来设置，是否可以往当前仓库发布依赖版本的，如果选了disable那将不能不发依赖版本到当前仓库。
+还是一样点击 create repository 选择 maven(Hosted)，进入界面后根据自己使用的场景选择 version policy,特别注意有一个 deployment policy 的选项，这个选项是用来设置，是否可以往当前仓库发布依赖版本的，如果选了 disable 那将不能不发依赖版本到当前仓库。
 
 #### 7.3.1 创建组
 
-还是一样点击create repository选择maven(group)，取个名，然后下面有一个穿梭框，吧需要合并的仓库选到membwers中即可。
-
+还是一样点击 create repository 选择 maven(group)，取个名，然后下面有一个穿梭框，吧需要合并的仓库选到 membwers 中即可。
 
 ### 7.4 权限配置
 
-【权限问题】角色中带admin和带view的区别
+【权限问题】角色中带 admin 和带 view 的区别
 
 - nx-repository-admin 开头的是针对仓库本身的相关权限
-- nx-repository-view 开头的是针对仓库里的jar的相关权限
+- nx-repository-view 开头的是针对仓库里的 jar 的相关权限
 - nx-component-upload 菜单的上传功能
-
 
 ## 8 自定义插件
 
-自定义 Maven 插件，有两种方式：注释和注解，常用注解方式。使用注解自定义插件的步骤：
+maven 中的插件是有很多目标（goal）组成的，开发插件，实际上就是去编写插件中目标的具体代码。每个目标对应一个 java 类，这个类在 maven 中叫做 MOJO，maven 提供了一个 Mojo 的接口，我们开发插件也就是去实现这个接口的方法。
 
-- 创建工程；
-- 设定打包方式：修改 pom 中的 packaging 为 maven-plugin；
-- 引入依赖： maven-plugin-api、 maven-plugin-annotations；
-- 编写 Mojo 类，并继承 AbstractMojo，实现 execute() 方法；（或者实现 Mojo 接口）
-- Mojo 类上使用注解或注释定义目标；
-- 指定 maven-plugin-plugin 的版本。
+```java
+public interface Mojo {
+    String ROLE = Mojo.class.getName();
+
+    // 目标的主要代码就在这个方法中实现，当使用 mvn 命令调用插件的目标的时候，最后具体调用的就是这个方法。
+    void execute() throws MojoExecutionException, MojoFailureException;
+    // 注入一个标准的Maven日志记录器，允许这个Mojo向用户传递事件和反馈
+    void setLog(Log var1);
+    // 获取注入的日志记录器
+    Log getLog();
+}
+```
+
+Mojo 接口有个默认的抽象类 AbstractMojo ，这个类中把 Mojo 接口中的 setLog 和 getLog 实现了，而 execute 方法没有实现，交给继承者去实现，这个类中 Log 默认可以向控制台输出日志信息，maven 中自带的插件都继承这个类，一般情况下我们开发插件目标可以直接继承这个类，然后实现 execute 方法就可以了。
+
+自定义 Maven 插件，有两种方式：注释和注解，常用注解方式。使用注解实现一个插件的具体步骤：
+
+1. 创建 Maven 工程，设定打包方式：修改 pom 中的 packaging 为 maven-plugin；
+
+```xml
+<packaging>maven-plugin</packaging>
+
+```
+
+2. 引入依赖： maven-plugin-api、 maven-plugin-annotations；
+
+```xml
+<dependency>
+    <groupId>org.apache.maven</groupId>
+    <artifactId>maven-plugin-api</artifactId>
+    <version>3.0</version>
+</dependency>
+
+<dependency>
+    <groupId>org.apache.maven.plugin-tools</groupId>
+    <artifactId>maven-plugin-annotations</artifactId>
+    <version>3.4</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+3. 编写 Mojo 类，并继承 AbstractMojo，实现 execute() 方法；（或者实现 Mojo 接口）
+
+4. Mojo 类上使用注解或注释定义目标；
+
+```java
+// @Mojo 注解用来标注这个类是一个目标类，maven 对插件进行构建的时候会根据这个注解来找到这个插件的目标。
+@org.apache.maven.plugins.annotations.Mojo(name="目标名称")
+```
+
+5. 指定 maven-plugin-plugin 的版本。
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-plugin-plugin</artifactId>
+            <version>3.4</version>
+        </plugin>
+    </plugins>
+</build>
+
+```
+
+6. 安装插件到本地仓库：插件的 pom.xml 所在目录执行下面命令
+
+```sh
+mvn clean install
+```

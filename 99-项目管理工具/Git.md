@@ -20,37 +20,55 @@ git config core.ignorecase true
 git clone <remote_url> <文件夹名>           # 1. 克隆所有分支到指定文件夹
 git clone -b 远端分支名 <remote_url>        # 2. 克隆指定分支
 
+
 ################################ 分支 ################################
-git branch -a              # 查看所有（本地和远端）分支，等同于查看本地分支 git branch 和查看远端分支 git branch -r
-git branch -vv             # 查看本地和远端分支关联关系，并展示最后一次提交信息
+git branch -a                                         # 查看所有（本地和远端）分支，等同于查看本地分支 git branch 和查看远端分支 git branch -r
+git branch -vv                                        # 查看本地和远端分支关联关系，并展示最后一次提交信息
+git branch <new_branch>                               # 创建新分支
+git branch -u=<remote>/<branch_name> <local_branch>   # 本地分支和远端分支相关联，-u 等同于 --set-upstream-to
+git branch --set-upstream-to=origin/master master
+git branch <new_branch> <commit_hash>                 # 基于提交哈希创建新分支
 
-git branch 分支名                   # 1. 创建分支
-git checkout 分支名                 # 2. 切换分支
-git checkout -b 分支名              # 3. 创建并切换分支（等同于步骤1、2）
-git branch -d 分支名                # 4. 删除分支，-D表示强制删除分支
-git branch -d -r 分支名             # 5. 删除本地对远程分支的引用。在本地删除已经不存在的远程分支的记录。git fetch --prune 这个命令会自动清理本地仓库中所有不再存在于远程仓库的分支引用。
-git push origin -d 分支名           # 6. 删除远端分支
-git branch --set-upstream-to=origin/<远端分支名> <本地分支名>     # 6. 本地分支和远端分支相关联，--set-upstream-to等同于-u
+# 基于某次提交创建一个新的分支。-t 就毫无意义，相当于 git branch <new_branch> <commit_hash>
+# 基于远程分支创建一个新的分支，并跟踪远程分支
+# 基于本地分支创建一个新的分支，并跟踪本地分支。适用于本地多分支协作，同步基础分支更新。
+# -t 表示跟踪，<start_point> 表示新分支的起始基准，可以是远程分支、本地分支、具体提交哈希
+git branch -t <new_branch> <start_point>
+
+# 切换分支。本地必须存在分支，否则报错 error: pathspec '分支' did not match any file(s) known to git
+git checkout <new_branch>     
+
+# 创建并切换分支。本地不能已存在分支，否则报错 fatal: A branch named 'test' already exists
+# 等同于 git branch <new_branch> + git checkout <new_branch>
+git checkout -b <new_branch>
+
+# 创建并切换分支，同时将该分支与指定的远程分支关联起来。常用于本地没有远程仓库对应的分支，且需要从其他人的 fork 或远程仓库拉取分支进行协作开发。
+git checkout -b <new_branch> <remote>/<branch_name>
+git checkout -b test origin/test
+
+# 创建并切换分支。
+git checkout -b <new_branch> <commit_hash>
+ 
+# 从指定的远程分支拉取最新的更改，并创建一个本地分支，与远程分支相对应。等同关于 git checkout -b
+# 等同于 git branch -t master origin/master + git checkout master
+# 等同于 git checkout -b <new_branch> <remote>/<branch_name>
+git checkout -t <remote>/<branch_name>
+
+# 从其他分支拉取文件到当前分支
+git checkout <branch_name> -- <file>
+git checkout feature -- fileA.txt fileB.js      
+
+git branch -d <branch>         # 4. 删除分支，-D表示强制删除分支
+git branch -d -r <branch>      # 5. 删除本地对远程分支的引用。在本地删除已经不存在的远程分支的记录。git fetch --prune 这个命令会自动清理本地仓库中所有不再存在于远程仓库的分支引用。
+git push origin -d <branch>    # 6. 删除远端分支
 
 
-# 6. 在本地创建一个新的分支，并将其切换到该分支，同时将该分支与指定的远程分支关联起来。常用于本地没有远程仓库对应的分支，且需要从其他人的 fork 或远程仓库拉取分支进行协作开发。如果本地分支名不写，则默认和远端分支同名。
-git checkout -b <本地分支> [<远程分支>]                            
-
-# 7. 在指定的起点创建一个新的分支，并将 HEAD 指向新分支。通常用于从旧的提交中创建新的分支。例如，如果你需要基于某次提交创建一个新的分支，可以使用该命令。
-git branch -t <new_branch_name> <start_point>                    
-
-# 8. 从指定的远程分支拉取最新的更改，并创建一个本地分支，与远程分支相对应。这个命令通常用于当你需要从其他人的 fork 或远程仓库（如 GitHub）拉取分支进行协作开发时。
-git checkout -t/--track <remote>/<branch_name>
-
-
-# 8. 本地创建分支，并推送到远端仓库
+# 本地创建分支，并推送到远端仓库
 git checkout -b 分支名称                     # 创建并切换分支（等同于步骤1、2）
 git push --set-upstream origin 分支名称      # 推送到远端仓库，--set-upstream等同于-u
 
 # 9. 切换空分支，使用git branch -a 不显示，需要提交个文件才可以查询到
 git ckeckout --orphan 分支名
-
-
 
 git remote -h           # 1. 查看远程的所有操作命令
 git remote -v           # 2. 查看详情verbose：包括远程仓库名和url
@@ -76,6 +94,12 @@ git remote set-url --add <name> <url>
 
 # 7. 更改远程仓库名
 git remote rename <old> <new>
+
+
+################################ 拉取 ################################
+git fetch origin                # 下载远程仓库 origin 上所有你本地还没有的最新数据（包括新的分支、新的提交等）。
+git fetch --prune origin        # 在下载远程仓库 origin 上所有最新数据的同时，清理你本地陈旧的远程跟踪分支。 --prune 等同于 -p
+git pull origin                 # 等于同 git fetch origin + git merge 
 ```
 
 ## 2.4 标签

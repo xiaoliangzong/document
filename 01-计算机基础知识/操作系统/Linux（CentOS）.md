@@ -18,6 +18,22 @@ head -n 20          # 输出前20行
 tail -f -n 20       # -f 滚动输出 tail -n 10 显示最后10行 tail -n +10  从第10行开始，显示10行以后的
 
 scp local_file remote_username@remote_ip:remote_folder      # 远程复制 -r 复制目录 -p 保留文件属性(复制的文件修改时间与原文件相同)
+rsync               # 增量同步工具，支持断点续传、差异传输，适合大文件或频繁更新的场景。需要单独安装。
+                    # 默认情况下，rsync 使用 mtime + 文件大小 来判断文件是否需要同步
+                    # -a：归档模式（递归并保留几乎所有属性）。
+                    # -v：详细输出。
+                    # -z：压缩传输。
+                    # --no-times：不保留远程时间戳。
+                    # --no-perms：不保留权限。
+                    # --no-owner：不保留所有者。
+                    # --no-group：不保留所属组。
+                    # -h：以人类可读的格式显示传输进度。
+                    # --delete：删除目标目录中源目录不存在的文件（保持完全同步）。
+                    # --exclude=PATTERN：排除匹配模式的文件。
+                    # --progress：显示传输进度。
+                    # --files-from="$RSYNC_FILE_LIST"  从文件列表中读取要传输的文件路径。
+                    # --relative 保留源文件的相对路径结构。
+rsync -avzh --progress --delete local_file remote_username@remote_ip:remote_folder  
 cp
 mv                  # 移动，也可以修改文件名称
 mkdir               # 创建文件夹，-p父目录不存在，则会创建
@@ -30,8 +46,9 @@ vim                 # 文本编辑器，如果不存在，则创建，存在则�
                     #   x 删除光标所在处字符、dG 删除光标所在行到文件末尾 D 删除光标所在位置到行尾
                     #   r 取代光标所在字符  R从光标位置开始替换字符，ESC结束
                     dd yy p粘贴在行下 u恢复上一次操作  :9,15 copy(cp\mv) 16
-                    #   搜索？/  dd删除一整行
-                    :%s/old/new/g 全文替换字符串     :n1,n2s/old/new/g   在一定范围内替换字符串
+                    #   搜索 ？/ 。 /表示向下（从光标到文件末尾），?表示向上，n表示沿当前搜索方向继续查找，N表示沿相反方向查找
+                    #   dd删除一整行
+                    #   :%s/old/new/g 全文替换字符串     :n1,n2s/old/new/g   在一定范围内替换字符串
                     #   r ！命令 # 导入命令执行结果
                     #   定义快捷键：map 快捷键 触发命令  永久生效：/root/.vimrc
                     #   插入： A 行尾 I 行首  i字符前面 a字符后边 o光标下插入新行
@@ -48,8 +65,13 @@ find  path -name    # -name 按照名称搜索 -i 忽略大小写
                     # -cmin 查找30分钟内被修改过属性的文件和目录 -mmin 文件内容 modify -amin 访问时间 access
                     # -type 根据文件类型查找 f文件d目录l软链接 单独使用的时候不能加搜索文件的名
                     # -exec/-ok 命令 {} \; 对搜索到的结果执行命令操作，注意点：中括号后边需要增加空格，结束的分号必须写，要不然\当作换行
+                    # -newermt "$LAST_PUSH_TIME" 只返回修改时间（Modification Time）晚于 $LAST_PUSH_TIME 的文件
 find . -inum 917817 -exec rm {} \;
 如果搜索报错find: paths must precede expression: xxxx，搜索的字段添加引号，或者注意选项和路径的顺序
+find . -type f -name "*.xlsx" | wc -l
+find . -type f -mtime +365 -exec rm -f {} \;
+find . -type f -newermt "$LAST_PUSH_TIME"
+stat aa.txt        # 显示文件状态
 locate             # 在文件资料库中查找文件（速度快，类似与windows的everything），但是需要同步updatedb，且locate不对tmp临时目录中的文件与目录进行查找
 which               # 搜索命令所在目录以及别名信息
 whereis             # 搜索命令所在目录以及帮助文档路径，其中 xxx.1 表示命令的帮助、xxx.5表示配置文件的帮助
@@ -74,8 +96,11 @@ traceroute          # 显示数据包到主机间的路径（跟踪路径）？
 useradd             # 添加用户，-g组，-s登录命令，-d家目录，如 useradd -g sftp -s /sbin/nologin sftpuser
 userdel -r          # 删除用户
 usermod             # 修改用户信息
+usermod -d /home/<username> <username>    # 修改用户的家目录路径
 
 groupadd            # 添加用户组
+groupdel
+groupmod
 
 passwd              # 修改自身的密码
 passwd userName     # root修改密码
@@ -343,7 +368,7 @@ seq -w 1 10             # 前面补0
 ```sh
 # 六种格式
 .gz                  # 压缩gzip  解压gunzip  特点：不保留源文件，只能用来压缩文件，不能压缩目录
-.zip                 # 压缩zip -r xxx.zip  解压unzip
+.zip                 # 压缩zip -r xxx.zip  解压unzip -d 
 .tar                 # 压缩tar -cvf xxx.tar 文件目录；解压tar -xvf     常用于备份文件；-c打包  -x解包  -v显示详细信息  -f指定文件名 -C 指定文件目录
 .tar.gz  常用        # 压缩tar -zcvf  解压 tar -zxvf， -z解压缩，等同于gzip xxx.tar
 .bz2                 # 压缩：bzip2 -k 文件目录     解压 bunzip2 -k xxx.bz2    -k 产生压缩文件后保留源文件
@@ -437,8 +462,8 @@ rpm 包主要用于 redhat 及分支如 redhat，centos，Fedora 等，而 deb �
 # 1. 使用压缩包安装
 tar -zxvf xxx.tar.gz
 ./configure --prefix=/usr/local/xxx # 配置安装路径，默认安装在/usr/local/bin/
-make                                # 编译和安装
-make install                        # 编译和安装， make install PREFIX=/usr/local/xxx可以替代./configure命令
+make                                # 编译，将人类可读的源代码（如 C/C++ 代码）转换为计算机可执行的二进制文件。
+make install                        # 安装， make install PREFIX=/usr/local/xxx可以替代./configure命令
 
 # 2. yum在线安装
 /etc/yum.repos.d/CentOS-Base.repo       # 镜像源地址
@@ -446,9 +471,11 @@ yum -y install xxx # yum install 安装命令: -y所有的提示都为y，--inst
 yum -y update 包名							 # 升级
 yum list                                # 查询所有可用软件包列表
 yum grouplist                           # 列出所有可用的软件组列表
+yum list installed                      # 仅列出已安装的包
 yum clean all     # 清理缓存
 yum makecache     # 重新生成yum缓存文件
 yum update        # 升级更新包
+yum remove -y gcc-c++    # 卸载，需要删除残留文件，执行：find / -name "*gcc-c++*" 2>/dev/null
 
 # 更换镜像源
 mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup             # 备份
@@ -663,6 +690,12 @@ systemctl restart NetworkManager
 
 ### 11.1 systemctl
 
+> systemd 有系统和用户区分；系统（/usr/lib/systemd/system/）、用户（/etc/lib/systemd/user/）
+>
+> 一般系统管理员手工创建的单元文件建议存放在/etc/systemd/system/目录下面
+>
+> 利用服务文件只需调用 systemctl
+
 systemctl 是系统服务管理器指令，主要负责控制 systemd 系统和服务管理器。实际上 systemctl 是 service 和 chkconfig 的集合和代替。
 
 - service ：systemd 是一个系统管理守护进程、工具和库的集合；主要操作有系统服务启动、停止、重启、关闭、显示状态；
@@ -671,21 +704,25 @@ systemctl 是系统服务管理器指令，主要负责控制 systemd 系统和�
 ![systemctl=chkconfig+service](../images/systemctl-chkconfig%2Bservice.png)
 
 ```sh
-# 1、 检查某个单元是否启动
+# 1、检查某个单元是否启动
 systemctl is-enabled httpd.service
-# 2、 检查某个服务运行状态
+# 检查某个服务运行状态
 systemctl status httpd.service      # 状态
 systemctl restart httpd.service     # 重启
 systemctl stop httpd.service        # 停止
 systemctl reload httpd.service      # 重载
-# 3、列出所有服务
+# 列出所有服务
 systemctl list-unit-files --type=service
-# 4、查询服务是否激活，和配置是否开机启动
+# 查询服务是否激活，和配置是否开机启动
 systemctl is-active httpd
 systemctl disable httpd
 systemctl enable httpd
-# 5、杀死服务
+# 杀死服务
 systemctl kill httpd
+
+# 重新加载systemd管理器配置
+systemctl daemon-reload
+
 ```
 
 ### 11.2 sysctl
@@ -792,6 +829,7 @@ chmod +x /etc/rc.d/rc.local
 > 使用命令 vim /etc/crontab 编辑定时脚本，做系统配置，会直接配置到/etc/crontab；系统级别的
 
 ```sh
+# 编辑
 crontab -e
 # 进入文件编辑模式：文件位置：/var/spool/cron/$USER
 @reboot /home/user/test.sh    # 自启动脚本
@@ -800,13 +838,11 @@ crontab -e
 # 重启服务
 sudo service cron restart
 
+# 查看
+crontab -l
 ```
 
 #### 13.2.4 服务文件 systemd
-
-> systemd 有系统和用户区分；系统（/user/lib/systemd/system/）、用户（/etc/lib/systemd/user/）.一般系统管理员手工创建的单元文件建议存放在/etc/systemd/system/目录下面
-
-> 利用服务文件只需调用“systemctl”
 
 设置服务自启动
 systemctl enable docker
@@ -899,47 +935,37 @@ kill -HUP pid        # 平滑重启
 - 线上服务器提供在线服务，对用户需要控制，只能让用户在自己的 home 目录下活动；
 - 用户只能使用 sftp，不能 ssh 到服务器进行操作；
 
-```shell
-# 1. 创建用户组，并将用户添加到用户组
-groupadd sftp
-useradd -g sftp -s /sbin/nologin sftpuser
-passwd sftpuser
+常用命令
 
-# 2. 配置sshd_config文件
-vim /etc/ssh/sshd_config
+```sh
+# 登录
+# sftp [选项] [用户名@]主机名
+sftp -P 2922 sftpuser@192.168.100.129
+sftp -i /path/to/private_key username@example.com    # 使用密钥登录
+# 退出
+exit 或 bye 或 quit                                  # 退出会话
+
+# 文件下载（远程 → 本地）
+get remote_file [local_file]             # 下载单个文件
+get -r remote_dir                        # 递归下载目录
+
+# 文件上传（本地 → 远程）
+put local_file [remote_file]             # 上传单个文件
+put -r local_dir                         # 递归上传目录
 
 
-#Subsystem sftp /usr/libexec/openssh/sftp-server      # 注释掉文件末尾的这行
+# 查看目录内容
+ls [remote_dir]       # 查看远程目录
+lls [local_dir]       # 查看本地目录
 
-Subsystem sftp internal-sftp     # 使用sftp服务使用系统自带的internal-sftp
-Match Group sftp                 # 匹配sftpusers组的用户，如果要匹配多个组，多个组之间用逗号分割；
-ChrootDirectory /home/%u         # 用chroot将用户的根目录指定到%h，%h代表用户home目录，这样用户就只能在用户目录下活动。也可用%u，%u代表用户名。
-ForceCommand internal-sftp -l VERBOSE        # 设置日志级别为VERBOSE
-# ForceCommand internal-sftp                   # 指定sftp命令
-# AllowTcpForwarding no
-AllowUsers root@10.10.10.*                   # 限制root用户只能通过10.10.10.*网段登录访问
-X11Forwarding no
+# 切换目录
+cd remote_dir         # 切换远程目录
+lcd local_dir         # 切换本地目录
 
-Match user sftpuser                          # 匹配用户，如果要匹配多个用户，多个用户之间用逗号分割；
-ChrootDirectory /home/%u
-ForceCommand internal-sftp
-AllowTcpForwarding no
-X11Forwarding no
-
-# 3. 设置目录权限
-chown root:sftp /home/sftpuser
-chmod 755 /home/sftpuser
-
-# 目录开始一直往上到系统根目录为止的目录拥有者都只能是 root，用户组可以不是 root。
-# 目录开始一直往上到系统根目录为止都不可以具有群组写入权限
-
-# 4. 重启sshd服务
-systemctl restart sshd
-# 5. 验证sftp登录
-sftp sftpuser@localhost
-
+# 创建/删除目录
+mkdir remote_dir      # 创建远程目录
+rmdir remote_dir      # 删除远程空目录
 ```
-
 **ssh**
 
 一组协议（Secure Shell），在进行数据传输之前，ssh 先对联机数据包通过加密技术处理，加密后再进行数据传输，确保了传递的数据安全；在默认状态下，SSH 服务主要提供 2 个服务功能：

@@ -288,6 +288,9 @@ mkcert-v1.4.4-windows-amd64.exe example.com "*.example.com" localhost 127.0.0.1 
 
 # 示例：生成emqx服务端证书。其中 -cert-file 为自定义输出cert证书文件路径和文件名，-key-file 为自定义输出key私钥文件路径和文件名，
 mkcert-v1.4.4-windows-amd64.exe -cert-file emqx-servser.pem -key-file emqx-server.key 127.0.0.1 localhost 192.1681.100.99
+
+# 示例：生成客户端证书
+mkcert-v1.4.4-windows-amd64.exe -client  -cert-file emqx-client.pem -key-file emqx-client.key 127.0.0.1 localhost 192.1681.100.99
 ```
 
 ### cfssl

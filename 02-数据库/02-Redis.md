@@ -1,8 +1,6 @@
 # Redis
 
-## 1. 安装
-
-### 1.1 Windows
+## 1. Windows 安装
 
 > windows 系统的 Redis 有两个配置文件，redis.windows.conf 和 redis.windows-service.conf，设置密码、配置时，只需要在 redis.windows.conf 文件中设置
 
@@ -46,29 +44,9 @@ sc delete 服务名  # 删除服务（管理员身份运行）
 
 ```
 
-### 1.2 Linux
+## 2 配置文件详解
 
-使用压缩包方式或 rpm 包安装，启动命令基本相同，如果要添加配置、设置密码，只需要修改 redis.conf 文件
-
-```sh
-# 解压，将解压文件存放在 /usr/local/redis 目录
-tar -zxvf redis-6.0.6
-# 安装gcc，ContOS7默认安装4.8.5版本
-yum -y gcc-c++
-# 升级gcc，不升级因为版本低，安装时会报错
-yum -y install centos-release-scl
-yum -y install devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-binutils
-echo "source /opt/rh/devtoolset-9/enable" >>/etc/profile
-systemctl enable devtoolset-9 bash
-# redis程序编译
-make
-make install PREFIX=/usr/local/redis    # 将redis安装在指定位置，默认在/usr/local/bin，也可以在编译前通过./configure --prefix=/usr/local/bin设置安装位置
-# 在安装位置新增配置文件redis.conf，可以用来配置属性和设置密码
-mkdir conf
-cp redis.conf /usr/local/redis/bin/conf/
-```
-
-### 1.3 配置文件详解
+### 2.1 reids.conf
 
 ```sh
 #Redis默认不是以守护进程的方式运行，可以通过该配置项修改，使用yes启用守护进程
@@ -77,9 +55,13 @@ daemonize yes
 pidfile 'E:/xxx/redis/redis_pid/redis.pid'
 #端口
 port 6379
-#绑定主机的ip地址，对于bind，不少人都误解了。以为这个设置是只对客户端IP的连接限制，其实这是错误的！错误的！错误的！bind是你服务器的IP地址！
-#如果开启了保护模式protected-mode yes，并且bind未配置，密码也未设置。redis只接受来自本机的连接。
+#指定 Redis 服务器监听的 IP 地址。0.0.0.0 表示监听所有可用的网络接口，包括外部网络和本地回环接口（localhost）。
+#对于bind，不少人都误解了。以为这个设置是只对客户端IP的连接限制，其实这是错误的！错误的！错误的！bind是你服务器的IP地址！
 bind 0.0.0.0
+# bind 0.0.0.0 -::        # 外部访问的生产环境
+# bind 127.0.0.1 -::1     # 本机访问，同时支持 IPv4/IPv6
+# 开启保护模式。当同时满足以下条件时，保护模式会限制外部连接：1. 未设置密码（requirepass 为空） 2. bind 配置为监听外部网络接口（如 0.0.0.0）或未显式配置 bind
+# protected-mode yes
 #当客户端闲置多长时间后关闭连接，如果指定为0，表示关闭该功能
 timeout 300
 #指定日志记录级别，Redis总共支持四个级别：debug、verbose、notice、warning
@@ -137,32 +119,79 @@ appendfilename 'appendonly.aof'
 appendfsync everysec
 ```
 
-## 2. Spring Cache 和 Redis 区别
+### 2.2 sentinel.conf
 
-1. Spring cache 是由 Spring Framwork 提供的一个缓存抽象层，可以接入各种缓存解决方案来进行使用，通过 Spring Cache 的集成，只需要通过一组注解来操作缓存就可以了。其主要的原理就是向 Spring Context 中注入 Cache 和 CacheManager 这两个 bean，再通过 Spring Boot 的自动装配技术，会根据项目中的配置文件自动注入合适的 Cache 和 CacheManager 实现。
+```sh
+# 是否开启保护模式
+protected-mode no
+# 哨兵sentinel实例运行的端口，默认 26379
+port 26379
+# 是否作为守护进程运行
+daemonize no
+# 运行守护进程时，Redis将在 /var/run/Redis-sentinal.pid 中写入一个 pid 文件
+pidfile /var/run/redis-sentinel.pid
+# 指定日志文件名。空字符串也可用于强制 Sentinel 登录标准输出。请注意，如果使用标准输出用于日志记录，但后台进程化，日志将被发送到/dev/null
+logfile ./sentinel.log
 
-一般是使用一个 ConcurrentHashMap，也就是说实际上是使用 JVM 的内存来缓存对象的，这势必会造成大量的内存消耗。但好处是显然的：使用方便。和 Spring 的事务管理类似，Spring cache 的关键原理就是 Spring AOP，通过 Spring AOP，其实现了在方法调用前、调用后获取方法的入参和返回值，进而实现了缓存的逻辑。 2. Redis 作为一个缓存服务器，是内存级的缓存。它是使用单纯的内存来进行缓存。
+# 控制自身在集群中对外宣告的 IP 和端口的配置项
+sentinel announce-ip <ip>
+sentinel announce-port <port>
 
-集群环境下，每台服务器的 Spring cache 是不同步的，因此 spring cache 只适合单机环境。如果使用 Redis 作为单独的缓存服务器，所有集群服务器统一访问 redis，就不会出现缓存不同步的情况。
+# 工作目录
+dir ./
 
-**coffeine**
+# 哨兵监控主节点
+## ip：主机ip地址
+## port：主机端口
+## master-name：主节点名字（只能由字母A-z、数字0-9 、这三个字符".-_"组成。）。建议使用默认的 mymaster，要不然默认的其他配置项都需要改。
+## quorum：判断master失效至少需要几个sentinel同意，建议设置为 n/2+1，n为sentinel 个数。
+#sentinel monitor <master-name> <ip> <redis-port> <quorum>
+sentinel monitor mymaster 127.0.0.1 6379 2
 
-两个都是缓存的方式
+# 指定 Sentinel 访问 Redis 时的密码，需与 requirepass 保持一致。
+#sentinel auth-pass <master-name> <password>
+sentinel auth-pass mymaster MySUPER--secret-0123passw0rd
 
-不同点：
-redis 是将数据存储到内存里
-caffeine 是将数据存储在本地应用里
+# 配合 ACL 使用，指定 Sentinel 访问 Redis 时的用户名
+#sentinel auth-user <master-name> <username>
 
-caffeine 和 redis 相比，没有了网络 IO 上的消耗
+# 指定主节点应答哨兵sentinel的最大时间间隔，超过这个时间，哨兵主观上认为主节点下线，默认30秒
+#sentinel down-after-milliseconds <master-name> <milliseconds>
+sentinel down-after-milliseconds mymaster 30000
 
-| 比较项       | ConcurrentHashMap | LRUMap                   | Ehcache                       | Guava Cache                         | Caffeine                |
-| ------------ | ----------------- | ------------------------ | ----------------------------- | ----------------------------------- | ----------------------- |
-| 读写性能     | 很好，分段锁      | 一般，全局加锁           | 好                            | 好，需要做淘汰操作                  | 很好                    |
-| 淘汰算法     | 无                | LRU，一般                | 支持多种淘汰算法,LRU,LFU,FIFO | LRU，一般                           | W-TinyLFU, 很好         |
-| 功能丰富程度 | 功能比较简单      | 功能比较单一             | 功能很丰富                    | 功能很丰富，支持刷新和虚引用等      | 功能和 Guava Cache 类似 |
-| 工具大小     | jdk 自带类，很小  | 基于 LinkedHashMap，较小 | 很大，最新版本 1.4MB          | 是 Guava 工具类中的一个小部分，较小 | 一般，最新版本 644KB    |
-| 是否持久化   | 否                | 否                       | 是                            | 否                                  | 否                      |
-| 是否支持集群 | 否                | 否                       | 是                            | 否                                  | 否                      |
+# Sentinel 本身配置为需要密码
+requirepass <password>
+
+#  Sentinel 集群内部各节点之间进行通信时所需的用户和认证密码。
+sentinel sentinel-user <username>
+sentinel sentinel-pass <password>
+
+# 指定了在发生failover主备切换时，最多可以有多少个slave同时对新的master进行同步。这个数字越小，完成failover所需的时间就越长；反之，但是如果这个数字越大，就意味着越多的slave因为replication而不可用。可以通过将这个值设为1，来保证每次只有一个slave，处于不能处理命令请求的状态。
+#sentinel parallel-syncs <master-name> <numreplicas>
+sentinel parallel-syncs mymaster 1
+
+# 故障转移的超时时间failover-timeout，默认3分钟，可以用在以下这些方面：
+## 1. 同一个sentinel对同一个master两次failover之间的间隔时间。
+## 2. 当一个slave从一个错误的master那里同步数据时开始，直到slave被纠正为从正确的master那里同步数据时结束。
+## 3. 当想要取消一个正在进行的failover时所需要的时间。
+## 4.当进行failover时，配置所有slaves指向新的master所需的最大时间。不过，即使过了这个超时，slaves依然会被正确配置为指向master，但是就不按parallel-syncs所配置的规则来同步数据了
+#sentinel failover-timeout <master-name> <milliseconds>
+sentinel failover-timeout mymaster 180000
+
+# 当sentinel有任何警告级别的事件发生时（比如说redis实例的主观失效和客观失效等等），将会去调用这个脚本。一个脚本的最大执行时间为60s，如果超过这个时间，脚本将会被一个SIGKILL信号终止，之后重新执行。
+# 对于脚本的运行结果有以下规则：
+## 1. 若脚本执行后返回1，那么该脚本稍后将会被再次执行，重复次数目前默认为10。
+## 2. 若脚本执行后返回2，或者比2更高的一个返回值，脚本将不会重复执行。
+## 3. 如果脚本在执行过程中由于收到系统中断信号被终止了，则同返回值为1时的行为相同。
+#sentinel notification-script <master-name> <script-path>
+sentinel notification-script mymaster /var/redis/notify.sh
+
+
+
+# 客户端重新配置脚本。这个脚本应该是通用的，能被多次调用，不是针对性的。
+#sentinel client-reconfig-script <master-name> <script-path>
+sentinel client-reconfig-script mymaster /var/redis/reconfig.sh
+```
 
 ## 3. 核心
 
@@ -373,6 +402,8 @@ Redis 客户端可以订阅任意数量的频道
 
 ## 4. 常用命令
 
+### 4.1 Redis 命令
+
 ```sh
 redis-cli -h <IP> -p <端口> -a <密码>        # 客户端登录，-a是指定密码，如果启动时不指定，也可以通过命令行 auth password 指定
 
@@ -381,10 +412,186 @@ get <key>
 expire <key> <second>
 del <key>
 
+
+# 切换数据库。Redis 默认支持 16 个数据库，默认连接到数据库 0。
+select <index>
+
 # 查看所有信息，有Server、Clients、Memory、Persistence、Stats、Replication、CPU、Cluster、Keyspace
 info
 # 查看主从复制相关信息
 info replication
+# 查看持久化相关状态和配置
+info persistence
+
+# 查看所有信息的输出
+
+# Server
+redis_version:5.0.3
+redis_git_sha1:00000000
+redis_git_dirty:0
+redis_build_id:9529b692c0384fb7
+redis_mode:standalone
+os:Linux 4.18.0-348.7.1.el8_5.x86_64 x86_64
+arch_bits:64
+multiplexing_api:epoll
+atomicvar_api:atomic-builtin
+gcc_version:8.4.1
+process_id:10039
+run_id:d6a10d9645d58c3051d247067f8481131cf113e0
+tcp_port:6379
+uptime_in_seconds:1658
+uptime_in_days:0
+hz:10
+configured_hz:10
+lru_clock:7388992
+executable:/usr/bin/redis-server
+config_file:/etc/redis.conf
+
+# Clients
+connected_clients:3
+client_recent_max_input_buffer:2
+client_recent_max_output_buffer:0
+blocked_clients:0
+
+# Memory
+used_memory:895768
+used_memory_human:874.77K
+used_memory_rss:10309632
+used_memory_rss_human:9.83M
+used_memory_peak:936720
+used_memory_peak_human:914.77K
+used_memory_peak_perc:95.63%
+used_memory_overhead:875594
+used_memory_startup:792056
+used_memory_dataset:20174
+used_memory_dataset_perc:19.45%
+allocator_allocated:1011864
+allocator_active:1286144
+allocator_resident:4030464
+total_system_memory:3890036736
+total_system_memory_human:3.62G
+used_memory_lua:37888
+used_memory_lua_human:37.00K
+used_memory_scripts:0
+used_memory_scripts_human:0B
+number_of_cached_scripts:0
+maxmemory:0
+maxmemory_human:0B
+maxmemory_policy:noeviction
+allocator_frag_ratio:1.27
+allocator_frag_bytes:274280
+allocator_rss_ratio:3.13
+allocator_rss_bytes:2744320
+rss_overhead_ratio:2.56
+rss_overhead_bytes:6279168
+mem_fragmentation_ratio:12.08
+mem_fragmentation_bytes:9455856
+mem_not_counted_for_evict:0
+mem_replication_backlog:0
+mem_clients_slaves:0
+mem_clients_normal:83538
+mem_aof_buffer:0
+mem_allocator:jemalloc-5.1.0
+active_defrag_running:0
+lazyfree_pending_objects:0
+
+# Persistence
+loading:0
+rdb_changes_since_last_save:0
+rdb_bgsave_in_progress:0
+rdb_last_save_time:1752217798         # 上次成功生成RDB的Unix时间戳
+rdb_last_bgsave_status:ok             # 上次BGSAVE操作的状态（ok=成功，err=失败）
+rdb_last_bgsave_time_sec:-1           # 上次BGSAVE操作耗时（秒）
+rdb_current_bgsave_time_sec:-1        # 当前BGSAVE操作耗时（-1表示无正在进行的操作）
+rdb_last_cow_size:0                   # 上次BGSAVE期间Copy-On-Write的内存大小（字节）
+aof_enabled:0                         # 是否启用AOF持久化（1=启用，0=禁用）
+aof_rewrite_in_progress:0             # 是否正在进行AOF重写（1=正在重写，0=否）
+aof_rewrite_scheduled:0               # 是否已计划AOF重写（1=已计划，0=否）
+aof_last_rewrite_time_sec:-1          # 上次AOF重写耗时（秒，-1表示未执行过）
+aof_current_rewrite_time_sec:-1       # 当前AOF重写耗时（秒，-1表示未执行）
+aof_last_bgrewrite_status:ok          # 上次AOF重写状态（ok=成功，err=失败）
+aof_last_write_status:ok              # 上次AOF写入状态（ok=成功，err=失败）
+aof_last_cow_size:0                   # 上次AOF重写期间Copy-On-Write的内存大小（字节）
+
+# Stats
+total_connections_received:8
+total_commands_processed:48
+instantaneous_ops_per_sec:0
+total_net_input_bytes:4505628
+total_net_output_bytes:21390
+instantaneous_input_kbps:0.00
+instantaneous_output_kbps:0.00
+rejected_connections:0
+sync_full:0
+sync_partial_ok:0
+sync_partial_err:0
+expired_keys:0
+expired_stale_perc:0.00
+expired_time_cap_reached_count:0
+evicted_keys:0
+keyspace_hits:0
+keyspace_misses:5
+pubsub_channels:0
+pubsub_patterns:0
+latest_fork_usec:0
+migrate_cached_sockets:0
+slave_expires_tracked_keys:0
+active_defrag_hits:0
+active_defrag_misses:0
+active_defrag_key_hits:0
+active_defrag_key_misses:0
+
+# Replication
+role:slave
+master_host:192.168.101.129
+master_port:6379
+master_link_status:down
+master_last_io_seconds_ago:-1
+master_sync_in_progress:0
+slave_repl_offset:1
+master_link_down_since_seconds:1752219456
+slave_priority:100
+slave_read_only:1
+connected_slaves:0
+master_replid:c878a6dd897b06ffec8674081e8f86b8aa1c0d21
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:0
+second_repl_offset:-1
+repl_backlog_active:0
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:0
+repl_backlog_histlen:0
+
+# CPU
+used_cpu_sys:2.110702
+used_cpu_user:1.141736
+used_cpu_sys_children:0.000000
+used_cpu_user_children:0.000000
+
+# Cluster
+cluster_enabled:0
+
+# Keyspace
+```
+
+### 4.2 Sentinel 命令
+
+```sh
+redis-cli -h <IP> -p <端口>         # 客户端登录
+redis-cli -h 127.0.0.1 -p 26379
+
+# 查看信息
+info
+info sentinel                       # 查看哨兵信息
+
+
+sentinel help                       # 帮助
+sentinel masters                    # 查看监控的主节点信息和状态。num-other-sentinels 如果 ≥1 表示已发现其他 Sentinel。
+sentinel master <master-name>       # 查看指定主节点的信息和状态。flag 表示 master 状态，它的值可能是 master、s_down、o_down 的其中一个。
+sentinel sentinels <master-name>    # 查看监控该主节点的 Sentinel 列表
+sentinel replicas <master-name>     # 查看副本信息
+sentinel flushconfig                # 清除旧配置，强制 Sentinel 在磁盘上重写其配置，包括当前配置
+sentinel reset <master-name>        # 重置监控状态
 ```
 
 ## 5. 高可用模式
@@ -420,7 +627,7 @@ info replication
 
 - slave 启动成功连接到 master 后会发送一个 sync 命令。
 - master 接到命令，启动后台的存盘进程，同时收集所有接收到的用于修改数据集命令，在后台进程执行完毕之后，master 将传送整个数据文件到 slave，并完成一次完全同步。
-- 全量复制: 而 slave 服务在接收到数据库文件数据后，将其存盘并加载到内存中。
+- 全量复制: slave 服务在接收到数据库文件数据后，将其存盘并加载到内存中。
 - 增量复制: master 继续将新的所有收集到的修改命令依次传给 slave，完成同步
 
 但是只要是重新连接 master , 一次完全同步(全量复制)将被自动执行
@@ -468,7 +675,7 @@ Redis Sentinel 引入多个 Sentinel 节点，系统具备了更强的可靠性�
 sentinel monitor <master-name> <ip> <port> <quorum>
 sentine1 monitor myredis 127.0.0.1 6379 1
 
-# 哨兵会定期的向redis节点发送ping命令来判断redis是否可达，若超过指定的times毫秒内还未得到pong回复，则判读该redis不可达。默认是30s
+# 哨兵会定期的向redis节点发送ping命令来判断redis是否可达，若超过指定的times毫秒内还未得到ping回复，则判读该redis不可达。默认是30s
 sentinel down-after-milliseconds <master-name> <times>
 
 # 当redis主节点挂了后，哨兵会选出新的master，此时，剩余的slave会向新的master发起同步数据，这个设置表示允许并行同步的slave个数。
@@ -562,6 +769,8 @@ Redis 的集群模式是一种分布式的解决方案，它允许多个 Redis �
 
 在集群模式下，Redis 使用一种叫做哈希槽的技术来实现数据的分片。整个哈希空间被分成 16384 个哈希槽，每个节点负责一部分哈希槽。当一个键需要被存储时，Redis 会根据键的值计算出一个哈希值，然后根据哈希值决定将这个键存储在哪个节点上。这样，读写请求就可以在多个节点上并行处理，提高了系统的性能。
 
+![集群模式](./images/Redis-集群模式.png)
+
 集群模式将所有数据分片，分成 16384 个插槽位 SLOT，16384 个插槽分配到所有 Master 节点上。
 
 在 Redis 集群模式下，任意一个 Master 节点都可以接受客户端的请求。当客户端向某个 Master 节点发送请求时，如果这个请求的键所对应的哈希槽不在这个 Master 节点负责的范围内，那么这个 Master 节点会返回一个重定向信息，告诉客户端应该向哪个节点发送请求。这个过程对客户端来说是透明的，客户端只需要按照重定向信息重新发送请求即可。这种方式确保了 Redis 集群可以有效地处理并分发客户端的请求，提高了系统的性能和可用性。
@@ -599,3 +808,30 @@ Redis 的集群模式是一种分布式的解决方案，它允许多个 Redis �
 开启了保护模式 protected-mode yes，并且 bind 未配置，密码也未设置。redis 只接受来自本机的连接。因此远程连接就会报错。
 
 说明：bind 为绑定主机的 ip 地址，对于 bind，不少人都误解了。以为这个设置是只对客户端 IP 的连接限制，其实这是错误的！错误的！错误的！bind 是你服务器的 IP 地址！
+
+## 7. Spring Cache 和 Redis 区别
+
+1. Spring cache 是由 Spring Framwork 提供的一个缓存抽象层，可以接入各种缓存解决方案来进行使用，通过 Spring Cache 的集成，只需要通过一组注解来操作缓存就可以了。其主要的原理就是向 Spring Context 中注入 Cache 和 CacheManager 这两个 bean，再通过 Spring Boot 的自动装配技术，会根据项目中的配置文件自动注入合适的 Cache 和 CacheManager 实现。
+
+一般是使用一个 ConcurrentHashMap，也就是说实际上是使用 JVM 的内存来缓存对象的，这势必会造成大量的内存消耗。但好处是显然的：使用方便。和 Spring 的事务管理类似，Spring cache 的关键原理就是 Spring AOP，通过 Spring AOP，其实现了在方法调用前、调用后获取方法的入参和返回值，进而实现了缓存的逻辑。 2. Redis 作为一个缓存服务器，是内存级的缓存。它是使用单纯的内存来进行缓存。
+
+集群环境下，每台服务器的 Spring cache 是不同步的，因此 spring cache 只适合单机环境。如果使用 Redis 作为单独的缓存服务器，所有集群服务器统一访问 redis，就不会出现缓存不同步的情况。
+
+**coffeine**
+
+两个都是缓存的方式
+
+不同点：
+redis 是将数据存储到内存里
+caffeine 是将数据存储在本地应用里
+
+caffeine 和 redis 相比，没有了网络 IO 上的消耗
+
+| 比较项       | ConcurrentHashMap | LRUMap                   | Ehcache                       | Guava Cache                         | Caffeine                |
+| ------------ | ----------------- | ------------------------ | ----------------------------- | ----------------------------------- | ----------------------- |
+| 读写性能     | 很好，分段锁      | 一般，全局加锁           | 好                            | 好，需要做淘汰操作                  | 很好                    |
+| 淘汰算法     | 无                | LRU，一般                | 支持多种淘汰算法,LRU,LFU,FIFO | LRU，一般                           | W-TinyLFU, 很好         |
+| 功能丰富程度 | 功能比较简单      | 功能比较单一             | 功能很丰富                    | 功能很丰富，支持刷新和虚引用等      | 功能和 Guava Cache 类似 |
+| 工具大小     | jdk 自带类，很小  | 基于 LinkedHashMap，较小 | 很大，最新版本 1.4MB          | 是 Guava 工具类中的一个小部分，较小 | 一般，最新版本 644KB    |
+| 是否持久化   | 否                | 否                       | 是                            | 否                                  | 否                      |
+| 是否支持集群 | 否                | 否                       | 是                            | 否                                  | 否                      |

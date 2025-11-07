@@ -319,11 +319,11 @@ http {
             proxy_pass http://127.0.0.1:88;             # 反向代理的地址
             proxy_redirect off;                         # 是否开启重定向
             # proxy_set_header field value; 重新定义或者添加发往后端服务器的请求头。
-            proxy_set_header X-Real-IP $remote_addr;    
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header Host $host;
-            proxy_set_header HTTP_X_FORWARDED_FOR $remote_addr;
-            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Real-IP $remote_addr;                         # 传递客户端的真实 IP 地址
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;     # 构建完整的代理链 IP 列表
+            proxy_set_header Host $host;                                     # 将客户端原始请求的 Host 头传递给后端服务器
+            proxy_set_header HTTP_X_FORWARDED_FOR $remote_addr;              # 与 X-Forwarded-For 类似，但使用不同的头部名称
+            proxy_set_header X-Forwarded-Proto $scheme;                      # 告知后端服务器客户端与代理之间的原始协议（HTTP 或 HTTPS）
 
             proxy_connect_timeout 60000;           # 与后端服务器连接超时时间（代理连接超时）
             proxy_send_timeout 60000;              # 后端服务器数据回传时间（代理发送超时）
